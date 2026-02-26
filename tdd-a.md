@@ -1,0 +1,47 @@
+- Planned work: YAML config loader/validation + adapter registry + SessionSummary normalization + OpenCode adapter list (DB/JSONL)
+- YAML: loads config from explicit file path and returns structured config
+- YAML: missing file path or file not found returns clear error with path
+- YAML: unreadable file (permissions) returns clear error with path
+- YAML: invalid YAML syntax returns parse error with line/column
+- YAML: empty file or `null` yields empty config (no agents) without crash
+- YAML: top-level must be a mapping; list/scalar yields validation error
+- YAML: `agents` key missing yields empty registry (explicitly allowed)
+- YAML: `agents` value not a mapping/list yields validation error
+- YAML: each agent entry requires `agent` and `path` (and `alias` if not implied by key); missing required fields error names the field
+- YAML: unknown agent type fails validation with supported list
+- YAML: duplicate alias names fail validation with alias listed
+- YAML: `enabled: false` excludes that alias from registry; default is enabled
+- YAML: `enabled` must be boolean; other types fail validation
+- YAML: `path` must be non-empty string; invalid type fails validation
+- YAML: relative `path` resolves against config file directory
+- Registry: registers adapter with `(agent, alias)` key and can retrieve by key
+- Registry: duplicate `(agent, alias)` registration fails with clear error
+- Registry: adapter missing required method `listSessions` is rejected
+- Registry: adapter metadata missing required fields (agent/alias/label/capabilities) is rejected
+- Registry: registry list order is deterministic (sorted by agent then alias)
+- Registry: registry handles empty state (no adapters) without error
+- Registry: registry supports clear/reset for test isolation
+- SessionSummary: normalizes raw record into required keys only (`id`,`agent`,`alias`,`title`,`createdAt`,`updatedAt`,`messageCount`)
+- SessionSummary: unknown fields are dropped (no leakage of raw backend fields)
+- SessionSummary: `id` and `agent` must be non-empty strings; blank or non-string fails validation
+- SessionSummary: `alias` defaults to empty string when missing; non-string fails validation
+- SessionSummary: `title` defaults to empty string when missing; non-string fails validation
+- SessionSummary: timestamps are normalized to ISO-8601 strings; invalid timestamps fail validation
+- SessionSummary: `messageCount` defaults to 0 when missing; negative or non-integer fails validation
+- OpenCode adapter: config must specify exactly one backend (`jsonl` or `db`); missing or both specified fails validation
+- OpenCode JSONL: file path must exist and be readable; otherwise error includes path
+- OpenCode JSONL: parses single-line JSONL into one session summary
+- OpenCode JSONL: parses multi-line JSONL into multiple summaries
+- OpenCode JSONL: ignores blank lines and trailing whitespace without error
+- OpenCode JSONL: malformed JSON line yields parse error with line number and does not crash the process
+- OpenCode JSONL: record missing required fields yields validation error with record index/id if present
+- OpenCode JSONL: records are normalized to SessionSummary (no raw fields)
+- OpenCode DB: DB file path must exist and be readable; otherwise error includes path
+- OpenCode DB: DB opened in read-only mode (no writes)
+- OpenCode DB: locked DB triggers retry/backoff then fails with clear error if still locked
+- OpenCode DB: schema mismatch (missing tables/columns) fails with schema error
+- OpenCode DB: query results are normalized to SessionSummary
+- OpenCode DB: invalid row values (bad timestamps, missing id) yield validation error
+- OpenCode adapter list: backend errors include agent+alias context for debugging
+- OpenCode adapter list: empty backend data yields empty session list without error
+- OpenCode adapter list: ordering is deterministic (updatedAt desc, then id asc)
