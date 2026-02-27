@@ -7,6 +7,7 @@ import { Adapter, SessionSummary } from "../core/types";
 type ClaudeAdapterOptions = {
   defaultPath?: string;
   configDir?: string;
+  homeDir?: string;
 };
 
 type ClaudeRecord = {
@@ -51,11 +52,12 @@ function resolveClaudePath(entry: OtherAgentEntry, options: ClaudeAdapterOptions
   }
 
   const configured = typeof rawPath === "string" ? rawPath : undefined;
+  const home = options.homeDir ?? homedir();
   const defaultPath =
     options.defaultPath ??
-    (safeStat(join(homedir(), ".claude", "transcripts"))
-      ? join(homedir(), ".claude", "transcripts")
-      : join(homedir(), ".claude", "sessions"));
+    (safeStat(join(home, ".claude", "transcripts"))
+      ? join(home, ".claude", "transcripts")
+      : join(home, ".claude", "sessions"));
   const resolved = resolvePath(configured ?? defaultPath, options.configDir);
 
   const stat = safeStat(resolved);
@@ -97,6 +99,9 @@ function walkDir(dir: string, files: string[]): void {
 
 function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSummary {
   const sessionId = basename(filePath, ".jsonl");
+  if (!sessionId || sessionId.trim().length === 0 || sessionId.startsWith(".")) {
+    throw new Error(`Claude session id missing for ${filePath}`);
+  }
   const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
   let title: string | undefined;
   let messageCount = 0;
