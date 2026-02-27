@@ -1,5 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { homedir } from "node:os";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { Config } from "./types";
 import { validateConfig } from "./validate";
 
@@ -30,7 +32,8 @@ export function loadConfigFromFile(path: string): Config {
     throw new Error(`Config file unreadable: ${path}`);
   }
 
-  return parseConfigText(contents, path);
+  const config = parseConfigText(contents, path);
+  return resolveAgentPaths(config, dirname(path));
 }
 
 export function parseConfigText(contents: string, sourcePath = "<config>"): Config {
@@ -50,6 +53,40 @@ export function parseConfigText(contents: string, sourcePath = "<config>"): Conf
   }
 
   return validateConfig(data);
+}
+
+function resolveAgentPaths(config: Config, baseDir: string): Config {
+  const agents = config.agents.map((entry) => {
+    if (entry.agent === "opencode") {
+      return entry;
+    }
+    const record = entry as Record<string, unknown>;
+    const pathValue = record.path;
+    if (typeof pathValue !== "string" || pathValue.trim().length === 0) {
+      return entry;
+    }
+    const resolved = resolvePath(pathValue, baseDir);
+    return { ...record, path: resolved } as typeof entry;
+  });
+  return { agents };
+}
+
+function resolvePath(pathValue: string, baseDir: string): string {
+  const expanded = expandTilde(pathValue);
+  if (isAbsolute(expanded)) {
+    return expanded;
+  }
+  return resolve(baseDir, expanded);
+}
+
+function expandTilde(pathValue: string): string {
+  if (pathValue === "~") {
+    return homedir();
+  }
+  if (pathValue.startsWith("~/") || pathValue.startsWith("~\\")) {
+    return resolve(homedir(), pathValue.slice(2));
+  }
+  return pathValue;
 }
 
 function parseYamlWithPython(contents: string, sourcePath: string): unknown {

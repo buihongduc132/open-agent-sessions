@@ -172,6 +172,19 @@ describe("config loader", () => {
     const err = () => parseConfigText("agents: [\n");
     expect(err).toThrow(/line/i);
   });
+
+  test("non-opencode paths resolve relative to config file directory", () => {
+    const dir = tempPath();
+    const configPath = join(dir, "config.yml");
+    writeFileSync(
+      configPath,
+      "agents:\n  - agent: codex\n    alias: work\n    path: sessions\n",
+      "utf8"
+    );
+    const config = loadConfigFromFile(configPath);
+    const entry = config.agents[0] as Record<string, unknown>;
+    expect(entry.path).toBe(join(dir, "sessions"));
+  });
 });
 
 describe("open code storage resolution", () => {
