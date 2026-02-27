@@ -29,6 +29,12 @@ describe("config loader", () => {
     );
   });
 
+  test("top-level scalar is rejected", () => {
+    expect(() => parseConfigText("opencode\n")).toThrow(
+      /top-level must be a mapping/i
+    );
+  });
+
   test("missing agents yields empty config", () => {
     const config = parseConfigText("foo: bar\n");
     expect(config.agents).toEqual([]);
@@ -49,6 +55,30 @@ describe("config loader", () => {
     ).toThrow(/enabled must be a boolean/i);
   });
 
+  test("agent entries must be mappings", () => {
+    expect(() => parseConfigText(`agents:\n  - codex\n`)).toThrow(
+      /agent entry must be a mapping/i
+    );
+  });
+
+  test("agent is required", () => {
+    expect(() =>
+      parseConfigText(`agents:\n  - alias: work\n`)
+    ).toThrow(/agent must be one of/i);
+  });
+
+  test("alias is required", () => {
+    expect(() =>
+      parseConfigText(`agents:\n  - agent: codex\n`)
+    ).toThrow(/alias must be a non-empty string/i);
+  });
+
+  test("alias must be non-empty", () => {
+    expect(() =>
+      parseConfigText(`agents:\n  - agent: codex\n    alias: ""\n`)
+    ).toThrow(/alias must be non-empty/i);
+  });
+
   test("agent entries are validated and sorted", () => {
     const config = parseConfigText(`agents:\n  - agent: codex\n    alias: work\n  - agent: opencode\n    alias: alpha\n    enabled: false\n`);
     expect(config.agents.length).toBe(2);
@@ -56,6 +86,15 @@ describe("config loader", () => {
     expect(config.agents[0].alias).toBe("alpha");
     expect(config.agents[0].enabled).toBe(false);
     expect(config.agents[1].agent).toBe("codex");
+  });
+
+  test("non-opencode entries allow extra keys", () => {
+    const config = parseConfigText(
+      `agents:\n  - agent: codex\n    alias: work\n    path: /tmp/codex\n    note: extra\n`
+    );
+    const entry = config.agents[0] as Record<string, unknown>;
+    expect(entry.path).toBe("/tmp/codex");
+    expect(entry.note).toBe("extra");
   });
 
   test("alias whitespace is rejected", () => {
@@ -80,6 +119,12 @@ describe("config loader", () => {
     expect(() =>
       parseConfigText(`agents:\n  - agent: opencode\n    alias: main\n    storage:\n      mode: bad\n`)
     ).toThrow(/storage\.mode/i);
+  });
+
+  test("storage defaults to auto when omitted", () => {
+    const config = parseConfigText(`agents:\n  - agent: opencode\n    alias: main\n`);
+    expect(config.agents[0].agent).toBe("opencode");
+    expect((config.agents[0] as any).storage?.mode).toBe("auto");
   });
 
   test("storage validation rejects empty paths", () => {
@@ -175,7 +220,7 @@ describe("open code storage resolution", () => {
         { dbPath: "/db", jsonlPath: "/jsonl" },
         { exists: () => false }
       )
-    ).toThrow(/storage not found/i);
+    ).toThrow(/storage not found.*\/db.*\/jsonl/i);
   });
 
   test("db mode requires db", () => {
@@ -194,6 +239,22 @@ describe("open code storage resolution", () => {
     ).toThrow(/DB not found/i);
   });
 
+  test("db mode uses db when both exist", () => {
+    const entry = {
+      agent: "opencode",
+      alias: "main",
+      enabled: true,
+      storage: { mode: "db" },
+    } as const;
+    const resolved = resolveOpenCodeStorage(
+      entry,
+      { dbPath: "/db", jsonlPath: "/jsonl" },
+      { exists: () => true }
+    );
+    expect(resolved.mode).toBe("db");
+    expect(resolved.path).toBe("/db");
+  });
+
   test("jsonl mode requires jsonl", () => {
     const entry = {
       agent: "opencode",
@@ -208,5 +269,21 @@ describe("open code storage resolution", () => {
         { exists: (path) => path === "/db" }
       )
     ).toThrow(/JSONL not found/i);
+  });
+
+  test("jsonl mode uses jsonl when both exist", () => {
+    const entry = {
+      agent: "opencode",
+      alias: "main",
+      enabled: true,
+      storage: { mode: "jsonl" },
+    } as const;
+    const resolved = resolveOpenCodeStorage(
+      entry,
+      { dbPath: "/db", jsonlPath: "/jsonl" },
+      { exists: () => true }
+    );
+    expect(resolved.mode).toBe("jsonl");
+    expect(resolved.path).toBe("/jsonl");
   });
 });

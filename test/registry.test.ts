@@ -73,6 +73,20 @@ describe("adapter registry", () => {
     await expect(handle.listSessions()).rejects.toThrow(/\[codex:work\]/i);
   });
 
+  test("adapter factory errors include agent+alias context", () => {
+    expect(() =>
+      createAdapterRegistry(
+        makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
+        {
+          ...baseFactories,
+          codex: () => {
+            throw new Error("boom");
+          },
+        }
+      )
+    ).toThrow(/\[codex:work\].*boom/i);
+  });
+
   test("registry validation context includes entry index", async () => {
     const registry = createAdapterRegistry(
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
