@@ -1,4 +1,5 @@
 export { createAdapterRegistry } from "./registry";
+export { createListService, listSessions } from "./list";
 export { cloneSession, createCloneService } from "./clone";
 export { normalizeSessionSummary } from "./normalize";
 export type {
@@ -11,6 +12,7 @@ export type {
   SessionStorageKind,
   SessionSummary,
 } from "./types";
+export type { SessionListError, SessionListQuery, SessionListResult } from "./list";
 export type {
   CloneDestinationAdapter,
   CloneMessage,
