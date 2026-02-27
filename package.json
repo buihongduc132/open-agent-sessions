@@ -6,7 +6,13 @@
   "scripts": {
     "test": "bun test"
   },
+  "dependencies": {
+    "@opentui/core": "^0.1.74",
+    "@opentui/react": "^0.1.74",
+    "react": "^19.2.3"
+  },
   "devDependencies": {
+    "@types/react": "^19.2.8",
     "typescript": "^5.4.5"
   }
 }
