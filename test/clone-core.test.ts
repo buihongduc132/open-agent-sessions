@@ -89,6 +89,8 @@ describe("clone core", () => {
     expect(captured).toHaveLength(1);
     expect(captured[0].session_id).toBe("oc-new");
     expect(captured[0].session.id).toBe("oc-new");
+    expect(captured[0].session.created_at).toBe(baseSession.created_at);
+    expect(captured[0].session.updated_at).toBe(baseSession.updated_at);
     expect(captured[0].session.messages).toEqual(baseSession.messages);
     expect(captured[0].metadata).toEqual({
       src: { agent: "codex", session_id: "cx-1", version: "codex-v1" },
@@ -175,6 +177,34 @@ describe("clone core", () => {
     ).rejects.toThrow(/available aliases: personal/i);
   });
 
+  test("rejects missing source alias", async () => {
+    const { registry } = buildRegistry({});
+
+    await expect(
+      cloneSession(
+        {
+          source: { agent: "codex", session_id: "cx-1" },
+          destination: { agent: "opencode", alias: "personal" },
+        },
+        registry
+      )
+    ).rejects.toThrow(/alias is required/i);
+  });
+
+  test("unknown source alias lists available aliases", async () => {
+    const { registry } = buildRegistry({});
+
+    await expect(
+      cloneSession(
+        {
+          source: { agent: "codex", alias: "unknown", session_id: "cx-1" },
+          destination: { agent: "opencode", alias: "personal" },
+        },
+        registry
+      )
+    ).rejects.toThrow(/available aliases: work/i);
+  });
+
   test("rejects images and tool calls", async () => {
     const base = {
       ...baseSession,
@@ -222,6 +252,67 @@ describe("clone core", () => {
     ).rejects.toThrow(/unsupported content/i);
   });
 
+  test("allows empty attachment payloads but rejects empty objects", async () => {
+    let wrote = false;
+    const { registry } = buildRegistry({
+      sourceSession: {
+        ...baseSession,
+        messages: [
+          {
+            role: "user",
+            content: "ok",
+            created_at: "2026-02-01T00:00:01.000Z",
+            attachments: [],
+            images: "",
+            tool_calls: [],
+          },
+        ],
+      },
+      destination: {
+        createSession: async () => {
+          wrote = true;
+        },
+      },
+    });
+
+    await expect(
+      cloneSession(
+        {
+          source: { agent: "codex", alias: "work", session_id: "cx-1" },
+          destination: { agent: "opencode", alias: "personal" },
+        },
+        registry,
+        { generateId: () => "oc-new" }
+      )
+    ).resolves.toEqual({ destinationId: "oc-new" });
+
+    expect(wrote).toBe(true);
+
+    const { registry: registryReject } = buildRegistry({
+      sourceSession: {
+        ...baseSession,
+        messages: [
+          {
+            role: "user",
+            content: "bad",
+            created_at: "2026-02-01T00:00:01.000Z",
+            attachments: {},
+          },
+        ],
+      },
+    });
+
+    await expect(
+      cloneSession(
+        {
+          source: { agent: "codex", alias: "work", session_id: "cx-1" },
+          destination: { agent: "opencode", alias: "personal" },
+        },
+        registryReject
+      )
+    ).rejects.toThrow(/unsupported content/i);
+  });
+
   test("retries destination id on conflict", async () => {
     const ids = ["oc-dup", "oc-free"];
     const created: string[] = [];
@@ -245,6 +336,88 @@ describe("clone core", () => {
 
     expect(result.destinationId).toBe("oc-free");
     expect(created).toEqual(["oc-free"]);
+  });
+
+  test("retries when createSession returns a conflict error", async () => {
+    const ids = ["oc-dup", "oc-free"];
+    let attempt = 0;
+    const created: string[] = [];
+    const { registry } = buildRegistry({
+      destination: {
+        generateSessionId: () => ids.shift() ?? "oc-fallback",
+        createSession: async (input) => {
+          attempt += 1;
+          if (attempt === 1) {
+            throw new Error("conflict");
+          }
+          created.push(input.session_id);
+        },
+        isIdConflictError: (error) =>
+          error instanceof Error && error.message === "conflict",
+      },
+    });
+
+    const result = await cloneSession(
+      {
+        source: { agent: "codex", alias: "work", session_id: "cx-1" },
+        destination: { agent: "opencode", alias: "personal" },
+      },
+      registry
+    );
+
+    expect(result.destinationId).toBe("oc-free");
+    expect(created).toEqual(["oc-free"]);
+  });
+
+  test("collision exhaustion returns context and attempt count", async () => {
+    let createCalls = 0;
+    const { registry } = buildRegistry({
+      destination: {
+        hasSession: async () => true,
+        createSession: async () => {
+          createCalls += 1;
+        },
+      },
+    });
+
+    await expect(
+      cloneSession(
+        {
+          source: { agent: "codex", alias: "work", session_id: "cx-1" },
+          destination: { agent: "opencode", alias: "personal" },
+        },
+        registry,
+        { maxIdAttempts: 2 }
+      )
+    ).rejects.toThrow(/\[opencode:personal\].*2 attempts/i);
+
+    expect(createCalls).toBe(0);
+  });
+
+  test("non-conflict createSession errors do not retry", async () => {
+    let calls = 0;
+    const { registry } = buildRegistry({
+      destination: {
+        createSession: async () => {
+          calls += 1;
+          throw new Error("boom");
+        },
+        isIdConflictError: () => false,
+      },
+    });
+
+    await expect(
+      cloneSession(
+        {
+          source: { agent: "codex", alias: "work", session_id: "cx-1" },
+          destination: { agent: "opencode", alias: "personal" },
+        },
+        registry,
+        { generateId: () => "oc-new" }
+      )
+    ).rejects.toThrow(/\[opencode:personal\].*boom/i);
+
+    expect(calls).toBe(1);
   });
 
   test("destination errors include adapter context", async () => {

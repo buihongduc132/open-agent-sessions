@@ -224,14 +224,12 @@ export async function cloneSession(
     }
   }
 
-  if (lastError && options.isIdConflictError && options.isIdConflictError(lastError)) {
-    throw new Error(
-      `Unable to allocate destination session id after ${maxAttempts} attempts`
-    );
-  }
-
+  const destinationLabel = formatAdapterLabel(
+    request.destination.agent,
+    request.destination.alias
+  );
   throw new Error(
-    `Unable to allocate destination session id after ${maxAttempts} attempts`
+    `${destinationLabel} Unable to allocate destination session id after ${maxAttempts} attempts`
   );
 }
 
