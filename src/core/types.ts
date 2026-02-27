@@ -13,6 +13,23 @@ export interface SessionSummary {
   storage: SessionStorageKind;
 }
 
+export interface SessionCloneMetadata {
+  src?: {
+    agent?: AgentKind;
+    session_id?: string;
+    version?: string;
+  };
+  dst?: {
+    agent?: AgentKind;
+    session_id?: string;
+    version?: string;
+  };
+}
+
+export interface SessionDetail extends SessionSummary {
+  clone?: SessionCloneMetadata;
+}
+
 // Canonical session key is (agent, alias, session_id).
 export interface SessionKey {
   agent: AgentKind;

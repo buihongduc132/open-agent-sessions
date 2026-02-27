@@ -8,6 +8,8 @@ export type {
   AdapterFactory,
   AdapterHandle,
   AdapterRegistry,
+  SessionCloneMetadata,
+  SessionDetail,
   SessionKey,
   SessionStorageKind,
   SessionSummary,
