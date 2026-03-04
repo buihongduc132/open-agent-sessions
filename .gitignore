@@ -70,3 +70,6 @@ tmp/
 temp/
 *.tmp
 .ralph
+
+# Session analysis findings (project-specific, not for repo)
+_findings/
