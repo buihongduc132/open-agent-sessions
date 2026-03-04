@@ -1,6 +1,72 @@
-# bv (beads viewer) local config and caches
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.envrc
+
+# Security-sensitive files
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+.dolt/
+dolt/
+*.lock
+
+# Internal planning and data (not for public release)
+.beads/
+.beads-specs/
+.ralph/
+.ralph-tui/
+flow/
 .bv/
 
-# Dolt database files (added by bd init)
-.dolt/
-*.db
+# Temporary files
+tmp/
+temp/
+*.tmp
+.ralph
