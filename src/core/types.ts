@@ -28,6 +28,31 @@ export interface SessionCloneMetadata {
 
 export interface SessionDetail extends SessionSummary {
   clone?: SessionCloneMetadata;
+  messages?: SessionMessage[];
+}
+
+export interface SessionMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  created_at: string;
+  parts: SessionPart[];
+}
+
+export type SessionPart =
+  | { type: "text"; text: string }
+  | { type: "tool"; tool: string; state: Record<string, unknown> }
+  | { type: "reasoning"; text: string }
+  | { type: string; [key: string]: unknown };
+
+export interface SearchQuery {
+  cwd?: string;
+  text: string;
+}
+
+export type SessionReadMode = "last_message" | "all_no_tools" | "all_with_tools";
+
+export interface SessionReadOptions {
+  mode: SessionReadMode;
 }
 
 // Canonical session key is (agent, alias, session_id).
@@ -39,6 +64,8 @@ export interface SessionKey {
 
 export interface Adapter {
   listSessions(): Promise<SessionSummary[]> | SessionSummary[];
+  searchSessions?(query: SearchQuery): Promise<SessionSummary[]> | SessionSummary[];
+  getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail>;
 }
 
 export type AdapterFactory = (entry: AgentEntry) => Adapter;

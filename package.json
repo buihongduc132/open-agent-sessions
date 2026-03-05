@@ -1,10 +1,42 @@
 {
   "name": "open-agent-sessions",
   "version": "0.1.0",
-  "private": true,
+  "description": "Unified session management library for AI coding agents (OpenCode, Codex, Claude)",
   "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "bin": {
+    "oas": "./bin/oas"
+  },
   "scripts": {
-    "test": "bun test"
+    "test": "bun test",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "sessions",
+    "opencode",
+    "codex",
+    "claude",
+    "session-management",
+    "ai-tools"
+  ],
+  "author": "open-agent-sessions contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bhd/open-agent-sessions.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bhd/open-agent-sessions/issues"
+  },
+  "homepage": "https://github.com/bhd/open-agent-sessions#readme",
+  "engines": {
+    "bun": ">=1.0.0"
   },
   "dependencies": {
     "@opentui/core": "^0.1.74",
