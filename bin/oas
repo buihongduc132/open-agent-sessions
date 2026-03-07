@@ -7,10 +7,11 @@ import { Database } from "bun:sqlite";
 // CLI command imports
 import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
 import { runReadCommand, type ReadService } from "../src/cli/read";
+import { runSearchCommand, type SearchService } from "../src/cli/search";
 
 // Core imports
 import { createAdapterRegistry } from "../src/core/registry";
-import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions } from "../src/core/types";
+import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery } from "../src/core/types";
 
 // Config imports
 import { loadConfigFromFile, type Config } from "../src/config";
@@ -248,6 +249,35 @@ function createReadService(config: Config): ReadService {
   };
 }
 
+function createSearchService(config: Config): SearchService {
+  return async (query: SearchQuery) => {
+    const results: SessionSummary[] = [];
+    const errors: { agent: "opencode" | "codex" | "claude"; alias: string; message: string }[] = [];
+
+    for (const entry of config.agents.filter((e) => e.enabled)) {
+      try {
+        const adapter = createOpenCodeAdapter(entry as any, { cwd: query.cwd ?? process.cwd() });
+        
+        if (adapter.searchSessions) {
+          const sessions = await adapter.searchSessions(query);
+          results.push(...sessions);
+        }
+      } catch (error) {
+        errors.push({
+          agent: entry.agent,
+          alias: entry.alias,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    // Sort by updated_at descending
+    results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
+
+    return { sessions: results, errors };
+  };
+}
+
 // ============================================================================
 // Argument Parsing
 // ============================================================================
@@ -354,6 +384,21 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
   process.exit(result.exitCode);
 }
 
+async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const searchSessions = createSearchService(config);
+
+  const result = await runSearchCommand({
+    text: parsed.options["text"] as string | undefined,
+    config,
+    searchSessions,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
 // ============================================================================
 // Help
 // ============================================================================
@@ -375,6 +420,7 @@ function showHelp() {
   console.log("  New Commands (multi-agent):");
   console.log("    sessions [options]     List sessions with time filtering");
   console.log("    read [options]         Read session messages");
+  console.log("    search [options]       Search sessions by title and content");
   console.log("    onboard                Initialize bd (beads) for the project");
   console.log("");
   console.log("Sessions Command Options:");
@@ -382,6 +428,9 @@ function showHelp() {
   console.log("    --since TIMESTAMP      Start time (ISO-8601 format)");
   console.log("    --until TIMESTAMP      End time (ISO-8601 format)");
   console.log("    --limit N              Maximum results (default: 50, 0 = all)");
+  console.log("");
+  console.log("Search Command Options:");
+  console.log("    --text QUERY           Search text (required)");
   console.log("");
   console.log("Read Command Options:");
   console.log("    --session SPEC         Session spec (agent:alias:session_id)");
@@ -410,6 +459,7 @@ function showHelp() {
   console.log("  oas read --session opencode:default:abc123");
   console.log("  oas read --session opencode:default:abc123 --last 20");
   console.log("  oas read --session opencode:default:abc123 --all --tools");
+  console.log("  oas search --text \"error\"        Search for sessions containing 'error'");
   process.exit(0);
 }
 
@@ -475,6 +525,16 @@ async function main() {
     return;
   }
 
+  if (command === "search") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleSearchCommand(parsed);
+    return;
+  }
+
   if (command === "onboard") {
     // Explanation: This command initializes 'bd' (beads) for the project.
     // It will set up the necessary configuration files for issue tracking.
@@ -497,6 +557,7 @@ async function main() {
   console.log("  find, show     Show session details");
   console.log("  sessions       List sessions with time filtering");
   console.log("  read           Read session messages");
+  console.log("  search         Search sessions by title and content");
   console.log("  onboard        Initialize bd (beads) for the project");
   console.log("");
   console.log("Run 'oas --help' for more information.");
