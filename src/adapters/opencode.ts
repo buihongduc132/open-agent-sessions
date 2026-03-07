@@ -6,12 +6,14 @@ import { resolveOpenCodeStorage } from "../config/opencode";
 import { OpenCodeAgentEntry, OpenCodeStorageDefaults } from "../config/types";
 import {
   Adapter,
+  MessageSelectionOptions,
   SearchQuery,
   SessionDetail,
   SessionMessage,
   SessionPart,
   SessionReadOptions,
   SessionSummary,
+  TimeRangeOptions,
 } from "../core/types";
 
 // Expected schema for validation
@@ -132,6 +134,8 @@ function createDbAdapter(
 
   return {
     listSessions: () => listSessionsFromDb(db, entry, cwd, label),
+    listSessionsByTimeRange: (options: TimeRangeOptions) =>
+      listSessionsByTimeRangeFromDb(db, entry, cwd, options, label),
     searchSessions: (query: SearchQuery) => searchSessionsFromDb(db, entry, query, label),
     getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
       getSessionDetailFromDb(db, entry, sessionId, opts, label),
@@ -159,6 +163,8 @@ function createJsonlAdapter(
 
   return {
     listSessions: () => listSessionsFromJsonl(jsonlPath, entry, cwd, label),
+    listSessionsByTimeRange: (options: TimeRangeOptions) =>
+      listSessionsByTimeRangeFromJsonl(jsonlPath, entry, cwd, options, label),
     searchSessions: (query: SearchQuery) => searchSessionsFromJsonl(jsonlPath, entry, query, label),
     getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
       getSessionDetailFromJsonl(jsonlPath, entry, sessionId, opts, label),
@@ -307,6 +313,69 @@ function listSessionsFromDb(
   });
 }
 
+function listSessionsByTimeRangeFromDb(
+  db: Database,
+  entry: OpenCodeAgentEntry,
+  cwd: string,
+  options: TimeRangeOptions,
+  label: string
+): SessionSummary[] {
+  const projectId = findProjectId(db, cwd, label);
+  if (!projectId) {
+    return [];
+  }
+
+  // Build query with optional filters
+  const conditions: string[] = ["project_id = ?"];
+  const params: (string | number)[] = [projectId];
+
+  // Add time filters
+  if (options.since !== undefined) {
+    conditions.push("time_created >= ?");
+    params.push(options.since);
+  }
+
+  if (options.until !== undefined) {
+    conditions.push("time_updated <= ?");
+    params.push(options.until);
+  }
+
+  // Add limit (default 50, 0 = all)
+  const limit = options.limit !== undefined ? options.limit : 50;
+  const limitClause = limit > 0 ? ` LIMIT ${limit}` : "";
+
+  const query = `
+    SELECT id, project_id, directory, title, time_created, time_updated
+    FROM session
+    WHERE ${conditions.join(" AND ")}
+    ORDER BY time_updated DESC
+    ${limitClause}
+  `;
+
+  let sessions: SessionRow[];
+  try {
+    sessions = db.query<SessionRow, (string | number)[]>(query).all(...params);
+  } catch (error) {
+    throw new Error(
+      `${label} failed to query sessions by time range: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  return sessions.map((row: SessionRow) => {
+    const messageCount = countMessages(db, row.id, label);
+    return {
+      id: row.id,
+      agent: "opencode",
+      alias: entry.alias,
+      title: row.title || row.id, // Fallback to id if title empty
+      created_at: formatTimestamp(row.time_created),
+      updated_at: formatTimestamp(row.time_updated),
+      message_count: messageCount,
+      storage: "db",
+    };
+  });
+}
+
 function searchSessionsFromDb(
   db: Database,
   entry: OpenCodeAgentEntry,
@@ -397,18 +466,31 @@ async function getSessionDetailFromDb(
     storage: "db",
   };
 
+  // Determine tool filtering options
+  const toolOptions: {
+    lastOnly?: boolean;
+    excludeTools?: boolean;
+    includeAll?: boolean;
+  } = {};
+
   if (options.mode === "last_message") {
-    const messages = getMessagesFromDb(db, sessionId, { lastOnly: true }, label);
-    return { ...baseSummary, messages };
+    toolOptions.lastOnly = true;
+  } else if (options.mode === "all_with_tools") {
+    toolOptions.includeAll = true;
+  } else {
+    // Default: exclude tools
+    toolOptions.excludeTools = true;
   }
 
-  if (options.mode === "all_with_tools") {
-    const messages = getMessagesFromDb(db, sessionId, { includeAll: true }, label);
-    return { ...baseSummary, messages };
+  // Handle message selection options
+  const selection = options.selection;
+  if (selection) {
+    const { messages, warning } = getMessagesWithSelection(db, sessionId, selection, toolOptions, label);
+    return { ...baseSummary, messages, ...(warning && { warning }) };
   }
 
-  // Default behavior (mode undefined or "all_no_tools"): exclude tools
-  const messages = getMessagesFromDb(db, sessionId, { excludeTools: true }, label);
+  // Legacy behavior without selection options
+  const messages = getMessagesFromDb(db, sessionId, toolOptions, label);
   return { ...baseSummary, messages };
 }
 
@@ -490,6 +572,133 @@ function getMessagesFromDb(
       parts,
     };
   });
+}
+
+// Message selection options type
+type MessageSelectionOpts = {
+  mode: "first" | "last" | "all" | "range" | "user-only";
+  count?: number;
+  start?: number;
+  end?: number;
+};
+
+type ToolFilterOpts = {
+  lastOnly?: boolean;
+  excludeTools?: boolean;
+  includeAll?: boolean;
+};
+
+/**
+ * Get messages with selection options (first, last, all, range, user-only).
+ * Uses 1-indexed ranges for start/end parameters.
+ * Returns messages and optional warning.
+ */
+function getMessagesWithSelection(
+  db: Database,
+  sessionId: string,
+  selection: MessageSelectionOpts,
+  toolOptions: ToolFilterOpts,
+  label: string
+): { messages: SessionMessage[]; warning?: string } {
+  // First, fetch all messages for the session (ordered by time_created ASC)
+  let messages: MessageRow[];
+  try {
+    messages = db
+      .query<MessageRow, [string]>(
+        `SELECT id, session_id, time_created, data
+         FROM message
+         WHERE session_id = ?
+         ORDER BY time_created ASC`
+      )
+      .all(sessionId);
+  } catch (error) {
+    throw new Error(`${label} failed to query messages: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  // Parse roles for filtering
+  const messagesWithRoles = messages.map((row) => {
+    let data: { role?: string };
+    try {
+      data = JSON.parse(row.data) as { role?: string };
+    } catch (error) {
+      throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    return { row, role: normalizeRole(data.role) };
+  });
+
+  // Apply selection mode
+  let selectedRows: typeof messagesWithRoles;
+  let warning: string | undefined;
+
+  switch (selection.mode) {
+    case "first": {
+      const count = selection.count ?? 10;
+      selectedRows = messagesWithRoles.slice(0, count);
+      break;
+    }
+
+    case "last": {
+      const count = selection.count ?? 10;
+      selectedRows = messagesWithRoles.slice(-count);
+      break;
+    }
+
+    case "all": {
+      selectedRows = messagesWithRoles;
+      // Warn if more than 100 messages
+      if (messagesWithRoles.length > 100) {
+        warning = `Large message count (${messagesWithRoles.length}): consider using --first, --last, or --range for better performance`;
+      }
+      break;
+    }
+
+    case "range": {
+      // 1-indexed, inclusive range
+      const start = selection.start ?? 1;
+      const end = selection.end ?? messagesWithRoles.length;
+
+      // Validate range
+      if (start < 1) {
+        throw new Error(`${label} invalid range: start (${start}) must be >= 1`);
+      }
+      if (end < 1) {
+        throw new Error(`${label} invalid range: end (${end}) must be >= 1`);
+      }
+      if (start > end) {
+        throw new Error(`${label} invalid range: start (${start}) > end (${end})`);
+      }
+
+      // Convert to 0-indexed slice (start-1 to end, since slice end is exclusive)
+      const startIndex = start - 1;
+      const endIndex = end; // slice end is exclusive, so we use end directly
+
+      selectedRows = messagesWithRoles.slice(startIndex, endIndex);
+      break;
+    }
+
+    case "user-only": {
+      selectedRows = messagesWithRoles.filter((m) => m.role === "user");
+      break;
+    }
+
+    default:
+      throw new Error(`${label} unsupported selection mode: ${(selection as { mode: string }).mode}`);
+  }
+
+  // Map selected rows to SessionMessage with parts
+  const selectedMessages = selectedRows.map(({ row }) => {
+    const parts = getPartsFromDb(db, row.id, toolOptions, label);
+    const role = messagesWithRoles.find((m) => m.row.id === row.id)!.role;
+
+    return {
+      id: row.id,
+      role,
+      created_at: formatTimestamp(row.time_created),
+      parts,
+    };
+  });
+
+  return { messages: selectedMessages, warning };
 }
 
 function getPartsFromDb(
@@ -618,6 +827,58 @@ function listSessionsFromJsonl(
   filtered.sort((a, b) => b.timeUpdated - a.timeUpdated);
 
   return filtered.map((row) => ({
+    id: row.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: row.title || row.id, // Fallback to id if title empty
+    created_at: formatTimestamp(row.timeCreated),
+    updated_at: formatTimestamp(row.timeUpdated),
+    message_count: 0, // JSONL doesn't have message counts in session rows
+    storage: "jsonl",
+  }));
+}
+
+function listSessionsByTimeRangeFromJsonl(
+  jsonlPath: string,
+  entry: OpenCodeAgentEntry,
+  cwd: string,
+  options: TimeRangeOptions,
+  label: string
+): SessionSummary[] {
+  const sessions = parseJsonlFile(jsonlPath, label);
+  const normalizedCwd = resolve(cwd);
+
+  // Filter sessions by CWD (directory match) and time range
+  const filtered = sessions.filter((s) => {
+    // Check CWD match
+    try {
+      if (!s.directory || resolve(s.directory) !== normalizedCwd) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+
+    // Check time range filters
+    if (options.since !== undefined && s.timeCreated < options.since) {
+      return false;
+    }
+
+    if (options.until !== undefined && s.timeUpdated > options.until) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // Sort by timeUpdated descending
+  filtered.sort((a, b) => b.timeUpdated - a.timeUpdated);
+
+  // Apply limit (default 50, 0 = all)
+  const limit = options.limit !== undefined ? options.limit : 50;
+  const limited = limit > 0 ? filtered.slice(0, limit) : filtered;
+
+  return limited.map((row) => ({
     id: row.id,
     agent: "opencode",
     alias: entry.alias,

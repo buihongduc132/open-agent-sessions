@@ -1338,4 +1338,646 @@ describe("OpenCode Adapter", () => {
       expect(session.id).toBe("ses-123");
     });
   });
+
+  // ===========================================================================
+  // Message Selection Tests (oas-lok - Task 1.2)
+  // ===========================================================================
+
+  describe("Message Selection", () => {
+    // Helper to set up a session with multiple messages
+    const setupSessionWithMessages = (sessionId: string, cwd: string) => {
+      const projectId = `proj-${sessionId}`;
+      seedProject(projectId, cwd);
+      seedSession(sessionId, projectId, "Selection Test", cwd, 1000, 10000);
+
+      // Create 15 messages alternating user/assistant
+      for (let i = 1; i <= 15; i++) {
+        const role = i % 2 === 1 ? "user" : "assistant";
+        seedMessage(`msg-${sessionId}-${i}`, sessionId, role, 1000 + i * 100);
+        seedPart(
+          `prt-${sessionId}-${i}`,
+          `msg-${sessionId}-${i}`,
+          sessionId,
+          "text",
+          { text: `Message ${i} (${role})` },
+          1000 + i * 100 + 50
+        );
+      }
+
+      return projectId;
+    };
+
+    describe("AC1: Support --first N (first N messages)", () => {
+      test("returns first 5 messages", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-first-1", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-first-1", {
+          selection: { mode: "first", count: 5 },
+        });
+
+        expect(detail.messages).toHaveLength(5);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        // i=5 is odd, so role is user
+        expect(detail.messages?.[4].parts[0].text).toBe("Message 5 (user)");
+      });
+
+      test("returns first 1 message", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-first-2", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-first-2", {
+          selection: { mode: "first", count: 1 },
+        });
+
+        expect(detail.messages).toHaveLength(1);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+      });
+
+      test("defaults to 10 when count not specified", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-first-3", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-first-3", {
+          selection: { mode: "first" },
+        });
+
+        expect(detail.messages).toHaveLength(10);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        // i=10 is even, so role is assistant
+        expect(detail.messages?.[9].parts[0].text).toBe("Message 10 (assistant)");
+      });
+
+      test("returns all messages when count exceeds total", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-first-4", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-first-4", {
+          selection: { mode: "first", count: 100 },
+        });
+
+        expect(detail.messages).toHaveLength(15);
+      });
+    });
+
+    describe("AC2: Support --last N (last N messages, default 10)", () => {
+      test("returns last 5 messages", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-last-1", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-last-1", {
+          selection: { mode: "last", count: 5 },
+        });
+
+        expect(detail.messages).toHaveLength(5);
+        // Last 5 messages are 11, 12, 13, 14, 15
+        // i=11 is odd, so role is user
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 11 (user)");
+        // i=15 is odd, so role is user
+        expect(detail.messages?.[4].parts[0].text).toBe("Message 15 (user)");
+      });
+
+      test("returns last 1 message", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-last-2", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-last-2", {
+          selection: { mode: "last", count: 1 },
+        });
+
+        expect(detail.messages).toHaveLength(1);
+        // i=15 is odd, so role is user
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 15 (user)");
+      });
+
+      test("defaults to 10 when count not specified", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-last-3", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-last-3", {
+          selection: { mode: "last" },
+        });
+
+        expect(detail.messages).toHaveLength(10);
+        // Last 10 messages are 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+        // i=6 is even, so role is assistant
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 6 (assistant)");
+        // i=15 is odd, so role is user
+        expect(detail.messages?.[9].parts[0].text).toBe("Message 15 (user)");
+      });
+
+      test("returns all messages when count exceeds total", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-last-4", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-last-4", {
+          selection: { mode: "last", count: 100 },
+        });
+
+        expect(detail.messages).toHaveLength(15);
+      });
+    });
+
+    describe("AC3: Support --all (all messages, warn if >100)", () => {
+      test("returns all messages", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-all-1", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-all-1", {
+          selection: { mode: "all" },
+        });
+
+        expect(detail.messages).toHaveLength(15);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        // i=15 is odd, so role is user
+        expect(detail.messages?.[14].parts[0].text).toBe("Message 15 (user)");
+      });
+
+      test("returns empty array when no messages", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-empty";
+        seedProject(projectId, cwd);
+        seedSession("ses-empty", projectId, "Empty Session", cwd, 1000, 2000);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-empty", {
+          selection: { mode: "all" },
+        });
+
+        expect(detail.messages).toEqual([]);
+      });
+
+      test("warns when more than 100 messages", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-large";
+        seedProject(projectId, cwd);
+        seedSession("ses-large", projectId, "Large Session", cwd, 1000, 10000);
+
+        // Create 150 messages
+        for (let i = 1; i <= 150; i++) {
+          const role = i % 2 === 1 ? "user" : "assistant";
+          seedMessage(`msg-large-${i}`, "ses-large", role, 1000 + i * 100);
+          seedPart(
+            `prt-large-${i}`,
+            `msg-large-${i}`,
+            "ses-large",
+            "text",
+            { text: `Message ${i} (${role})` },
+            1000 + i * 100 + 50
+          );
+        }
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-large", {
+          selection: { mode: "all" },
+        });
+
+        expect(detail.messages).toHaveLength(150);
+        expect(detail.warning).toBeDefined();
+        expect(detail.warning).toMatch(/Large message count \(150\)/);
+        expect(detail.warning).toMatch(/consider using --first, --last, or --range/);
+      });
+
+      test("no warning when exactly 100 messages", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-exact-100";
+        seedProject(projectId, cwd);
+        seedSession("ses-exact-100", projectId, "Exact 100 Session", cwd, 1000, 10000);
+
+        // Create exactly 100 messages
+        for (let i = 1; i <= 100; i++) {
+          const role = i % 2 === 1 ? "user" : "assistant";
+          seedMessage(`msg-exact-${i}`, "ses-exact-100", role, 1000 + i * 100);
+          seedPart(
+            `prt-exact-${i}`,
+            `msg-exact-${i}`,
+            "ses-exact-100",
+            "text",
+            { text: `Message ${i} (${role})` },
+            1000 + i * 100 + 50
+          );
+        }
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-exact-100", {
+          selection: { mode: "all" },
+        });
+
+        expect(detail.messages).toHaveLength(100);
+        expect(detail.warning).toBeUndefined();
+      });
+    });
+
+    describe("AC4: Support --range START:END (1-indexed, inclusive)", () => {
+      test("returns messages 3-7 (1-indexed, inclusive)", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-range-1", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-range-1", {
+          selection: { mode: "range", start: 3, end: 7 },
+        });
+
+        expect(detail.messages).toHaveLength(5);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 3 (user)");
+        // i=7 is odd, so role is user
+        expect(detail.messages?.[4].parts[0].text).toBe("Message 7 (user)");
+      });
+
+      test("returns single message when start equals end", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-range-2", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-range-2", {
+          selection: { mode: "range", start: 5, end: 5 },
+        });
+
+        expect(detail.messages).toHaveLength(1);
+        // i=5 is odd, so role is user
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 5 (user)");
+      });
+
+      test("returns from start to end when end not specified", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-range-3", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-range-3", {
+          selection: { mode: "range", start: 13 },
+        });
+
+        expect(detail.messages).toHaveLength(3);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 13 (user)");
+        // i=15 is odd, so role is user
+        expect(detail.messages?.[2].parts[0].text).toBe("Message 15 (user)");
+      });
+
+      test("returns from beginning to end when start not specified", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-range-4", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-range-4", {
+          selection: { mode: "range", end: 3 },
+        });
+
+        expect(detail.messages).toHaveLength(3);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        expect(detail.messages?.[2].parts[0].text).toBe("Message 3 (user)");
+      });
+    });
+
+    describe("AC5: Support --user-only (filter by role=user)", () => {
+      test("returns only user messages", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-user-1", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-user-1", {
+          selection: { mode: "user-only" },
+        });
+
+        // Messages 1, 3, 5, 7, 9, 11, 13, 15 are user (odd numbers)
+        expect(detail.messages).toHaveLength(8);
+        detail.messages?.forEach((msg) => {
+          expect(msg.role).toBe("user");
+        });
+      });
+
+      test("returns empty array when no user messages", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-no-user";
+        seedProject(projectId, cwd);
+        seedSession("ses-no-user", projectId, "No User Session", cwd, 1000, 2000);
+
+        seedMessage("msg-1", "ses-no-user", "assistant", 1100);
+        seedMessage("msg-2", "ses-no-user", "system", 1200);
+        seedPart("prt-1", "msg-1", "ses-no-user", "text", { text: "Assistant message" }, 1150);
+        seedPart("prt-2", "msg-2", "ses-no-user", "text", { text: "System message" }, 1250);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-no-user", {
+          selection: { mode: "user-only" },
+        });
+
+        expect(detail.messages).toEqual([]);
+      });
+    });
+
+    describe("AC6: 1-indexed message ranges", () => {
+      test("range 1:1 returns first message", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-index-1", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-index-1", {
+          selection: { mode: "range", start: 1, end: 1 },
+        });
+
+        expect(detail.messages).toHaveLength(1);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+      });
+
+      test("range 1:3 returns first 3 messages", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-index-2", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-index-2", {
+          selection: { mode: "range", start: 1, end: 3 },
+        });
+
+        expect(detail.messages).toHaveLength(3);
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        expect(detail.messages?.[1].parts[0].text).toBe("Message 2 (assistant)");
+        expect(detail.messages?.[2].parts[0].text).toBe("Message 3 (user)");
+      });
+    });
+
+    describe("Edge Cases", () => {
+      test("range exceeds message count - returns available messages", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-edge-range-1", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-edge-range-1", {
+          selection: { mode: "range", start: 10, end: 100 },
+        });
+
+        // Should return messages 10-15 (6 messages total)
+        expect(detail.messages).toHaveLength(6);
+        // i=10 is even, so role is assistant
+        expect(detail.messages?.[0].parts[0].text).toBe("Message 10 (assistant)");
+      });
+
+      test("start > end throws error", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-edge-range-2", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        expect(
+          adapter.getSessionDetail("ses-edge-range-2", {
+            selection: { mode: "range", start: 5, end: 3 },
+          })
+        ).rejects.toThrow(/invalid range.*start.*5.*end.*3/);
+      });
+
+      test("invalid index 0 throws error", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-edge-range-3", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        expect(
+          adapter.getSessionDetail("ses-edge-range-3", {
+            selection: { mode: "range", start: 0, end: 5 },
+          })
+        ).rejects.toThrow(/invalid range.*start.*0.*must be >= 1/);
+      });
+
+      test("negative index throws error", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-edge-range-4", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        expect(
+          adapter.getSessionDetail("ses-edge-range-4", {
+            selection: { mode: "range", start: -1, end: 5 },
+          })
+        ).rejects.toThrow(/invalid range.*start.*-1.*must be >= 1/);
+      });
+
+      test("invalid end index 0 throws error", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-edge-range-5", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        expect(
+          adapter.getSessionDetail("ses-edge-range-5", {
+            selection: { mode: "range", start: 1, end: 0 },
+          })
+        ).rejects.toThrow(/invalid range.*end.*0.*must be >= 1/);
+      });
+
+      test("negative end index throws error", async () => {
+        const cwd = "/home/user/project";
+        setupSessionWithMessages("ses-edge-range-6", cwd);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        expect(
+          adapter.getSessionDetail("ses-edge-range-6", {
+            selection: { mode: "range", start: 1, end: -5 },
+          })
+        ).rejects.toThrow(/invalid range.*end.*-5.*must be >= 1/);
+      });
+
+      test("session with 0 messages returns empty array", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-zero-msg";
+        seedProject(projectId, cwd);
+        seedSession("ses-zero", projectId, "Zero Messages", cwd, 1000, 2000);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-zero", {
+          selection: { mode: "all" },
+        });
+
+        expect(detail.messages).toEqual([]);
+      });
+
+      test("only tool calls - nothing to show with tools excluded", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-tools-only";
+        seedProject(projectId, cwd);
+        seedSession("ses-tools-only", projectId, "Tools Only", cwd, 1000, 2000);
+
+        seedMessage("msg-tool-1", "ses-tools-only", "assistant", 1100);
+        seedPart("prt-tool-1", "msg-tool-1", "ses-tools-only", "tool", { tool: "bash", state: {} }, 1150);
+        seedPart("prt-tool-2", "msg-tool-1", "ses-tools-only", "step-start", {}, 1200);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-tools-only", {
+          mode: "all_no_tools",
+          selection: { mode: "all" },
+        });
+
+        expect(detail.messages).toHaveLength(1);
+        expect(detail.messages?.[0].parts).toEqual([]);
+      });
+
+      test("only tool calls - shows tools with mode=all_with_tools", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-tools-show";
+        seedProject(projectId, cwd);
+        seedSession("ses-tools-show", projectId, "Tools Show", cwd, 1000, 2000);
+
+        seedMessage("msg-tool-show-1", "ses-tools-show", "assistant", 1100);
+        seedPart("prt-tool-show-1", "msg-tool-show-1", "ses-tools-show", "tool", { tool: "bash", state: {} }, 1150);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-tools-show", {
+          mode: "all_with_tools",
+          selection: { mode: "all" },
+        });
+
+        expect(detail.messages).toHaveLength(1);
+        expect(detail.messages?.[0].parts).toHaveLength(1);
+        expect(detail.messages?.[0].parts[0].type).toBe("tool");
+      });
+    });
+
+    describe("Combining selection with tool filtering", () => {
+      test("first N with tools excluded", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-combo-1";
+        seedProject(projectId, cwd);
+        seedSession("ses-combo-1", projectId, "Combo Test", cwd, 1000, 2000);
+
+        // Create messages with mixed content
+        seedMessage("msg-c1-1", "ses-combo-1", "user", 1100);
+        seedPart("prt-c1-1", "msg-c1-1", "ses-combo-1", "text", { text: "User question" }, 1150);
+
+        seedMessage("msg-c1-2", "ses-combo-1", "assistant", 1200);
+        seedPart("prt-c1-2a", "msg-c1-2", "ses-combo-1", "text", { text: "Response" }, 1250);
+        seedPart("prt-c1-2b", "msg-c1-2", "ses-combo-1", "tool", { tool: "bash", state: {} }, 1300);
+
+        seedMessage("msg-c1-3", "ses-combo-1", "user", 1400);
+        seedPart("prt-c1-3", "msg-c1-3", "ses-combo-1", "text", { text: "Follow up" }, 1450);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-combo-1", {
+          mode: "all_no_tools",
+          selection: { mode: "first", count: 2 },
+        });
+
+        expect(detail.messages).toHaveLength(2);
+        expect(detail.messages?.[1].parts).toHaveLength(1); // tool excluded
+        expect(detail.messages?.[1].parts[0].type).toBe("text");
+      });
+
+      test("range with tools included", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-combo-2";
+        seedProject(projectId, cwd);
+        seedSession("ses-combo-2", projectId, "Combo Test 2", cwd, 1000, 2000);
+
+        seedMessage("msg-c2-1", "ses-combo-2", "user", 1100);
+        seedPart("prt-c2-1", "msg-c2-1", "ses-combo-2", "text", { text: "Q1" }, 1150);
+
+        seedMessage("msg-c2-2", "ses-combo-2", "assistant", 1200);
+        seedPart("prt-c2-2a", "msg-c2-2", "ses-combo-2", "text", { text: "A1" }, 1250);
+        seedPart("prt-c2-2b", "msg-c2-2", "ses-combo-2", "tool", { tool: "bash", state: {} }, 1300);
+
+        seedMessage("msg-c2-3", "ses-combo-3", "user", 1400);
+        seedPart("prt-c2-3", "msg-c2-3", "ses-combo-2", "text", { text: "Q2" }, 1450);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-combo-2", {
+          mode: "all_with_tools",
+          selection: { mode: "range", start: 1, end: 2 },
+        });
+
+        expect(detail.messages).toHaveLength(2);
+        expect(detail.messages?.[1].parts).toHaveLength(2); // both text and tool
+      });
+
+      test("user-only with tools excluded", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-combo-3";
+        seedProject(projectId, cwd);
+        seedSession("ses-combo-3", projectId, "Combo Test 3", cwd, 1000, 2000);
+
+        seedMessage("msg-c3-1", "ses-combo-3", "user", 1100);
+        seedPart("prt-c3-1", "msg-c3-1", "ses-combo-3", "text", { text: "User text" }, 1150);
+
+        seedMessage("msg-c3-2", "ses-combo-3", "assistant", 1200);
+        seedPart("prt-c3-2", "msg-c3-2", "ses-combo-3", "tool", { tool: "bash", state: {} }, 1250);
+
+        seedMessage("msg-c3-3", "ses-combo-3", "user", 1400);
+        seedPart("prt-c3-3", "msg-c3-3", "ses-combo-3", "text", { text: "User text 2" }, 1450);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-combo-3", {
+          mode: "all_no_tools",
+          selection: { mode: "user-only" },
+        });
+
+        expect(detail.messages).toHaveLength(2);
+        expect(detail.messages?.every((m) => m.role === "user")).toBe(true);
+      });
+    });
+  });
 });

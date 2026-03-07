@@ -29,6 +29,7 @@ export interface SessionCloneMetadata {
 export interface SessionDetail extends SessionSummary {
   clone?: SessionCloneMetadata;
   messages?: SessionMessage[];
+  warning?: string;
 }
 
 export interface SessionMessage {
@@ -51,8 +52,24 @@ export interface SearchQuery {
 
 export type SessionReadMode = "last_message" | "all_no_tools" | "all_with_tools";
 
+export type MessageSelectionMode = "first" | "last" | "all" | "range" | "user-only";
+
+export interface MessageSelectionOptions {
+  mode: MessageSelectionMode;
+  count?: number; // for first/last (default 10 for last)
+  start?: number; // for range (1-indexed)
+  end?: number; // for range (1-indexed, inclusive)
+}
+
 export interface SessionReadOptions {
-  mode: SessionReadMode;
+  mode?: SessionReadMode; // tool filtering mode (defaults to all_no_tools)
+  selection?: MessageSelectionOptions; // message selection options
+}
+
+export interface TimeRangeOptions {
+  since?: number; // Start timestamp (milliseconds since epoch)
+  until?: number; // End timestamp (milliseconds since epoch)
+  limit?: number; // Maximum number of results (default: 50, 0 = all)
 }
 
 // Canonical session key is (agent, alias, session_id).
@@ -64,6 +81,7 @@ export interface SessionKey {
 
 export interface Adapter {
   listSessions(): Promise<SessionSummary[]> | SessionSummary[];
+  listSessionsByTimeRange?(options: TimeRangeOptions): Promise<SessionSummary[]> | SessionSummary[];
   searchSessions?(query: SearchQuery): Promise<SessionSummary[]> | SessionSummary[];
   getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail>;
 }
