@@ -3,7 +3,6 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { existsSync } from "node:fs";
 import { Database } from "bun:sqlite";
-import { bash } from '@opencode/lib-tools';
 
 // CLI command imports
 import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
@@ -385,6 +384,9 @@ function showHelp() {
   console.log("");
   console.log("Read Command Options:");
   console.log("    --session SPEC         Session spec (agent:alias:session_id)");
+  console.log("    --agent NAME           Agent name (e.g., opencode, codex, claude)");
+  console.log("    --alias NAME           Agent alias (e.g., default)");
+  console.log("    --id SESSION_ID        Session ID");
   console.log("    --first N              First N messages");
   console.log("    --last N               Last N messages (default: 10)");
   console.log("    --all                  All messages");
@@ -474,10 +476,12 @@ async function main() {
   if (command === "onboard") {
     // Explanation: This command initializes 'bd' (beads) for the project.
     // It will set up the necessary configuration files for issue tracking.
-    await bash({
-      command: "bd onboard",
-      description: "Initialize bd (beads) for the project",
+    const proc = Bun.spawn(["bd", "onboard"], {
+      stdout: "inherit",
+      stderr: "inherit",
     });
+    const exitCode = await proc.exited;
+    process.exit(exitCode);
     return;
   }
 
