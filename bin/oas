@@ -1,9 +1,29 @@
 #!/usr/bin/env bun
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { existsSync } from "node:fs";
 import { Database } from "bun:sqlite";
+import { bash } from '@opencode/lib-tools';
+
+// CLI command imports
+import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
+import { runReadCommand, type ReadService } from "../src/cli/read";
+
+// Core imports
+import { createAdapterRegistry } from "../src/core/registry";
+import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions } from "../src/core/types";
+
+// Config imports
+import { loadConfigFromFile, type Config } from "../src/config";
+
+// Adapter imports
+import { createOpenCodeAdapter } from "../src/adapters/opencode";
 
 const DB_PATH = join(homedir(), ".local", "share", "opencode", "opencode.db");
+
+// ============================================================================
+// Legacy Functions (for backward compatibility)
+// ============================================================================
 
 function findProjectId(db: Database, cwd: string): string | null {
   const normalized = resolve(cwd);
@@ -99,50 +119,385 @@ function findSession(sessionId: string) {
   db.close();
 }
 
+// ============================================================================
+// Config Loading
+// ============================================================================
+
+function getDefaultConfig(): Config {
+  return {
+    agents: [
+      {
+        agent: "opencode",
+        alias: "default",
+        enabled: true,
+        storage: { mode: "auto" },
+      },
+    ],
+  };
+}
+
+function loadConfig(): Config {
+  // Try to load from default config path
+  const configPaths = [
+    join(process.cwd(), "oas.config.yaml"),
+    join(process.cwd(), "oas.config.yml"),
+    join(homedir(), ".config", "oas", "config.yaml"),
+    join(homedir(), ".config", "oas", "config.yml"),
+  ];
+
+  for (const path of configPaths) {
+    if (existsSync(path)) {
+      try {
+        return loadConfigFromFile(path);
+      } catch (error) {
+        console.error(`Failed to load config from ${path}: ${error instanceof Error ? error.message : String(error)}`);
+        process.exit(1);
+      }
+    }
+  }
+
+  // Return default config if no config file found
+  return getDefaultConfig();
+}
+
+// ============================================================================
+// Service Creation
+// ============================================================================
+
+function createSessionsService(config: Config): SessionsService {
+  const registry = createAdapterRegistry(config, {
+    opencode: (entry) => createOpenCodeAdapter(entry, { cwd: process.cwd() }),
+  });
+
+  return async (query: { cwd: string; timeRange: TimeRangeOptions }) => {
+    const results: SessionSummary[] = [];
+    const errors: { agent: "opencode" | "codex" | "claude"; alias: string; message: string }[] = [];
+
+    for (const adapter of registry.adapters) {
+      try {
+        if (adapter.listSessionsByTimeRange) {
+          const sessions = await adapter.listSessionsByTimeRange(query.timeRange);
+          results.push(...sessions);
+        } else {
+          // Fallback to listSessions if time range not supported
+          const sessions = await adapter.listSessions();
+          // Apply time filtering manually
+          const filtered = sessions.filter((s) => {
+            const updated = Date.parse(s.updated_at);
+            if (query.timeRange.since !== undefined && updated < query.timeRange.since) {
+              return false;
+            }
+            if (query.timeRange.until !== undefined && updated > query.timeRange.until) {
+              return false;
+            }
+            return true;
+          });
+          results.push(...filtered);
+        }
+      } catch (error) {
+        errors.push({
+          agent: adapter.agent,
+          alias: adapter.alias,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    // Sort by updated_at descending
+    results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
+
+    // Apply limit
+    const limit = query.timeRange.limit ?? 50;
+    const limited = limit > 0 ? results.slice(0, limit) : results;
+
+    return { sessions: limited, errors };
+  };
+}
+
+function createReadService(config: Config): ReadService {
+  const registry = createAdapterRegistry(config, {
+    opencode: (entry) => createOpenCodeAdapter(entry, { cwd: process.cwd() }),
+  });
+
+  return async (query: { agent: string; alias: string; id: string }, options: SessionReadOptions) => {
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
+    );
+
+    if (!adapter) {
+      return null;
+    }
+
+    // Access the underlying adapter's getSessionDetail method
+    // We need to get the adapter from the registry entry
+    const entry = config.agents.find(
+      (e) => e.agent === query.agent && e.alias === query.alias
+    );
+
+    if (!entry) {
+      return null;
+    }
+
+    // Create a fresh adapter for this query to access getSessionDetail
+    const freshAdapter = createOpenCodeAdapter(entry as any, { cwd: process.cwd() });
+    
+    if (!freshAdapter.getSessionDetail) {
+      throw new Error(`Adapter does not support session detail retrieval`);
+    }
+
+    return freshAdapter.getSessionDetail(query.id, options);
+  };
+}
+
+// ============================================================================
+// Argument Parsing
+// ============================================================================
+
+interface ParsedArgs {
+  command: string;
+  options: Record<string, string | number | boolean>;
+  positional: string[];
+}
+
+function parseArgs(argv: string[]): ParsedArgs {
+  const result: ParsedArgs = {
+    command: "",
+    options: {},
+    positional: [],
+  };
+
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
+
+    if (arg.startsWith("--")) {
+      const key = arg.slice(2);
+      
+      // Handle --flag (boolean)
+      if (i + 1 >= argv.length || argv[i + 1].startsWith("-")) {
+        result.options[key] = true;
+        i++;
+        continue;
+      }
+
+      // Handle --key value
+      const value = argv[i + 1];
+      if (value !== undefined) {
+        // Try to parse as number
+        const num = Number(value);
+        result.options[key] = isNaN(num) ? value : num;
+        i += 2;
+        continue;
+      }
+      i++;
+    } else if (arg.startsWith("-") && arg !== "-") {
+      // Short flags
+      const key = arg.slice(1);
+      result.options[key] = true;
+      i++;
+    } else {
+      // Positional argument
+      if (!result.command) {
+        result.command = arg;
+      } else {
+        result.positional.push(arg);
+      }
+      i++;
+    }
+  }
+
+  return result;
+}
+
+// ============================================================================
+// Command Handlers
+// ============================================================================
+
+async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const getSessions = createSessionsService(config);
+
+  const result = await runSessionsCommand({
+    last: parsed.options["last"] as string | undefined,
+    since: parsed.options["since"] as string | undefined,
+    until: parsed.options["until"] as string | undefined,
+    limit: parsed.options["limit"] as number | undefined,
+    config,
+    getSessions,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const getSession = createReadService(config);
+
+  const result = await runReadCommand({
+    session: parsed.options["session"] as string | undefined,
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
+    id: parsed.options["id"] as string | undefined,
+    first: parsed.options["first"] as number | undefined,
+    last: parsed.options["last"] as number | undefined,
+    all: parsed.options["all"] as boolean | undefined,
+    range: parsed.options["range"] as string | undefined,
+    tools: parsed.options["tools"] as boolean | undefined,
+    config,
+    getSession,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+// ============================================================================
+// Help
+// ============================================================================
+
 function showHelp() {
   console.log("Open Agent Sessions (oas) - Session management CLI");
   console.log("");
   console.log("Usage:");
-  console.log("  oas list [limit]       List recent sessions (default: 10)");
-  console.log("  oas recent [limit]     Same as list");
-  console.log("  oas find <session-id>  Show session details");
-  console.log("  oas show <session-id>  Same as find");
-  console.log("  oas --help             Show this help message");
+  console.log("  oas <command> [options]");
+  console.log("");
+  console.log("Commands:");
+  console.log("");
+  console.log("  Legacy Commands (OpenCode only):");
+  console.log("    list [limit]           List recent sessions (default: 10)");
+  console.log("    recent [limit]         Same as list");
+  console.log("    find <session-id>      Show session details");
+  console.log("    show <session-id>      Same as find");
+  console.log("");
+  console.log("  New Commands (multi-agent):");
+  console.log("    sessions [options]     List sessions with time filtering");
+  console.log("    read [options]         Read session messages");
+  console.log("    onboard                Initialize bd (beads) for the project");
+  console.log("");
+  console.log("Sessions Command Options:");
+  console.log("    --last DURATION        Last duration (e.g., 4h, 2d, 1w)");
+  console.log("    --since TIMESTAMP      Start time (ISO-8601 format)");
+  console.log("    --until TIMESTAMP      End time (ISO-8601 format)");
+  console.log("    --limit N              Maximum results (default: 50, 0 = all)");
+  console.log("");
+  console.log("Read Command Options:");
+  console.log("    --session SPEC         Session spec (agent:alias:session_id)");
+  console.log("    --first N              First N messages");
+  console.log("    --last N               Last N messages (default: 10)");
+  console.log("    --all                  All messages");
+  console.log("    --range START:END      Message range (1-indexed, inclusive)");
+  console.log("    --tools                Include tool messages (default: hide)");
+  console.log("");
+  console.log("Global Options:");
+  console.log("    --help, -h             Show this help message");
   console.log("");
   console.log("Examples:");
-  console.log("  oas list               List last 10 sessions");
-  console.log("  oas list 20            List last 20 sessions");
+  console.log("  # Legacy commands");
+  console.log("  oas list               List last 10 OpenCode sessions");
+  console.log("  oas list 20            List last 20 OpenCode sessions");
   console.log("  oas find abc123        Show details for session abc123");
+  console.log("");
+  console.log("  # New commands");
+  console.log("  oas sessions --last 4h           Sessions from last 4 hours");
+  console.log("  oas sessions --last 2d --limit 20  Sessions from last 2 days");
+  console.log("  oas read --session opencode:default:abc123");
+  console.log("  oas read --session opencode:default:abc123 --last 20");
+  console.log("  oas read --session opencode:default:abc123 --all --tools");
   process.exit(0);
 }
 
-const command = process.argv[2];
-const arg = process.argv[3];
+// ============================================================================
+// Main
+// ============================================================================
 
-if (!command || command === "--help" || command === "-h") {
-  showHelp();
-}
-
-if (command === "list" || command === "recent") {
-  if (arg === "--help" || arg === "-h") {
+async function main() {
+  const argv = process.argv.slice(2);
+  
+  if (argv.length === 0 || argv[0] === "--help" || argv[0] === "-h") {
     showHelp();
+    return;
   }
-  const limit = arg ? parseInt(arg, 10) : 10;
-  if (isNaN(limit) || limit <= 0) {
-    console.error("Error: limit must be a positive number");
-    process.exit(1);
+
+  const command = argv[0];
+  const restArgs = argv.slice(1);
+
+  // Handle legacy commands
+  if (command === "list" || command === "recent") {
+    const limitArg = restArgs[0];
+    if (limitArg === "--help" || limitArg === "-h") {
+      showHelp();
+      return;
+    }
+    const limit = limitArg ? parseInt(limitArg, 10) : 10;
+    if (isNaN(limit) || limit <= 0) {
+      console.error("Error: limit must be a positive number");
+      process.exit(1);
+    }
+    listRecentSessions(limit);
+    return;
   }
-  listRecentSessions(limit);
-} else if (command === "find" || command === "show") {
-  if (!arg || arg === "--help" || arg === "-h") {
-    console.error("Usage: oas find <session-id>");
-    process.exit(1);
+
+  if (command === "find" || command === "show") {
+    const sessionId = restArgs[0];
+    if (!sessionId || sessionId === "--help" || sessionId === "-h") {
+      console.error("Usage: oas find <session-id>");
+      process.exit(1);
+    }
+    findSession(sessionId);
+    return;
   }
-  findSession(arg);
-} else {
-  console.log("Usage: oas list [limit]");
-  console.log("       oas recent [limit]");
-  console.log("       oas find <session-id>");
-  console.log("       oas show <session-id>");
+
+  // Handle new commands
+  if (command === "sessions") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleSessionsCommand(parsed);
+    return;
+  }
+
+  if (command === "read") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleReadCommand(parsed);
+    return;
+  }
+
+  if (command === "onboard") {
+    // Explanation: This command initializes 'bd' (beads) for the project.
+    // It will set up the necessary configuration files for issue tracking.
+    await bash({
+      command: "bd onboard",
+      description: "Initialize bd (beads) for the project",
+    });
+    return;
+  }
+
+  // Unknown command
+  console.error(`Unknown command: ${command}`);
+  console.log("");
+  console.log("Usage: oas <command> [options]");
+  console.log("");
+  console.log("Commands:");
+  console.log("  list, recent   List recent sessions");
+  console.log("  find, show     Show session details");
+  console.log("  sessions       List sessions with time filtering");
+  console.log("  read           Read session messages");
+  console.log("  onboard        Initialize bd (beads) for the project");
+  console.log("");
+  console.log("Run 'oas --help' for more information.");
   process.exit(1);
 }
+
+main().catch((error) => {
+  console.error("Error:", error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});
