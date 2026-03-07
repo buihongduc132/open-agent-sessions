@@ -22,6 +22,7 @@ Options:
   --all           All messages
   --range S:E     Message range (1-indexed, inclusive)
   --tools         Include tool messages (default: hide)
+  --role R        Filter by role (user, assistant, system)
 
 Either --session or all of --agent, --alias, --id must be specified.
 Only one of --first, --last, --all, --range may be specified.`;
@@ -51,6 +52,7 @@ export type ReadOptions = {
   all?: boolean;
   range?: string;
   tools?: boolean;
+  role?: string;
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -84,10 +86,23 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
     return errorResult(selectionResult.error);
   }
 
+  // Validate and parse role filter
+  let role: "user" | "assistant" | "system" | undefined;
+  if (options.role) {
+    const validRoles = ["user", "assistant", "system"] as const;
+    if (!validRoles.includes(options.role as typeof validRoles[number])) {
+      return errorResult(
+        `Invalid --role value: ${options.role}. Must be one of: ${validRoles.join(", ")}.`
+      );
+    }
+    role = options.role as typeof validRoles[number];
+  }
+
   // Build read options
   const readOptions: SessionReadOptions = {
     mode: options.tools ? "all_with_tools" : "all_no_tools",
     selection: selectionResult.value,
+    role,
   };
 
   // Fetch session detail
@@ -400,7 +415,15 @@ function formatMessage(message: SessionMessage): string[] {
   const roleIcon = message.role === "user" ? ">" : message.role === "assistant" ? "<" : "#";
   const timestamp = message.created_at;
 
-  lines.push(`[${roleIcon}] ${message.role} @ ${timestamp}`);
+  // Build agent/model suffix
+  let agentModel = "";
+  if (message.agent || message.modelID) {
+    const agent = message.agent || "";
+    const model = message.modelID || "";
+    agentModel = ` (${agent}/${model})`;
+  }
+
+  lines.push(`[${roleIcon}] ${message.role}${agentModel} @ ${timestamp}`);
   lines.push("");
 
   for (const part of message.parts) {

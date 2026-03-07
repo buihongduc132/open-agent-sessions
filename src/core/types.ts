@@ -66,6 +66,7 @@ export interface MessageSelectionOptions {
 export interface SessionReadOptions {
   mode?: SessionReadMode; // tool filtering mode (defaults to all_no_tools)
   selection?: MessageSelectionOptions; // message selection options
+  role?: "user" | "assistant" | "system"; // filter messages by role
 }
 
 export interface TimeRangeOptions {

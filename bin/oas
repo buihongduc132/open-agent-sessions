@@ -344,6 +344,7 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
     all: parsed.options["all"] as boolean | undefined,
     range: parsed.options["range"] as string | undefined,
     tools: parsed.options["tools"] as boolean | undefined,
+    role: parsed.options["role"] as string | undefined,
     config,
     getSession,
   });
@@ -392,6 +393,7 @@ function showHelp() {
   console.log("    --all                  All messages");
   console.log("    --range START:END      Message range (1-indexed, inclusive)");
   console.log("    --tools                Include tool messages (default: hide)");
+  console.log("    --role ROLE            Filter by role (user, assistant, system)");
   console.log("");
   console.log("Global Options:");
   console.log("    --help, -h             Show this help message");

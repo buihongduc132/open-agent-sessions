@@ -485,12 +485,12 @@ async function getSessionDetailFromDb(
   // Handle message selection options
   const selection = options.selection;
   if (selection) {
-    const { messages, warning } = getMessagesWithSelection(db, sessionId, selection, toolOptions, label);
+    const { messages, warning } = getMessagesWithSelection(db, sessionId, selection, toolOptions, label, options.role);
     return { ...baseSummary, messages, ...(warning && { warning }) };
   }
 
   // Legacy behavior without selection options
-  const messages = getMessagesFromDb(db, sessionId, toolOptions, label);
+  const messages = getMessagesFromDb(db, sessionId, toolOptions, label, options.role);
   return { ...baseSummary, messages };
 }
 
@@ -526,7 +526,8 @@ function getMessagesFromDb(
   db: Database,
   sessionId: string,
   options: { lastOnly?: boolean; excludeTools?: boolean; includeAll?: boolean },
-  label: string
+  label: string,
+  roleFilter?: "user" | "assistant" | "system"
 ): SessionMessage[] {
   let query = `
     SELECT id, session_id, time_created, data
@@ -556,22 +557,44 @@ function getMessagesFromDb(
     messages.reverse();
   }
 
-  return messages.map((row) => {
-    let data: { role?: string };
+  const result = messages.map((row) => {
+    let data: { 
+      role?: string; 
+      agent?: string; 
+      modelID?: string;
+      model?: { modelID?: string };
+    };
     try {
-      data = JSON.parse(row.data) as { role?: string };
+      data = JSON.parse(row.data) as { 
+        role?: string; 
+        agent?: string; 
+        modelID?: string;
+        model?: { modelID?: string };
+      };
     } catch (error) {
       throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
     }
     const parts = getPartsFromDb(db, row.id, options, label);
+
+    // Extract modelID with fallback: nested model.modelID takes precedence
+    const modelID = data.model?.modelID || data.modelID;
 
     return {
       id: row.id,
       role: normalizeRole(data.role),
       created_at: formatTimestamp(row.time_created),
       parts,
+      agent: data.agent,
+      modelID: modelID,
     };
   });
+
+  // Apply role filter if specified
+  if (roleFilter) {
+    return result.filter((msg) => msg.role === roleFilter);
+  }
+
+  return result;
 }
 
 // Message selection options type
@@ -598,7 +621,8 @@ function getMessagesWithSelection(
   sessionId: string,
   selection: MessageSelectionOpts,
   toolOptions: ToolFilterOpts,
-  label: string
+  label: string,
+  roleFilter?: "user" | "assistant" | "system"
 ): { messages: SessionMessage[]; warning?: string } {
   // First, fetch all messages for the session (ordered by time_created ASC)
   let messages: MessageRow[];
@@ -617,13 +641,25 @@ function getMessagesWithSelection(
 
   // Parse roles for filtering
   const messagesWithRoles = messages.map((row) => {
-    let data: { role?: string };
+    let data: { 
+      role?: string; 
+      agent?: string; 
+      modelID?: string;
+      model?: { modelID?: string };
+    };
     try {
-      data = JSON.parse(row.data) as { role?: string };
+      data = JSON.parse(row.data) as { 
+        role?: string; 
+        agent?: string; 
+        modelID?: string;
+        model?: { modelID?: string };
+      };
     } catch (error) {
       throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
     }
-    return { row, role: normalizeRole(data.role) };
+    // Extract modelID with fallback: nested model.modelID takes precedence
+    const modelID = data.model?.modelID || data.modelID;
+    return { row, role: normalizeRole(data.role), agent: data.agent, modelID };
   });
 
   // Apply selection mode
@@ -685,16 +721,23 @@ function getMessagesWithSelection(
       throw new Error(`${label} unsupported selection mode: ${(selection as { mode: string }).mode}`);
   }
 
+  // Apply role filter if specified
+  if (roleFilter) {
+    selectedRows = selectedRows.filter((m) => m.role === roleFilter);
+  }
+
   // Map selected rows to SessionMessage with parts
   const selectedMessages = selectedRows.map(({ row }) => {
     const parts = getPartsFromDb(db, row.id, toolOptions, label);
-    const role = messagesWithRoles.find((m) => m.row.id === row.id)!.role;
+    const msgData = messagesWithRoles.find((m) => m.row.id === row.id)!;
 
     return {
       id: row.id,
-      role,
+      role: msgData.role,
       created_at: formatTimestamp(row.time_created),
       parts,
+      agent: msgData.agent,
+      modelID: msgData.modelID,
     };
   });
 
