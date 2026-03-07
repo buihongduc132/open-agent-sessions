@@ -923,6 +923,399 @@ describe("OpenCode Adapter", () => {
   });
 
   // ===========================================================================
+  // Tool Filtering Tests (oas-7dk - Task 1.3)
+  // ===========================================================================
+
+  describe("Tool Filtering (excludeTools option)", () => {
+    // Helper to set up a session with parts for testing
+    const setupSessionWithParts = (
+      sessionId: string,
+      messageId: string,
+      parts: Array<{ type: string; content: Record<string, unknown> }>
+    ) => {
+      const cwd = "/home/user/project";
+      const projectId = "proj-filter-test";
+      seedProject(projectId, cwd);
+      seedSession(sessionId, projectId, "Filter Test Session", cwd, 1000, 2000);
+      seedMessage(messageId, sessionId, "assistant", 1100);
+
+      parts.forEach((part, index) => {
+        seedPart(
+          `prt-${sessionId}-${index}`,
+          messageId,
+          sessionId,
+          part.type,
+          part.content,
+          1100 + index * 10
+        );
+      });
+
+      return { cwd, projectId };
+    };
+
+    describe("AC1: excludeTools filters out type='tool' parts", () => {
+      test("filters out tool parts when mode=all_no_tools", async () => {
+        const { cwd } = setupSessionWithParts("ses-tool-1", "msg-tool-1", [
+          { type: "text", content: { text: "Hello" } },
+          { type: "tool", content: { tool: "bash", state: { status: "running" } } },
+          { type: "text", content: { text: "World" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-tool-1", { mode: "all_no_tools" });
+
+        expect(detail.messages?.[0].parts).toHaveLength(2);
+        expect(detail.messages?.[0].parts.every((p) => p.type === "text")).toBe(true);
+      });
+
+      test("keeps tool parts when mode=all_with_tools", async () => {
+        const { cwd } = setupSessionWithParts("ses-tool-2", "msg-tool-2", [
+          { type: "text", content: { text: "Hello" } },
+          { type: "tool", content: { tool: "bash", state: { status: "running" } } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-tool-2", { mode: "all_with_tools" });
+
+        expect(detail.messages?.[0].parts).toHaveLength(2);
+        const toolPart = detail.messages?.[0].parts.find((p) => p.type === "tool");
+        expect(toolPart).toBeDefined();
+        expect(toolPart?.tool).toBe("bash");
+      });
+    });
+
+    describe("AC2: Also filters step-start and step-finish", () => {
+      test("filters out step-start when mode=all_no_tools", async () => {
+        const { cwd } = setupSessionWithParts("ses-step-1", "msg-step-1", [
+          { type: "text", content: { text: "Before step" } },
+          { type: "step-start", content: { stepId: "step-1" } },
+          { type: "text", content: { text: "After step" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-step-1", { mode: "all_no_tools" });
+
+        const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
+        expect(allTypes).not.toContain("step-start");
+        expect(allTypes).toEqual(["text", "text"]);
+      });
+
+      test("filters out step-finish when mode=all_no_tools", async () => {
+        const { cwd } = setupSessionWithParts("ses-step-2", "msg-step-2", [
+          { type: "text", content: { text: "Content" } },
+          { type: "step-finish", content: { stepId: "step-1", status: "completed" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-step-2", { mode: "all_no_tools" });
+
+        const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
+        expect(allTypes).not.toContain("step-finish");
+        expect(allTypes).toEqual(["text"]);
+      });
+
+      test("filters all tool-related types together", async () => {
+        const { cwd } = setupSessionWithParts("ses-step-3", "msg-step-3", [
+          { type: "text", content: { text: "Start" } },
+          { type: "step-start", content: {} },
+          { type: "tool", content: { tool: "read", state: {} } },
+          { type: "step-finish", content: {} },
+          { type: "text", content: { text: "End" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-step-3", { mode: "all_no_tools" });
+
+        const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
+        expect(allTypes).toEqual(["text", "text"]);
+      });
+
+      test("keeps step markers when mode=all_with_tools", async () => {
+        const { cwd } = setupSessionWithParts("ses-step-4", "msg-step-4", [
+          { type: "text", content: { text: "Content" } },
+          { type: "step-start", content: { stepId: "step-1" } },
+          { type: "step-finish", content: { stepId: "step-1" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-step-4", { mode: "all_with_tools" });
+
+        const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
+        expect(allTypes).toContain("step-start");
+        expect(allTypes).toContain("step-finish");
+      });
+    });
+
+    describe("AC3: Preserves text and reasoning parts", () => {
+      test("preserves text parts when tools excluded", async () => {
+        const { cwd } = setupSessionWithParts("ses-preserve-1", "msg-preserve-1", [
+          { type: "text", content: { text: "First text" } },
+          { type: "tool", content: { tool: "bash", state: {} } },
+          { type: "text", content: { text: "Second text" } },
+          { type: "tool", content: { tool: "read", state: {} } },
+          { type: "text", content: { text: "Third text" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-preserve-1", { mode: "all_no_tools" });
+
+        const textParts = detail.messages?.[0].parts.filter((p) => p.type === "text") || [];
+        expect(textParts).toHaveLength(3);
+        expect(textParts.map((p) => (p as { type: "text"; text: string }).text)).toEqual([
+          "First text",
+          "Second text",
+          "Third text",
+        ]);
+      });
+
+      test("preserves reasoning parts when tools excluded", async () => {
+        const { cwd } = setupSessionWithParts("ses-preserve-2", "msg-preserve-2", [
+          { type: "reasoning", content: { text: "Let me think about this..." } },
+          { type: "tool", content: { tool: "bash", state: {} } },
+          { type: "reasoning", content: { text: "Based on the results..." } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-preserve-2", { mode: "all_no_tools" });
+
+        const reasoningParts = detail.messages?.[0].parts.filter((p) => p.type === "reasoning") || [];
+        expect(reasoningParts).toHaveLength(2);
+        expect(
+          reasoningParts.map((p) => (p as { type: "reasoning"; text: string }).text)
+        ).toEqual(["Let me think about this...", "Based on the results..."]);
+      });
+
+      test("preserves both text and reasoning when tools excluded", async () => {
+        const { cwd } = setupSessionWithParts("ses-preserve-3", "msg-preserve-3", [
+          { type: "text", content: { text: "User query" } },
+          { type: "reasoning", content: { text: "Thinking..." } },
+          { type: "tool", content: { tool: "search", state: {} } },
+          { type: "text", content: { text: "Here's the answer" } },
+          { type: "step-start", content: {} },
+          { type: "reasoning", content: { text: "Final reasoning" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-preserve-3", { mode: "all_no_tools" });
+
+        const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
+        expect(allTypes).toEqual(["text", "reasoning", "text", "reasoning"]);
+      });
+    });
+
+    describe("AC4: Default behavior for modes", () => {
+      test("mode=all_no_tools excludes tools by default", async () => {
+        const { cwd } = setupSessionWithParts("ses-default-1", "msg-default-1", [
+          { type: "text", content: { text: "Hello" } },
+          { type: "tool", content: { tool: "bash", state: {} } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-default-1", { mode: "all_no_tools" });
+
+        expect(detail.messages?.[0].parts).toHaveLength(1);
+        expect(detail.messages?.[0].parts[0].type).toBe("text");
+      });
+
+      test("DEFAULT BEHAVIOR (mode omitted) excludes tools", async () => {
+        const { cwd } = setupSessionWithParts("ses-default-omitted", "msg-default-omitted", [
+          { type: "text", content: { text: "Hello" } },
+          { type: "tool", content: { tool: "bash", state: {} } },
+          { type: "reasoning", content: { text: "Thinking..." } },
+          { type: "step-start", content: { stepId: "step-1" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        // Call getSessionDetail WITHOUT specifying mode - should default to excluding tools
+        const detail = await adapter.getSessionDetail("ses-default-omitted", {});
+
+        // Should have 2 parts: text and reasoning (tool and step-start excluded by default)
+        expect(detail.messages?.[0].parts).toHaveLength(2);
+        const types = detail.messages?.[0].parts.map((p) => p.type) ?? [];
+        expect(types).toContain("text");
+        expect(types).toContain("reasoning");
+        expect(types).not.toContain("tool");
+        expect(types).not.toContain("step-start");
+      });
+
+      test("mode=all_with_tools includes tools", async () => {
+        const { cwd } = setupSessionWithParts("ses-default-2", "msg-default-2", [
+          { type: "text", content: { text: "Hello" } },
+          { type: "tool", content: { tool: "bash", state: {} } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-default-2", { mode: "all_with_tools" });
+
+        expect(detail.messages?.[0].parts).toHaveLength(2);
+      });
+
+      test("mode=last_message includes tools in last message", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-last-msg";
+        seedProject(projectId, cwd);
+        seedSession("ses-last-1", projectId, "Last Message Test", cwd, 1000, 2000);
+
+        seedMessage("msg-last-1", "ses-last-1", "user", 1100);
+        seedMessage("msg-last-2", "ses-last-1", "assistant", 1200);
+
+        seedPart("prt-last-1", "msg-last-1", "ses-last-1", "text", { text: "First message" }, 1150);
+        seedPart("prt-last-2", "msg-last-2", "ses-last-1", "text", { text: "Last message" }, 1250);
+        seedPart("prt-last-3", "msg-last-2", "ses-last-1", "tool", { tool: "bash", state: {} }, 1350);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-last-1", { mode: "last_message" });
+
+        // Last message should include the tool
+        expect(detail.messages).toHaveLength(1);
+        expect(detail.messages?.[0].parts).toHaveLength(2);
+        expect(detail.messages?.[0].parts.find((p) => p.type === "tool")).toBeDefined();
+      });
+    });
+
+    describe("Edge cases", () => {
+      test("message with only tools returns empty parts array when tools excluded", async () => {
+        const { cwd } = setupSessionWithParts("ses-edge-1", "msg-edge-1", [
+          { type: "tool", content: { tool: "bash", state: { status: "running" } } },
+          { type: "tool", content: { tool: "read", state: { status: "completed" } } },
+          { type: "tool", content: { tool: "write", state: { status: "pending" } } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-edge-1", { mode: "all_no_tools" });
+
+        expect(detail.messages?.[0].parts).toEqual([]);
+      });
+
+      test("message with only step markers returns empty parts array when tools excluded", async () => {
+        const { cwd } = setupSessionWithParts("ses-edge-2", "msg-edge-2", [
+          { type: "step-start", content: { stepId: "step-1" } },
+          { type: "step-finish", content: { stepId: "step-1" } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-edge-2", { mode: "all_no_tools" });
+
+        expect(detail.messages?.[0].parts).toEqual([]);
+      });
+
+      test("message with mixed content and only tools filtered shows remaining", async () => {
+        const { cwd } = setupSessionWithParts("ses-edge-3", "msg-edge-3", [
+          { type: "step-start", content: {} },
+          { type: "tool", content: { tool: "bash", state: {} } },
+          { type: "text", content: { text: "Preserved text" } },
+          { type: "tool", content: { tool: "read", state: {} } },
+          { type: "reasoning", content: { text: "Preserved reasoning" } },
+          { type: "step-finish", content: {} },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-edge-3", { mode: "all_no_tools" });
+
+        expect(detail.messages?.[0].parts).toHaveLength(2);
+        const types = detail.messages?.[0].parts.map((p) => p.type) || [];
+        expect(types).toEqual(["text", "reasoning"]);
+      });
+
+      test("unknown part types are preserved when not tool-related", async () => {
+        const { cwd } = setupSessionWithParts("ses-edge-4", "msg-edge-4", [
+          { type: "text", content: { text: "Text" } },
+          { type: "custom-type", content: { customData: "value" } },
+          { type: "tool", content: { tool: "bash", state: {} } },
+        ]);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-edge-4", { mode: "all_no_tools" });
+
+        expect(detail.messages?.[0].parts).toHaveLength(2);
+        const customPart = detail.messages?.[0].parts.find((p) => p.type === "custom-type");
+        expect(customPart).toBeDefined();
+      });
+
+      test("empty message with no parts returns empty array", async () => {
+        const { cwd } = setupSessionWithParts("ses-edge-5", "msg-edge-5", []);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-edge-5", { mode: "all_no_tools" });
+
+        expect(detail.messages?.[0].parts).toEqual([]);
+      });
+    });
+
+    describe("Multiple messages filtering", () => {
+      test("filters tools across multiple messages consistently", async () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-multi";
+        seedProject(projectId, cwd);
+        seedSession("ses-multi-1", projectId, "Multi Message Test", cwd, 1000, 2000);
+
+        // Message 1: user with text only
+        seedMessage("msg-multi-1", "ses-multi-1", "user", 1100);
+        seedPart("prt-multi-1", "msg-multi-1", "ses-multi-1", "text", { text: "User asks" }, 1150);
+
+        // Message 2: assistant with text + tools
+        seedMessage("msg-multi-2", "ses-multi-1", "assistant", 1200);
+        seedPart("prt-multi-2a", "msg-multi-2", "ses-multi-1", "text", { text: "Response" }, 1250);
+        seedPart("prt-multi-2b", "msg-multi-2", "ses-multi-1", "tool", { tool: "bash", state: {} }, 1350);
+
+        // Message 3: assistant with only tools
+        seedMessage("msg-multi-3", "ses-multi-1", "assistant", 1400);
+        seedPart("prt-multi-3a", "msg-multi-3", "ses-multi-1", "tool", { tool: "read", state: {} }, 1450);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const detail = await adapter.getSessionDetail("ses-multi-1", { mode: "all_no_tools" });
+
+        expect(detail.messages).toHaveLength(3);
+        expect(detail.messages?.[0].parts).toHaveLength(1);
+        expect(detail.messages?.[1].parts).toHaveLength(1);
+        expect(detail.messages?.[2].parts).toHaveLength(0);
+
+        // Verify no tools in any message
+        const allParts = detail.messages?.flatMap((m) => m.parts) || [];
+        expect(allParts.find((p) => p.type === "tool")).toBeUndefined();
+      });
+    });
+  });
+
+  // ===========================================================================
   // Canonical Session Key Tests
   // ===========================================================================
 

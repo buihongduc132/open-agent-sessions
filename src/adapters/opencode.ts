@@ -402,12 +402,13 @@ async function getSessionDetailFromDb(
     return { ...baseSummary, messages };
   }
 
-  if (options.mode === "all_no_tools") {
-    const messages = getMessagesFromDb(db, sessionId, { excludeTools: true }, label);
+  if (options.mode === "all_with_tools") {
+    const messages = getMessagesFromDb(db, sessionId, { includeAll: true }, label);
     return { ...baseSummary, messages };
   }
 
-  const messages = getMessagesFromDb(db, sessionId, { includeAll: true }, label);
+  // Default behavior (mode undefined or "all_no_tools"): exclude tools
+  const messages = getMessagesFromDb(db, sessionId, { excludeTools: true }, label);
   return { ...baseSummary, messages };
 }
 

@@ -158,7 +158,12 @@ describe("SQLite Error Reproduction - Original Issue", () => {
     db.run(`INSERT INTO test_table (value_col) VALUES (?)`, [123]);           // integer
     db.run(`INSERT INTO test_table (value_col) VALUES (?)`, ["456"]);         // string that looks like integer  
     db.run(`INSERT INTO test_table (value_col) VALUES (?)`, ["hello"]);       // string that's not numeric
-    db.run(`INSERT INTO test_table (value_col) VALUES (?)`, [null]);          // null (should fail due to NOT NULL)
+    // null (should fail due to NOT NULL) - wrap in try/catch to handle the error
+    try {
+      db.run(`INSERT INTO test_table (value_col) VALUES (?)`, [null]);
+    } catch (e) {
+      // Expected: NOT NULL constraint failed
+    }
 
     // Try to order by the mixed-type column
     let error: Error | null = null;
