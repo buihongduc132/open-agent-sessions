@@ -37,6 +37,8 @@ export interface SessionMessage {
   role: "user" | "assistant" | "system";
   created_at: string;
   parts: SessionPart[];
+  modelID?: string;
+  agent?: string;
 }
 
 export type SessionPart =

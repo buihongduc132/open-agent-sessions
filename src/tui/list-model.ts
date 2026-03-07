@@ -10,11 +10,12 @@ const AGENT_ORDER: Record<AgentKind, number> = {
 
 export type FilterValue<T extends string> = "all" | T;
 
-export type TuiMode = "list" | "help" | "filter";
+export type TuiMode = "list" | "help" | "filter" | "clone";
 
 export type TuiEffect =
   | { type: "exit"; reason: "quit" | "ctrl-c" }
-  | { type: "open-detail"; session: SessionSummary };
+  | { type: "open-detail"; session: SessionSummary }
+  | { type: "clone"; source: SessionSummary; destination: string };
 
 export type KeyInput = {
   name: string;
@@ -33,6 +34,7 @@ export type TuiListState = {
   previousQuery: string;
   agentOptions: AgentKind[];
   aliasOptions: string[];
+  opencodeDestinations: string[];
   allSessions: SessionSummary[];
   filteredSessions: SessionSummary[];
   errors: SessionListError[];
@@ -41,10 +43,15 @@ export type TuiListState = {
   scrollOffset: number;
   viewportHeight: number;
   statusMessage?: string;
+  clonePrompt?: {
+    sourceSession: SessionSummary;
+    destinations: string[];
+    selectedIndex: number;
+  };
 };
 
 export function createListState(entries: AgentEntry[]): TuiListState {
-  const { agentOptions, aliasOptions } = buildToggleOptions(entries);
+  const { agentOptions, aliasOptions, opencodeDestinations } = buildToggleOptions(entries);
   return {
     mode: "list",
     filter: {
@@ -56,6 +63,7 @@ export function createListState(entries: AgentEntry[]): TuiListState {
     previousQuery: "",
     agentOptions,
     aliasOptions,
+    opencodeDestinations,
     allSessions: [],
     filteredSessions: [],
     errors: [],
@@ -114,6 +122,10 @@ export function applyKey(
     return { state: handleFilterInput(state, key), effects: [] };
   }
 
+  if (state.mode === "clone") {
+    return handleCloneInput(state, key);
+  }
+
   return handleListInput(state, key);
 }
 
@@ -150,13 +162,17 @@ export function getSelectedSession(state: TuiListState): SessionSummary | null {
   return state.filteredSessions[state.selectionIndex] ?? null;
 }
 
+export function formatSessionLabel(session: { agent: string; alias: string }): string {
+  return `[${session.agent}:${session.alias}]`;
+}
+
 function handleFilterInput(
   state: TuiListState,
   input: KeyInput
 ): TuiListState {
   const name = input.name;
   if (name === "escape") {
-    const restored = {
+    const restored: TuiListState = {
       ...state,
       mode: "list",
       filterInput: state.previousQuery,
@@ -167,7 +183,7 @@ function handleFilterInput(
   }
 
   if (name === "return") {
-    const applied = {
+    const applied: TuiListState = {
       ...state,
       mode: "list",
       filterInput: state.filterInput,
@@ -282,19 +298,130 @@ function handleListInput(
     return { state: next, effects: [] };
   }
 
+  if (name === "c") {
+    if (next.filteredSessions.length === 0) {
+      return { state: next, effects: [] };
+    }
+
+    const selected = getSelectedSession(next);
+    if (!selected) {
+      return { state: next, effects: [] };
+    }
+
+    if (selected.agent !== "codex") {
+      return {
+        state: { ...next, statusMessage: "Clone not supported for this session type." },
+        effects: [],
+      };
+    }
+
+    const destinations = next.opencodeDestinations;
+    if (destinations.length === 0) {
+      return {
+        state: { ...next, statusMessage: "No opencode destinations available." },
+        effects: [],
+      };
+    }
+
+    return {
+      state: {
+        ...next,
+        mode: "clone",
+        clonePrompt: {
+          sourceSession: selected,
+          destinations,
+          selectedIndex: 0,
+        },
+      },
+      effects: [],
+    };
+  }
+
   return { state: next, effects: [] };
+}
+
+function handleCloneInput(
+  state: TuiListState,
+  input: KeyInput
+): { state: TuiListState; effects: TuiEffect[] } {
+  const prompt = state.clonePrompt;
+  if (!prompt) {
+    return { state: { ...state, mode: "list" }, effects: [] };
+  }
+
+  const name = input.name;
+
+  if (name === "escape") {
+    return {
+      state: {
+        ...state,
+        mode: "list",
+        clonePrompt: undefined,
+        statusMessage: undefined,
+      },
+      effects: [],
+    };
+  }
+
+  if (name === "j" || name === "down") {
+    const nextIndex = Math.min(prompt.selectedIndex + 1, prompt.destinations.length - 1);
+    return {
+      state: {
+        ...state,
+        clonePrompt: { ...prompt, selectedIndex: nextIndex },
+      },
+      effects: [],
+    };
+  }
+
+  if (name === "k" || name === "up") {
+    const nextIndex = Math.max(prompt.selectedIndex - 1, 0);
+    return {
+      state: {
+        ...state,
+        clonePrompt: { ...prompt, selectedIndex: nextIndex },
+      },
+      effects: [],
+    };
+  }
+
+  if (name === "return") {
+    const destination = prompt.destinations[prompt.selectedIndex];
+    if (!destination) {
+      return {
+        state: {
+          ...state,
+          mode: "list",
+          clonePrompt: undefined,
+          statusMessage: "No destination selected.",
+        },
+        effects: [],
+      };
+    }
+    return {
+      state: { ...state, clonePrompt: undefined },
+      effects: [{ type: "clone", source: prompt.sourceSession, destination }],
+    };
+  }
+
+  return { state, effects: [] };
 }
 
 function buildToggleOptions(entries: AgentEntry[]): {
   agentOptions: AgentKind[];
   aliasOptions: string[];
+  opencodeDestinations: string[];
 } {
   const enabled = entries.filter((entry) => entry.enabled);
   const agentSet = new Set<AgentKind>();
   const aliasSet = new Set<string>();
+  const opencodeSet = new Set<string>();
 
   for (const entry of enabled) {
     agentSet.add(entry.agent);
+    if (entry.agent === "opencode") {
+      opencodeSet.add(entry.alias);
+    }
   }
 
   const sortedEntries = enabled.slice().sort(compareEntries);
@@ -305,6 +432,7 @@ function buildToggleOptions(entries: AgentEntry[]): {
   return {
     agentOptions: Array.from(agentSet).sort(compareAgents),
     aliasOptions: Array.from(aliasSet),
+    opencodeDestinations: Array.from(opencodeSet),
   };
 }
 

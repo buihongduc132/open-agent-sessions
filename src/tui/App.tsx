@@ -3,6 +3,7 @@ import { createCliRenderer } from "@opentui/core";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Config } from "../config/types";
+import { CloneRequest, CloneResult } from "../core/clone";
 import { SessionListQuery, SessionListResult } from "../core/list";
 import { SessionDetail, SessionSummary } from "../core/types";
 import {
@@ -30,6 +31,7 @@ export type DetailService = (query: {
   alias: string;
   id: string;
 }) => Promise<SessionDetail | null>;
+export type CloneService = (request: CloneRequest) => Promise<CloneResult>;
 
 export type ExitReason = "quit" | "ctrl-c";
 
@@ -37,15 +39,17 @@ export type TuiAppProps = {
   config: Config;
   list: ListService;
   getSession?: DetailService;
+  cloneSession?: CloneService;
   onExit?: (reason: ExitReason) => void;
 };
 
-export function TuiApp({ config, list, getSession, onExit }: TuiAppProps): ReactNode {
+export function TuiApp({ config, list, getSession, cloneSession, onExit }: TuiAppProps): ReactNode {
   return (
     <TuiAppView
       config={config}
       list={list}
       getSession={getSession}
+      cloneSession={cloneSession}
       onExit={onExit}
     />
   );
@@ -55,6 +59,7 @@ export function TuiAppView({
   config,
   list,
   getSession,
+  cloneSession,
   onExit,
   viewportHeightOverride,
 }: TuiAppProps & { viewportHeightOverride?: number }): ReactNode {
@@ -71,8 +76,9 @@ export function TuiAppView({
     const header = 1;
     const footer = 1;
     const filter = listState.mode === "filter" ? 1 : 0;
-    return Math.max(1, effectiveHeight - header - footer - filter);
-  }, [effectiveHeight, listState.mode]);
+    const clone = listState.mode === "clone" ? (listState.clonePrompt?.destinations.length ?? 0) + 2 : 0;
+    return Math.max(1, effectiveHeight - header - footer - filter - clone);
+  }, [effectiveHeight, listState.mode, listState.clonePrompt?.destinations.length]);
 
   const detailViewportHeight = useMemo(() => {
     const header = 1;
@@ -151,6 +157,51 @@ export function TuiAppView({
     [getSession]
   );
 
+  const handleClone = useCallback(
+    async (source: SessionSummary, destination: string) => {
+      if (!cloneSession) {
+        setListState((prev) => ({
+          ...prev,
+          mode: "list",
+          statusMessage: "Clone service not available.",
+        }));
+        return;
+      }
+
+      try {
+        const request: CloneRequest = {
+          source: {
+            agent: source.agent,
+            alias: source.alias,
+            session_id: source.id,
+          },
+          destination: {
+            agent: "opencode",
+            alias: destination,
+          },
+        };
+        const result = await cloneSession(request);
+        
+        // Refresh the list to show the new session
+        const listResult = await list({});
+        setListState((prev) => {
+          const next = applyListData({ ...prev, mode: "list" }, listResult);
+          return {
+            ...next,
+            statusMessage: `Session cloned to [opencode:${destination}] (id: ${result.destinationId})`,
+          };
+        });
+      } catch (error) {
+        setListState((prev) => ({
+          ...prev,
+          mode: "list",
+          statusMessage: `Clone failed: ${errorMessage(error)}`,
+        }));
+      }
+    },
+    [cloneSession, list]
+  );
+
   const handleListKey = useCallback(
     (key: ListKeyInput) => {
       setListState((prev) => {
@@ -162,11 +213,14 @@ export function TuiAppView({
           if (effect.type === "open-detail") {
             void openDetail(effect.session);
           }
+          if (effect.type === "clone") {
+            void handleClone(effect.source, effect.destination);
+          }
         }
         return state;
       });
     },
-    [handleExit, openDetail]
+    [handleExit, openDetail, handleClone]
   );
 
   const handleDetailKey = useCallback(
@@ -225,6 +279,12 @@ export function TuiAppView({
       {view === "list" && listState.mode === "filter" ? (
         <FilterInput value={listState.filterInput} />
       ) : null}
+      {view === "list" && listState.mode === "clone" && listState.clonePrompt ? (
+        <ClonePrompt
+          destinations={listState.clonePrompt.destinations}
+          selectedIndex={listState.clonePrompt.selectedIndex}
+        />
+      ) : null}
       {view === "detail" && detailState ? (
         <DetailView state={detailState} height={detailViewportHeight} />
       ) : (
@@ -232,6 +292,8 @@ export function TuiAppView({
       )}
       {view === "detail" && detailState ? (
         <Footer text="Esc: back  ? : help  q/Ctrl+C: exit" />
+      ) : listState.mode === "clone" ? (
+        <Footer text="j/k: select  Enter: confirm  Esc: cancel  Ctrl+C: exit" />
       ) : (
         <Footer text={formatFooter(listState)} />
       )}
@@ -248,6 +310,7 @@ export async function runTuiApp(options: {
   config: Config;
   list: ListService;
   getSession?: DetailService;
+  cloneSession?: CloneService;
 }): Promise<void> {
   const renderer = await createCliRenderer({ exitOnCtrlC: false });
   const root = createRoot(renderer);
@@ -262,6 +325,7 @@ export async function runTuiApp(options: {
         config={options.config}
         list={options.list}
         getSession={options.getSession}
+        cloneSession={options.cloneSession}
         onExit={handleExit}
       />
     );
@@ -379,10 +443,31 @@ function HelpOverlay({
         {isDetail ? null : <text fg="#cccccc">a/l: toggle agent/alias</text>}
         {isDetail ? null : <text fg="#cccccc">0: clear toggles</text>}
         {isDetail ? null : <text fg="#cccccc">Enter: open detail</text>}
+        {isDetail ? null : <text fg="#cccccc">c: clone (codex only)</text>}
         <text fg="#cccccc">{isDetail ? "Esc: back" : "Esc: close"}</text>
         <text fg="#cccccc">q/Ctrl+C: exit</text>
         <text fg="#888888">Press ? or Esc to close</text>
       </box>
+    </box>
+  );
+}
+
+function ClonePrompt({
+  destinations,
+  selectedIndex,
+}: {
+  destinations: string[];
+  selectedIndex: number;
+}): ReactNode {
+  return (
+    <box style={{ flexDirection: "column", paddingLeft: 1 }}>
+      <text fg="#4aa3ff">Clone to opencode:</text>
+      {destinations.map((dest, index) => (
+        <text key={dest} fg={index === selectedIndex ? "#ffffff" : "#cccccc"}>
+          {index === selectedIndex ? "> " : "  "}
+          {dest}
+        </text>
+      ))}
     </box>
   );
 }
