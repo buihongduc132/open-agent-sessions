@@ -1,8 +1,9 @@
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { Database } from "bun:sqlite";
-import { OpenCodeAgentEntry } from "../config/types";
+import { resolveOpenCodeStorage } from "../config/opencode";
+import { OpenCodeAgentEntry, OpenCodeStorageDefaults } from "../config/types";
 import {
   Adapter,
   SearchQuery,
@@ -13,8 +14,22 @@ import {
   SessionSummary,
 } from "../core/types";
 
+// Expected schema for validation
+const EXPECTED_SCHEMA = {
+  tables: {
+    project: ["id", "worktree"],
+    session: ["id", "project_id", "directory", "title", "time_created", "time_updated"],
+    message: ["id", "session_id", "time_created", "data"],
+    part: ["id", "message_id", "session_id", "data"],
+  },
+};
+
+// Default retry delays for DB lock (total <= 500ms)
+const DEFAULT_LOCK_RETRIES = [50, 100, 200];
+
 type OpenCodeAdapterOptions = {
   cwd?: string;
+  lockRetries?: number[];
 };
 
 type SessionRow = {
@@ -45,68 +60,225 @@ type ProjectRow = {
   worktree: string;
 };
 
+type JsonlSessionRow = {
+  id: string;
+  projectID: string;
+  directory: string;
+  title?: string | null;
+  timeCreated: number;
+  timeUpdated: number;
+};
+
+type JsonlMessageRow = {
+  id: string;
+  sessionID: string;
+  timeCreated: number;
+  role?: string;
+};
+
+type JsonlPartRow = {
+  id: string;
+  messageID: string;
+  sessionID: string;
+  type?: string;
+  text?: string;
+  tool?: string;
+  state?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
 export function createOpenCodeAdapter(
   entry: OpenCodeAgentEntry,
   options: OpenCodeAdapterOptions = {}
 ): Adapter {
   if (entry.agent !== "opencode") {
-    throw new Error(`OpenCode adapter requires agent "opencode", got "${entry.agent}"`);
+    throw new Error(`[opencode:${entry.alias}] OpenCode adapter requires agent "opencode", got "${entry.agent}"`);
   }
 
   const label = `[${entry.agent}:${entry.alias}]`;
-  const dbPath = resolveDbPath(entry, options);
   const cwd = options.cwd ?? process.cwd();
 
-  const db = openDatabase(dbPath, label);
+  // Get defaults for path resolution
+  const defaults = getOpenCodeDefaults();
 
+  // Resolve storage with centralized helper
+  const storageInfo = resolveOpenCodeStorage(entry, defaults, { context: label });
+
+  // Branch based on storage mode
+  if (storageInfo.mode === "db") {
+    return createDbAdapter(entry, storageInfo.path, cwd, label, options);
+  } else {
+    return createJsonlAdapter(entry, storageInfo.path, cwd, label);
+  }
+}
+
+function getOpenCodeDefaults(): OpenCodeStorageDefaults {
+  const home = homedir();
   return {
-    listSessions: () => listSessions(db, entry, cwd, label),
-    searchSessions: (query: SearchQuery) => searchSessions(db, entry, query, label),
-    getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
-      getSessionDetail(db, entry, sessionId, opts, label),
+    dbPath: join(home, ".local", "share", "opencode", "opencode.db"),
+    jsonlPath: join(home, ".local", "share", "opencode", "opencode.jsonl"),
   };
 }
 
-function resolveDbPath(entry: OpenCodeAgentEntry, options: OpenCodeAdapterOptions): string {
-  const configured = entry.storage.db_path;
-  if (configured) {
-    const expanded = expandTilde(configured);
-    const resolved = isAbsolute(expanded) ? expanded : resolve(options.cwd ?? process.cwd(), expanded);
-    if (!existsSync(resolved)) {
-      throw new Error(`OpenCode db_path not found: ${resolved}`);
-    }
-    return resolved;
-  }
+function createDbAdapter(
+  entry: OpenCodeAgentEntry,
+  dbPath: string,
+  cwd: string,
+  label: string,
+  options: OpenCodeAdapterOptions
+): Adapter {
+  const db = openDatabaseWithRetry(dbPath, label, options.lockRetries ?? DEFAULT_LOCK_RETRIES);
+  validateSchema(db, label);
 
-  const defaultPath = join(homedir(), ".local", "share", "opencode", "opencode.db");
-  if (!existsSync(defaultPath)) {
-    throw new Error(`OpenCode db_path not found: ${defaultPath}`);
-  }
-  return defaultPath;
+  return {
+    listSessions: () => listSessionsFromDb(db, entry, cwd, label),
+    searchSessions: (query: SearchQuery) => searchSessionsFromDb(db, entry, query, label),
+    getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
+      getSessionDetailFromDb(db, entry, sessionId, opts, label),
+  };
 }
 
-function openDatabase(path: string, label: string): Database {
+function createJsonlAdapter(
+  entry: OpenCodeAgentEntry,
+  jsonlPath: string,
+  cwd: string,
+  label: string
+): Adapter {
+  // Validate path is a file
   try {
-    const stat = statSync(path);
+    const stat = statSync(jsonlPath);
     if (!stat.isFile()) {
-      throw new Error(`${label} db_path is not a file: ${path}`);
+      throw new Error(`${label} JSONL path is not a file: ${jsonlPath}`);
     }
-    return new Database(path, { readonly: true });
   } catch (error) {
     if (error instanceof Error && error.message.includes(label)) {
       throw error;
     }
-    throw new Error(`${label} failed to open database: ${path}`);
+    throw new Error(`${label} failed to access JSONL path: ${jsonlPath}`);
+  }
+
+  return {
+    listSessions: () => listSessionsFromJsonl(jsonlPath, entry, cwd, label),
+    searchSessions: (query: SearchQuery) => searchSessionsFromJsonl(jsonlPath, entry, query, label),
+    getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
+      getSessionDetailFromJsonl(jsonlPath, entry, sessionId, opts, label),
+  };
+}
+
+// ============================================================================
+// DB Adapter Implementation
+// ============================================================================
+
+function openDatabaseWithRetry(
+  path: string,
+  label: string,
+  retries: number[]
+): Database {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < retries.length; attempt++) {
+    try {
+      const stat = statSync(path);
+      if (!stat.isFile()) {
+        throw new Error(`${label} db_path is not a file: ${path}`);
+      }
+      return new Database(path, { readonly: true });
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      // Check if this is a lock error
+      const isLockError = lastError.message.toLowerCase().includes("locked") || 
+                          lastError.message.toLowerCase().includes("busy") ||
+                          lastError.message.includes("SQLITE_BUSY");
+      
+      // If this is the last attempt
+      if (attempt === retries.length - 1) {
+        // Re-throw errors that already have the label (like "db_path is not a file")
+        if (lastError.message.includes(label)) {
+          throw lastError;
+        }
+        // Throw lock-specific error for lock issues
+        if (isLockError) {
+          throw new Error(`${label} database locked after ${retries.length} attempts (delays: ${retries.join(',')}ms) - path: ${path}`);
+        }
+        // Throw generic error for other issues
+        throw new Error(`${label} failed to open database after ${retries.length} attempt(s): ${path} - ${lastError.message}`);
+      }
+      
+      // Not the last attempt - only retry if it's a lock error
+      if (isLockError) {
+        // Wait before retry (synchronous sleep)
+        const start = Date.now();
+        while (Date.now() - start < retries[attempt]) {
+          // Busy wait
+        }
+      } else {
+        // Non-lock errors should be thrown immediately
+        if (lastError.message.includes(label)) {
+          throw lastError;
+        }
+        throw new Error(`${label} failed to open database: ${path} - ${lastError.message}`);
+      }
+    }
+  }
+
+  // This should never be reached, but TypeScript needs it
+  throw new Error(`${label} unexpected state in openDatabaseWithRetry`);
+}
+
+function validateSchema(db: Database, label: string): void {
+  const tables = db
+    .query<{ name: string }, []>("SELECT name FROM sqlite_master WHERE type='table'")
+    .all()
+    .map((r: { name: string }) => r.name);
+
+  const missingTables: string[] = [];
+  const missingColumns: { table: string; columns: string[] }[] = [];
+
+  for (const [table, requiredColumns] of Object.entries(EXPECTED_SCHEMA.tables)) {
+    if (!tables.includes(table)) {
+      missingTables.push(table);
+      continue;
+    }
+
+    const columns = db
+      .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+      .all()
+      .map((r: { name: string }) => r.name);
+
+    const missing = requiredColumns.filter((c) => !columns.includes(c));
+    if (missing.length > 0) {
+      missingColumns.push({ table, columns: missing });
+    }
+  }
+
+  if (missingTables.length > 0 || missingColumns.length > 0) {
+    const parts: string[] = [];
+    
+    if (missingTables.length > 0) {
+      parts.push(`missing tables: ${missingTables.join(", ")}`);
+    }
+    
+    if (missingColumns.length > 0) {
+      const colParts = missingColumns.map(
+        (mc) => `${mc.table}(${mc.columns.join(", ")})`
+      );
+      parts.push(`missing columns: ${colParts.join("; ")}`);
+    }
+
+    throw new Error(
+      `${label} schema mismatch: ${parts.join("; ")}. Expected schema: project(id, worktree), session(id, project_id, directory, title, time_created, time_updated), message(id, session_id, time_created, data), part(id, message_id, session_id, data)`
+    );
   }
 }
 
-function listSessions(
+function listSessionsFromDb(
   db: Database,
   entry: OpenCodeAgentEntry,
   cwd: string,
   label: string
 ): SessionSummary[] {
-  const projectId = findProjectId(db, cwd);
+  const projectId = findProjectId(db, cwd, label);
   if (!projectId) {
     return [];
   }
@@ -120,13 +292,13 @@ function listSessions(
     )
     .all(projectId);
 
-  return sessions.map((row) => {
-    const messageCount = countMessages(db, row.id);
+  return sessions.map((row: SessionRow) => {
+    const messageCount = countMessages(db, row.id, label);
     return {
       id: row.id,
       agent: "opencode",
       alias: entry.alias,
-      title: row.title,
+      title: row.title || row.id, // Fallback to id if title empty
       created_at: formatTimestamp(row.time_created),
       updated_at: formatTimestamp(row.time_updated),
       message_count: messageCount,
@@ -135,14 +307,14 @@ function listSessions(
   });
 }
 
-function searchSessions(
+function searchSessionsFromDb(
   db: Database,
   entry: OpenCodeAgentEntry,
   query: SearchQuery,
   label: string
 ): SessionSummary[] {
   const cwd = query.cwd ?? process.cwd();
-  const projectId = findProjectId(db, cwd);
+  const projectId = findProjectId(db, cwd, label);
   if (!projectId) {
     return [];
   }
@@ -168,7 +340,7 @@ function searchSessions(
     )
     .all(projectId, searchPattern);
 
-  const seen = new Set(sessionsByTitle.map((s) => s.id));
+  const seen = new Set(sessionsByTitle.map((s: SessionRow) => s.id));
   const combined = [...sessionsByTitle];
   for (const row of sessionsByContent) {
     if (!seen.has(row.id)) {
@@ -180,12 +352,12 @@ function searchSessions(
   combined.sort((a, b) => b.time_updated - a.time_updated);
 
   return combined.map((row) => {
-    const messageCount = countMessages(db, row.id);
+    const messageCount = countMessages(db, row.id, label);
     return {
       id: row.id,
       agent: "opencode",
       alias: entry.alias,
-      title: row.title,
+      title: row.title || row.id, // Fallback to id if title empty
       created_at: formatTimestamp(row.time_created),
       updated_at: formatTimestamp(row.time_updated),
       message_count: messageCount,
@@ -194,7 +366,7 @@ function searchSessions(
   });
 }
 
-async function getSessionDetail(
+async function getSessionDetailFromDb(
   db: Database,
   entry: OpenCodeAgentEntry,
   sessionId: string,
@@ -213,12 +385,12 @@ async function getSessionDetail(
     throw new Error(`${label} session not found: ${sessionId}`);
   }
 
-  const messageCount = countMessages(db, sessionId);
+  const messageCount = countMessages(db, sessionId, label);
   const baseSummary: SessionSummary = {
     id: session.id,
     agent: "opencode",
     alias: entry.alias,
-    title: session.title,
+    title: session.title || session.id, // Fallback to id if title empty
     created_at: formatTimestamp(session.time_created),
     updated_at: formatTimestamp(session.time_updated),
     message_count: messageCount,
@@ -226,43 +398,52 @@ async function getSessionDetail(
   };
 
   if (options.mode === "last_message") {
-    const messages = getMessages(db, sessionId, { lastOnly: true });
+    const messages = getMessagesFromDb(db, sessionId, { lastOnly: true }, label);
     return { ...baseSummary, messages };
   }
 
   if (options.mode === "all_no_tools") {
-    const messages = getMessages(db, sessionId, { excludeTools: true });
+    const messages = getMessagesFromDb(db, sessionId, { excludeTools: true }, label);
     return { ...baseSummary, messages };
   }
 
-  const messages = getMessages(db, sessionId, { includeAll: true });
+  const messages = getMessagesFromDb(db, sessionId, { includeAll: true }, label);
   return { ...baseSummary, messages };
 }
 
-function findProjectId(db: Database, cwd: string): string | null {
-  const normalizedCwd = resolve(cwd);
+function findProjectId(db: Database, cwd: string, label: string): string | null {
+  try {
+    const normalizedCwd = resolve(cwd);
 
-  const project = db
-    .query<ProjectRow, []>("SELECT id, worktree FROM project")
-    .all()
-    .find((p) => resolve(p.worktree) === normalizedCwd);
+    const project = db
+      .query<ProjectRow, []>("SELECT id, worktree FROM project")
+      .all()
+      .find((p: ProjectRow) => resolve(p.worktree) === normalizedCwd);
 
-  return project?.id ?? null;
+    return project?.id ?? null;
+  } catch (error) {
+    throw new Error(`${label} failed to query project: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
-function countMessages(db: Database, sessionId: string): number {
-  const result = db
-    .query<{ count: number }, [string]>(
-      `SELECT COUNT(*) as count FROM message WHERE session_id = ?`
-    )
-    .get(sessionId);
-  return result?.count ?? 0;
+function countMessages(db: Database, sessionId: string, label: string): number {
+  try {
+    const result = db
+      .query<{ count: number }, [string]>(
+        `SELECT COUNT(*) as count FROM message WHERE session_id = ?`
+      )
+      .get(sessionId);
+    return result?.count ?? 0;
+  } catch (error) {
+    throw new Error(`${label} failed to count messages: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
-function getMessages(
+function getMessagesFromDb(
   db: Database,
   sessionId: string,
-  options: { lastOnly?: boolean; excludeTools?: boolean; includeAll?: boolean }
+  options: { lastOnly?: boolean; excludeTools?: boolean; includeAll?: boolean },
+  label: string
 ): SessionMessage[] {
   let query = `
     SELECT id, session_id, time_created, data
@@ -281,15 +462,25 @@ function getMessages(
     `;
   }
 
-  const messages = db.query<MessageRow, [string]>(query).all(sessionId);
+  let messages: MessageRow[];
+  try {
+    messages = db.query<MessageRow, [string]>(query).all(sessionId);
+  } catch (error) {
+    throw new Error(`${label} failed to query messages: ${error instanceof Error ? error.message : String(error)}`);
+  }
 
   if (options.lastOnly && messages.length > 0) {
     messages.reverse();
   }
 
   return messages.map((row) => {
-    const data = JSON.parse(row.data) as { role?: string };
-    const parts = getParts(db, row.id, options);
+    let data: { role?: string };
+    try {
+      data = JSON.parse(row.data) as { role?: string };
+    } catch (error) {
+      throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    const parts = getPartsFromDb(db, row.id, options, label);
 
     return {
       id: row.id,
@@ -300,23 +491,34 @@ function getMessages(
   });
 }
 
-function getParts(
+function getPartsFromDb(
   db: Database,
   messageId: string,
-  options: { excludeTools?: boolean; includeAll?: boolean }
+  options: { excludeTools?: boolean; includeAll?: boolean },
+  label: string
 ): SessionPart[] {
-  const parts = db
-    .query<PartRow, [string]>(
-      `SELECT id, message_id, session_id, data
-       FROM part
-       WHERE message_id = ?
-       ORDER BY time_created ASC`
-    )
-    .all(messageId);
+  let parts: PartRow[];
+  try {
+    parts = db
+      .query<PartRow, [string]>(
+        `SELECT id, message_id, session_id, data
+         FROM part
+         WHERE message_id = ?
+         ORDER BY time_created ASC`
+      )
+      .all(messageId);
+  } catch (error) {
+    throw new Error(`${label} failed to query parts: ${error instanceof Error ? error.message : String(error)}`);
+  }
 
   return parts
     .map((row) => {
-      const data = JSON.parse(row.data) as Record<string, unknown>;
+      let data: Record<string, unknown>;
+      try {
+        data = JSON.parse(row.data) as Record<string, unknown>;
+      } catch (error) {
+        throw new Error(`${label} failed to parse part data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+      }
       const type = (data.type as string) ?? "unknown";
 
       if (type === "text") {
@@ -351,6 +553,166 @@ function getParts(
     });
 }
 
+// ============================================================================
+// JSONL Adapter Implementation
+// ============================================================================
+
+function parseJsonlFile(jsonlPath: string, label: string): JsonlSessionRow[] {
+  let content: string;
+  try {
+    content = readFileSync(jsonlPath, "utf-8");
+  } catch (error) {
+    throw new Error(`${label} failed to read JSONL file: ${jsonlPath} - ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  // Handle empty file
+  if (!content.trim()) {
+    return [];
+  }
+
+  const lines = content.split("\n");
+  const sessions: JsonlSessionRow[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const lineNum = i + 1;
+    const line = lines[i];
+
+    // Skip blank lines and lines with only whitespace
+    if (!line || !line.trim()) {
+      continue;
+    }
+
+    try {
+      const parsed = JSON.parse(line) as JsonlSessionRow;
+      sessions.push(parsed);
+    } catch (error) {
+      throw new Error(
+        `${label} malformed JSONL at line ${lineNum}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  return sessions;
+}
+
+function listSessionsFromJsonl(
+  jsonlPath: string,
+  entry: OpenCodeAgentEntry,
+  cwd: string,
+  label: string
+): SessionSummary[] {
+  const sessions = parseJsonlFile(jsonlPath, label);
+  const normalizedCwd = resolve(cwd);
+
+  // Filter sessions by CWD (directory match)
+  const filtered = sessions.filter((s) => {
+    try {
+      return s.directory && resolve(s.directory) === normalizedCwd;
+    } catch {
+      return false;
+    }
+  });
+
+  // Sort by timeUpdated descending
+  filtered.sort((a, b) => b.timeUpdated - a.timeUpdated);
+
+  return filtered.map((row) => ({
+    id: row.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: row.title || row.id, // Fallback to id if title empty
+    created_at: formatTimestamp(row.timeCreated),
+    updated_at: formatTimestamp(row.timeUpdated),
+    message_count: 0, // JSONL doesn't have message counts in session rows
+    storage: "jsonl",
+  }));
+}
+
+function searchSessionsFromJsonl(
+  jsonlPath: string,
+  entry: OpenCodeAgentEntry,
+  query: SearchQuery,
+  label: string
+): SessionSummary[] {
+  const sessions = parseJsonlFile(jsonlPath, label);
+  const cwd = query.cwd ?? process.cwd();
+  const normalizedCwd = resolve(cwd);
+  const searchLower = query.text.toLowerCase();
+
+  // Filter sessions by CWD and search text
+  const filtered = sessions.filter((s) => {
+    // Check CWD match
+    try {
+      if (!s.directory || resolve(s.directory) !== normalizedCwd) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+
+    // Check title match
+    if (s.title && s.title.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+
+    // For JSONL, we can't search parts without loading full session data
+    // So we only search by title for now
+    return false;
+  });
+
+  // Sort by timeUpdated descending
+  filtered.sort((a, b) => b.timeUpdated - a.timeUpdated);
+
+  return filtered.map((row) => ({
+    id: row.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: row.title || row.id, // Fallback to id if title empty
+    created_at: formatTimestamp(row.timeCreated),
+    updated_at: formatTimestamp(row.timeUpdated),
+    message_count: 0,
+    storage: "jsonl",
+  }));
+}
+
+async function getSessionDetailFromJsonl(
+  jsonlPath: string,
+  entry: OpenCodeAgentEntry,
+  sessionId: string,
+  options: SessionReadOptions,
+  label: string
+): Promise<SessionDetail> {
+  // For JSONL, we need to find the session by ID
+  // Note: Full JSONL implementation would require parsing message/part data
+  // For now, we return basic session info
+  
+  const sessions = parseJsonlFile(jsonlPath, label);
+  const session = sessions.find((s) => s.id === sessionId);
+
+  if (!session) {
+    throw new Error(`${label} session not found in JSONL: ${sessionId}`);
+  }
+
+  const baseSummary: SessionSummary = {
+    id: session.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: session.title || session.id, // Fallback to id if title empty
+    created_at: formatTimestamp(session.timeCreated),
+    updated_at: formatTimestamp(session.timeUpdated),
+    message_count: 0,
+    storage: "jsonl",
+  };
+
+  // JSONL adapter doesn't support full message retrieval in basic implementation
+  // Return empty messages for now
+  return { ...baseSummary, messages: [] };
+}
+
+// ============================================================================
+// Shared Utilities
+// ============================================================================
+
 function normalizeRole(role?: string): "user" | "assistant" | "system" {
   if (role === "user" || role === "assistant" || role === "system") {
     return role;
@@ -360,14 +722,4 @@ function normalizeRole(role?: string): "user" | "assistant" | "system" {
 
 function formatTimestamp(ms: number): string {
   return new Date(ms).toISOString();
-}
-
-function expandTilde(pathValue: string): string {
-  if (pathValue === "~") {
-    return homedir();
-  }
-  if (pathValue.startsWith("~/") || pathValue.startsWith("~\\")) {
-    return join(homedir(), pathValue.slice(2));
-  }
-  return pathValue;
 }
