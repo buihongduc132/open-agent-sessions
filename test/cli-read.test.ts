@@ -407,9 +407,9 @@ describe("cli read", () => {
   });
 
   // ==========================================================================
-  // AC8: Full session ID required (no short form in v1)
+  // AC8: Session ID formats (full and short forms)
   // ==========================================================================
-  describe("AC8: Full session ID required", () => {
+  describe("AC8: Session ID formats", () => {
     test("accepts full session ID (agent:alias:id)", async () => {
       const detail = makeSessionDetail();
 
@@ -422,27 +422,152 @@ describe("cli read", () => {
       expect(result.exitCode).toBe(0);
     });
 
-    test("rejects short form (agent:id) - missing alias", async () => {
-      const result = await runReadCommand({
-        session: "opencode:session-001",
-        config: baseConfig,
-        getSession: makeReadService(makeSessionDetail()),
-      });
+    // Short form: session_id only
+    test("accepts short form (session_id only) - uses first enabled agent/alias", async () => {
+      let receivedQuery: { agent: string; alias: string; id: string } | undefined;
+      const detail = makeSessionDetail();
 
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain("Full session ID required");
-      expect(result.stderr).toContain("agent:alias:session_id");
-    });
-
-    test("rejects just session ID", async () => {
       const result = await runReadCommand({
         session: "session-001",
         config: baseConfig,
+        getSession: makeReadService(detail, (query) => {
+          receivedQuery = query;
+        }),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(receivedQuery?.id).toBe("session-001");
+      // Should use first enabled agent/alias from config
+      expect(receivedQuery?.agent).toBe("opencode");
+      expect(receivedQuery?.alias).toBe("personal");
+    });
+
+    // Short form: alias:session_id
+    test("accepts short form (alias:session_id) - resolves agent from alias", async () => {
+      let receivedQuery: { agent: string; alias: string; id: string } | undefined;
+      const detail = makeSessionDetail();
+
+      const result = await runReadCommand({
+        session: "personal:session-001",
+        config: baseConfig,
+        getSession: makeReadService(detail, (query) => {
+          receivedQuery = query;
+        }),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(receivedQuery?.id).toBe("session-001");
+      expect(receivedQuery?.alias).toBe("personal");
+      expect(receivedQuery?.agent).toBe("opencode");
+    });
+
+    test("rejects unknown alias in alias:session_id format", async () => {
+      const result = await runReadCommand({
+        session: "unknown-alias:session-001",
+        config: baseConfig,
         getSession: makeReadService(makeSessionDetail()),
       });
 
       expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain("Full session ID required");
+      expect(result.stderr).toContain("Unknown alias");
+      expect(result.stderr).toContain("unknown-alias");
+    });
+
+    test("rejects too many parts (4+ colons)", async () => {
+      const result = await runReadCommand({
+        session: "a:b:c:d",
+        config: baseConfig,
+        getSession: makeReadService(makeSessionDetail()),
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Invalid --session value");
+    });
+  });
+
+  // ==========================================================================
+  // AC14: --user-only flag
+  // ==========================================================================
+  describe("AC14: --user-only flag", () => {
+    test("parses --user-only and passes to service", async () => {
+      let receivedOptions: SessionReadOptions | undefined;
+      const detail = makeSessionDetail();
+
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        userOnly: true,
+        config: baseConfig,
+        getSession: makeReadService(detail, (_, opts) => {
+          receivedOptions = opts;
+        }),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(receivedOptions?.selection?.mode).toBe("user-only");
+    });
+
+    test("--user-only conflicts with --first", async () => {
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        userOnly: true,
+        first: 5,
+        config: baseConfig,
+        getSession: makeReadService(makeSessionDetail()),
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Cannot use");
+      expect(result.stderr).toContain("--first");
+      expect(result.stderr).toContain("--user-only");
+      expect(result.stderr).toContain("together");
+    });
+
+    test("--user-only conflicts with --last", async () => {
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        userOnly: true,
+        last: 10,
+        config: baseConfig,
+        getSession: makeReadService(makeSessionDetail()),
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Cannot use");
+      expect(result.stderr).toContain("--last");
+      expect(result.stderr).toContain("--user-only");
+      expect(result.stderr).toContain("together");
+    });
+
+    test("--user-only conflicts with --all", async () => {
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        userOnly: true,
+        all: true,
+        config: baseConfig,
+        getSession: makeReadService(makeSessionDetail()),
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Cannot use");
+      expect(result.stderr).toContain("--all");
+      expect(result.stderr).toContain("--user-only");
+      expect(result.stderr).toContain("together");
+    });
+
+    test("--user-only conflicts with --range", async () => {
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        userOnly: true,
+        range: "1:10",
+        config: baseConfig,
+        getSession: makeReadService(makeSessionDetail()),
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Cannot use");
+      expect(result.stderr).toContain("--range");
+      expect(result.stderr).toContain("--user-only");
+      expect(result.stderr).toContain("together");
     });
   });
 

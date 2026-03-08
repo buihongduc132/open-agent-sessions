@@ -16,11 +16,11 @@ import type { ReadQuery } from "./formatters/text";
 // Re-export ReadQuery for external use
 export type { ReadQuery };
 
-const USAGE = `Usage: oas read --session <agent:alias:session_id> [options]
+const USAGE = `Usage: oas read --session <session_id> [options]
        oas read --agent <agent> --alias <alias> --id <session_id> [options]
 
 Options:
-  --session S     Session ID in format agent:alias:session_id
+  --session S     Session ID (supports short forms: session_id, alias:session_id, or agent:alias:session_id)
   --agent A       Agent type (opencode, codex, claude)
   --alias L       Agent alias
   --id I          Session ID
@@ -28,13 +28,19 @@ Options:
   --last N        Last N messages (default: 10)
   --all           All messages
   --range S:E     Message range (1-indexed, inclusive)
+  --user-only     Show only user messages (exclude assistant/tool messages)
   --tools         Include tool messages (default: hide)
   --role R        Filter by role (user, assistant, system)
   --format F      Output format: text (default) or json
   --output FILE   Write output to file (recommended for large outputs)
 
+Session ID formats:
+  - session_id              Uses first enabled agent/alias from config
+  - alias:session_id        Uses first agent with matching alias
+  - agent:alias:session_id  Full format (explicit)
+
 Either --session or all of --agent, --alias, --id must be specified.
-Only one of --first, --last, --all, --range may be specified.`;
+Only one of --first, --last, --all, --range, --user-only may be specified.`;
 
 // ============================================================================
 // Types
@@ -54,6 +60,7 @@ export type ReadOptions = {
   last?: number;
   all?: boolean;
   range?: string;
+  userOnly?: boolean;
   tools?: boolean;
   role?: string;
   format?: "text" | "json";
@@ -234,22 +241,72 @@ function parseSessionSpec(spec: string, entries: AgentEntry[]): ParseResult<Read
   }
   const parts = splitResult.value;
 
-  // AC8: Full session ID required (no short form in v1)
-  // Must be exactly 3 parts: agent:alias:session_id
-  if (parts.length !== 3) {
+  // Support three formats:
+  // 1. session_id (1 part) - infer agent/alias from config
+  // 2. alias:session_id (2 parts) - infer agent from config
+  // 3. agent:alias:session_id (3 parts) - full format
+  
+  if (parts.length === 1) {
+    // Format: session_id - use first enabled agent/alias
+    return resolveFromSessionIdOnly(parts[0], entries);
+  }
+  
+  if (parts.length === 2) {
+    // Format: alias:session_id - find agent with matching alias
+    return resolveFromAliasSessionId(parts[0], parts[1], entries);
+  }
+
+  if (parts.length === 3) {
+    // Format: agent:alias:session_id - full format
+    return resolveFromFullSpec(parts[0], parts[1], parts[2], entries);
+  }
+
+  return {
+    ok: false,
+    error: `Invalid --session value "${spec}". Expected format: session_id, alias:session_id, or agent:alias:session_id. ${USAGE}`,
+  };
+}
+
+/**
+ * Resolve session_id only format.
+ * Uses first enabled agent and its first alias from config.
+ */
+function resolveFromSessionIdOnly(sessionId: string, entries: AgentEntry[]): ParseResult<ReadQuery> {
+  if (entries.length === 0) {
+    return { ok: false, error: `No enabled agents in config. ${USAGE}` };
+  }
+
+  // Use first enabled entry
+  const entry = entries[0];
+  return { ok: true, value: { agent: entry.agent, alias: entry.alias, id: sessionId } };
+}
+
+/**
+ * Resolve alias:session_id format.
+ * Finds first agent with matching alias.
+ */
+function resolveFromAliasSessionId(alias: string, sessionId: string, entries: AgentEntry[]): ParseResult<ReadQuery> {
+  const matchingEntry = entries.find((e) => e.alias === alias);
+  
+  if (!matchingEntry) {
+    const availableAliases = [...new Set(entries.map((e) => e.alias))].sort();
     return {
       ok: false,
-      error: `Invalid --session value "${spec}". Full session ID required: agent:alias:session_id. ${USAGE}`,
+      error: `Unknown alias "${alias}". Available aliases: ${formatList(availableAliases)}`,
     };
   }
 
-  const agent = parts[0].trim() as AgentKind;
+  return { ok: true, value: { agent: matchingEntry.agent, alias, id: sessionId } };
+}
+
+/**
+ * Resolve full agent:alias:session_id format.
+ */
+function resolveFromFullSpec(agentStr: string, alias: string, sessionId: string, entries: AgentEntry[]): ParseResult<ReadQuery> {
+  const agent = agentStr as AgentKind;
   if (!isAgentKind(agent) || !listAgents(entries).includes(agent)) {
     return { ok: false, error: unknownAgentError(agent, entries) };
   }
-
-  const alias = parts[1].trim();
-  const sessionId = parts[2].trim();
 
   const aliasValidation = validateAlias(agent, alias, entries);
   if (!aliasValidation.ok) {
@@ -302,6 +359,7 @@ function parseSelectionOptions(
   if (options.last !== undefined) modes.push("--last");
   if (options.all) modes.push("--all");
   if (options.range !== undefined) modes.push("--range");
+  if (options.userOnly) modes.push("--user-only");
 
   // AC6: Error on conflicting flags
   if (modes.length > 1) {
@@ -362,6 +420,14 @@ function parseSelectionOptions(
   // AC4: Parse --range START:END
   if (options.range !== undefined) {
     return parseRange(options.range);
+  }
+
+  // Parse --user-only
+  if (options.userOnly) {
+    return {
+      ok: true,
+      value: { mode: "user-only" },
+    };
   }
 
   // Default: last 10 messages

@@ -95,6 +95,37 @@ export class TestDatabase {
         data TEXT NOT NULL
       )
     `);
+
+    // Create indexes for time-based queries optimization
+    // Session indexes for time-based filtering and sorting
+    this.db.run(`
+      CREATE INDEX idx_session_time_updated ON session(time_updated)
+    `);
+    this.db.run(`
+      CREATE INDEX idx_session_time_created ON session(time_created)
+    `);
+    // Composite index for project_id + time_updated (common query pattern)
+    this.db.run(`
+      CREATE INDEX idx_session_project_time ON session(project_id, time_updated)
+    `);
+
+    // Message indexes for time-based ordering
+    this.db.run(`
+      CREATE INDEX idx_message_time_created ON message(time_created)
+    `);
+    // Composite index for session_id + time_created (common query pattern)
+    this.db.run(`
+      CREATE INDEX idx_message_session_time ON message(session_id, time_created)
+    `);
+
+    // Part indexes for time-based ordering
+    this.db.run(`
+      CREATE INDEX idx_part_time_created ON part(time_created)
+    `);
+    // Composite index for message_id + time_created (common query pattern)
+    this.db.run(`
+      CREATE INDEX idx_part_message_time ON part(message_id, time_created)
+    `);
   }
 
   private seedProject(): void {
