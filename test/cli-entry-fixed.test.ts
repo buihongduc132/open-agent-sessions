@@ -10,7 +10,8 @@ import { join } from "path";
 // ============================================================================
 
 // Helper to run CLI command and capture output
-async function runCLI(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+// Note: timeout must be less than bun:test's default 5000ms timeout
+async function runCLI(args: string[], timeoutMs: number = 4000): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const cliPath = join(process.cwd(), "bin", "oas");
     const proc = spawn("bun", [cliPath, ...args], {
@@ -20,6 +21,19 @@ async function runCLI(args: string[]): Promise<{ exitCode: number; stdout: strin
 
     let stdout = "";
     let stderr = "";
+    let resolved = false;
+
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        proc.kill();
+        resolve({
+          exitCode: 1,
+          stdout,
+          stderr: stderr + "\nProcess timed out",
+        });
+      }
+    }, timeoutMs);
 
     proc.stdout.on("data", (data) => {
       stdout += data.toString();
@@ -30,19 +44,27 @@ async function runCLI(args: string[]): Promise<{ exitCode: number; stdout: strin
     });
 
     proc.on("close", (code) => {
-      resolve({
-        exitCode: code ?? 1,
-        stdout,
-        stderr,
-      });
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timer);
+        resolve({
+          exitCode: code ?? 1,
+          stdout,
+          stderr,
+        });
+      }
     });
 
     proc.on("error", (error) => {
-      resolve({
-        exitCode: 1,
-        stdout,
-        stderr: error.message,
-      });
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timer);
+        resolve({
+          exitCode: 1,
+          stdout,
+          stderr: error.message,
+        });
+      }
     });
   });
 }
