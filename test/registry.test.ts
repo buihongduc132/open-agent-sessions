@@ -5,11 +5,13 @@ import {
   type AdapterFactories,
   type Config,
 } from "../src/index";
+import { createCodexAdapter } from "../src/adapters/codex";
+import { createClaudeAdapter } from "../src/adapters/claude";
 
 const baseFactories: AdapterFactories = {
-  opencode: () => ({ listSessions: () => [] }),
-  codex: () => ({ listSessions: () => [] }),
-  claude: () => ({ listSessions: () => [] }),
+  opencode: () => ({ version: "1.0.0", listSessions: () => [] }),
+  codex: () => ({ version: "1.0.0", listSessions: () => [] }),
+  claude: () => ({ version: "1.0.0", listSessions: () => [] }),
 };
 
 function makeConfig(agents: Config["agents"]): Config {
@@ -62,6 +64,7 @@ describe("adapter registry", () => {
       {
         ...baseFactories,
         codex: () => ({
+          version: "1.0.0",
           listSessions: () => {
             throw new Error("boom");
           },
@@ -93,6 +96,7 @@ describe("adapter registry", () => {
       {
         ...baseFactories,
         codex: () => ({
+          version: "1.0.0",
           listSessions: () => [
             {
               id: "s1",
@@ -143,7 +147,7 @@ describe("adapter registry", () => {
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
       {
         ...baseFactories,
-        codex: () => ({ listSessions: () => ({}) as any }),
+        codex: () => ({ version: "1.0.0", listSessions: () => ({}) as any }),
       }
     );
 
@@ -158,6 +162,7 @@ describe("adapter registry", () => {
       {
         ...baseFactories,
         opencode: () => ({
+          version: "1.0.0",
           listSessions: () => [
             {
               id: "",
@@ -183,6 +188,7 @@ describe("adapter registry", () => {
       {
         ...baseFactories,
         codex: () => ({
+          version: "1.0.0",
           listSessions: () => [
             {
               id: "s1",
@@ -283,5 +289,29 @@ describe("session summary normalization", () => {
 
     expect(result).not.toBe(input);
     expect(input).toEqual(original);
+  });
+});
+
+describe("adapter version metadata", () => {
+  test("adapter handle exposes version from adapter", async () => {
+    const registry = createAdapterRegistry(
+      makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
+      {
+        ...baseFactories,
+        codex: () => ({ version: "2.5.0", listSessions: () => [] }),
+      }
+    );
+
+    expect(registry.adapters[0].version).toBe("2.5.0");
+  });
+
+  test("all built-in adapters have version property", async () => {
+    const codexAdapter = createCodexAdapter({ agent: "codex", alias: "test", enabled: true });
+    const claudeAdapter = createClaudeAdapter({ agent: "claude", alias: "test", enabled: true });
+
+    expect(codexAdapter.version).toBeDefined();
+    expect(typeof codexAdapter.version).toBe("string");
+    expect(claudeAdapter.version).toBeDefined();
+    expect(typeof claudeAdapter.version).toBe("string");
   });
 });

@@ -161,6 +161,47 @@ describe("claude adapter", () => {
     );
   });
 
+  test("timestamp error includes record id when present", () => {
+    const dir = tempDir();
+    const filePath = join(dir, "ses_310.jsonl");
+    writeSession(filePath, [
+      {
+        id: "rec_abc123",
+        type: "user",
+        timestamp: "bad",
+        content: "Hello",
+      },
+    ]);
+
+    const adapter = createClaudeAdapter({
+      agent: "claude",
+      alias: "main",
+      enabled: true,
+      path: filePath,
+    });
+    expect(() => adapter.listSessions()).toThrow(/record rec_abc123/);
+  });
+
+  test("timestamp error indicates missing record id when absent", () => {
+    const dir = tempDir();
+    const filePath = join(dir, "ses_320.jsonl");
+    writeSession(filePath, [
+      {
+        type: "user",
+        timestamp: "bad",
+        content: "Hello",
+      },
+    ]);
+
+    const adapter = createClaudeAdapter({
+      agent: "claude",
+      alias: "main",
+      enabled: true,
+      path: filePath,
+    });
+    expect(() => adapter.listSessions()).toThrow(/missing record id/);
+  });
+
   test("errors when session id is missing in the filename stem", () => {
     const dir = tempDir();
     const filePath = join(dir, ".jsonl");

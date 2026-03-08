@@ -83,6 +83,7 @@ export interface SessionKey {
 }
 
 export interface Adapter {
+  readonly version: string;
   listSessions(): SessionSummary[];
   listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
   searchSessions?(query: SearchQuery): SessionSummary[];
@@ -100,6 +101,7 @@ export interface AdapterFactories {
 export interface AdapterHandle {
   agent: AgentKind;
   alias: string;
+  version: string;
   listSessions(): Promise<SessionSummary[]>;
 }
 

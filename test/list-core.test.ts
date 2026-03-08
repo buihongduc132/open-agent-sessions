@@ -31,6 +31,7 @@ describe("core list sessions", () => {
         {
           agent: "codex",
           alias: "work",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({ id: "cx-100", agent: "codex", updated_at: "2024-02-01T00:00:00Z" }),
             makeSession({ id: "cx-099", agent: "codex", updated_at: "2024-02-01T00:00:00Z" }),
@@ -40,6 +41,7 @@ describe("core list sessions", () => {
         {
           agent: "opencode",
           alias: "personal",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({
               id: "oc-200",
@@ -51,6 +53,7 @@ describe("core list sessions", () => {
         {
           agent: "claude",
           alias: "team",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({
               id: "cl-300",
@@ -78,6 +81,7 @@ describe("core list sessions", () => {
         {
           agent: "codex",
           alias: "work",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({ id: "cx-100", agent: "codex", alias: "work", title: "Bug triage" }),
           ],
@@ -85,6 +89,7 @@ describe("core list sessions", () => {
         {
           agent: "codex",
           alias: "play",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({ id: "cx-200", agent: "codex", alias: "play", title: "Refactor notes" }),
           ],
@@ -102,6 +107,7 @@ describe("core list sessions", () => {
         {
           agent: "codex",
           alias: "work",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({ id: "cx-101", title: "Bug triage" }),
             makeSession({ id: "cx-102", title: "Refactor notes" }),
@@ -123,6 +129,7 @@ describe("core list sessions", () => {
         {
           agent: "codex",
           alias: "work",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({ id: "cx-101", title: "Bug triage" }),
             makeSession({ id: "cx-102", title: "Refactor notes" }),
@@ -141,6 +148,7 @@ describe("core list sessions", () => {
         {
           agent: "codex",
           alias: "work",
+          version: "1.0.0",
           listSessions: async () => {
             throw new Error("boom");
           },
@@ -148,6 +156,7 @@ describe("core list sessions", () => {
         {
           agent: "opencode",
           alias: "personal",
+          version: "1.0.0",
           listSessions: async () => [
             makeSession({ id: "oc-100", agent: "opencode", alias: "personal" }),
           ],

@@ -10,17 +10,19 @@ import { runReadCommand, type ReadService } from "../src/cli/read";
 import { runSearchCommand, type SearchService } from "../src/cli/search";
 import { runListCommand, type ListService } from "../src/cli/list";
 import { runDetailCommand, type DetailService } from "../src/cli/detail";
+import { runCloneCommand } from "../src/cli/clone";
 
 // Core imports
 import { createAdapterRegistry } from "../src/core/registry";
 import { createListService } from "../src/core/list";
+import { createCloneService, type CloneRegistry } from "../src/core/clone";
 import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery, SessionListQuery, SessionListResult } from "../src/core/types";
 
 // Config imports
 import { loadConfigFromFile, type Config } from "../src/config";
 
 // Adapter imports
-import { createOpenCodeAdapter } from "../src/adapters/opencode";
+import { createOpenCodeAdapter, createOpenCodeCloneDestinationAdapter, createCodexCloneSourceAdapter } from "../src/adapters";
 
 const DB_PATH = join(homedir(), ".local", "share", "opencode", "opencode.db");
 
@@ -321,6 +323,60 @@ function createDetailService(config: Config): DetailService {
   };
 }
 
+function createCloneServiceFromConfig(config: Config) {
+  const cwd = process.cwd();
+  
+  const registry: CloneRegistry = {
+    getSource: (source) => {
+      if (source.agent !== "codex" || !source.alias) {
+        return undefined;
+      }
+      
+      const entry = config.agents.find(
+        (e) => e.agent === "codex" && e.alias === source.alias && e.enabled
+      );
+      
+      if (!entry) {
+        return undefined;
+      }
+      
+      return createCodexCloneSourceAdapter(entry as any, { cwd });
+    },
+    
+    getDestination: (destination) => {
+      if (destination.agent !== "opencode") {
+        return undefined;
+      }
+      
+      const entry = config.agents.find(
+        (e) => e.agent === "opencode" && e.alias === destination.alias && e.enabled
+      );
+      
+      if (!entry) {
+        return undefined;
+      }
+      
+      return createOpenCodeCloneDestinationAdapter(entry as any, { cwd });
+    },
+    
+    listSources: (agent) => {
+      if (agent !== "codex") return [];
+      return config.agents
+        .filter((e) => e.agent === "codex" && e.enabled)
+        .map((e) => e.alias);
+    },
+    
+    listDestinations: (agent) => {
+      if (agent !== "opencode") return [];
+      return config.agents
+        .filter((e) => e.agent === "opencode" && e.enabled)
+        .map((e) => e.alias);
+    },
+  };
+  
+  return createCloneService(registry);
+}
+
 // ============================================================================
 // Argument Parsing
 // ============================================================================
@@ -531,6 +587,22 @@ async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
   process.exit(result.exitCode);
 }
 
+async function handleCloneCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const clone = createCloneServiceFromConfig(config);
+
+  const result = await runCloneCommand({
+    from: parsed.options["from"] as string | undefined,
+    to: parsed.options["to"] as string | undefined,
+    config,
+    clone,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
 // ============================================================================
 // Help
 // ============================================================================
@@ -556,6 +628,7 @@ function showHelp() {
   console.log("    read <session-id>      Read session messages");
   console.log("    read [options]         Read session messages (alternative)");
   console.log("    search [options]       Search sessions by title and content");
+  console.log("    clone [options]        Clone session from one agent to another");
   console.log("    onboard                Initialize bd (beads) for the project");
   console.log("");
   console.log("Sessions Command Options:");
@@ -579,6 +652,10 @@ function showHelp() {
   console.log("");
   console.log("Search Command Options:");
   console.log("    --text QUERY           Search text (required)");
+  console.log("");
+  console.log("Clone Command Options:");
+  console.log("    --from SPEC            Source session (agent:session_id or agent:alias:session_id)");
+  console.log("    --to SPEC              Destination (agent:alias)");
   console.log("");
   console.log("Read Command Options:");
   console.log("    <session-id>           Positional session spec (agent:alias:session_id)");
@@ -625,6 +702,10 @@ function showHelp() {
   console.log("  oas detail opencode:default:abc123    Show session details (positional)");
   console.log("  oas detail --session opencode:abc123  Show details with inferred alias");
   console.log("  oas detail --agent codex --alias work --id cx-100");
+  console.log("");
+  console.log("  # Clone command (copy session between agents)");
+  console.log("  oas clone --from codex:cx-100 --to opencode:default");
+  console.log("  oas clone --from codex:work:cx-100 --to opencode:personal");
   process.exit(0);
 }
 
@@ -720,6 +801,16 @@ async function main() {
     return;
   }
 
+  if (command === "clone") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleCloneCommand(parsed);
+    return;
+  }
+
   if (command === "onboard") {
     // Explanation: This command initializes 'bd' (beads) for the project.
     // It will set up the necessary configuration files for issue tracking.
@@ -745,6 +836,7 @@ async function main() {
   console.log("  detail         Show session detail view");
   console.log("  read           Read session messages");
   console.log("  search         Search sessions by title and content");
+  console.log("  clone          Clone session between agents");
   console.log("  onboard        Initialize bd (beads) for the project");
   console.log("");
   console.log("Run 'oas --help' for more information.");

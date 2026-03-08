@@ -6,8 +6,6 @@ import { loadConfigFromFile } from "../src/config/load";
 
 import { SessionSummary } from "../src/core/types";
 
-import { CliResult } from "./types";
-
 import { SearchError } from "../src/cli/search";
 
 const baseConfig: Config = {

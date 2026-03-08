@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { Database } from "bun:sqlite";
 import { resolveOpenCodeStorage } from "../config/opencode";
-import { OpenCodeAgentEntry, OpenCodeStorageDefaults } from "../config/types";
+import { OpenCodeAgentEntry, OpenCodeStorageDefaults, AgentKind } from "../config/types";
 import {
   Adapter,
   MessageSelectionOptions,
@@ -14,6 +14,7 @@ import {
   SessionReadOptions,
   SessionSummary,
   TimeRangeOptions,
+  SessionCloneMetadata,
 } from "../core/types";
 
 // Expected schema for validation
@@ -69,6 +70,18 @@ type JsonlSessionRow = {
   title?: string | null;
   timeCreated: number;
   timeUpdated: number;
+  clone?: {
+    src?: {
+      agent?: string;
+      session_id?: string;
+      version?: string;
+    };
+    dst?: {
+      agent?: string;
+      session_id?: string;
+      version?: string;
+    };
+  };
 };
 
 type JsonlMessageRow = {
@@ -133,6 +146,7 @@ function createDbAdapter(
   validateSchema(db, label);
 
   return {
+    version: "1.0.0", // TODO: Replace with actual version from package.json or similar
     listSessions: () => listSessionsFromDb(db, entry, cwd, label),
     listSessionsByTimeRange: (options: TimeRangeOptions) =>
       listSessionsByTimeRangeFromDb(db, entry, cwd, options, label),
@@ -162,6 +176,7 @@ function createJsonlAdapter(
   }
 
   return {
+    version: "1.0.0", // TODO: Replace with actual version from package.json or similar
     listSessions: () => listSessionsFromJsonl(jsonlPath, entry, cwd, label),
     listSessionsByTimeRange: (options: TimeRangeOptions) =>
       listSessionsByTimeRangeFromJsonl(jsonlPath, entry, cwd, options, label),
@@ -498,12 +513,32 @@ function findProjectId(db: Database, cwd: string, label: string): string | null 
   try {
     const normalizedCwd = resolve(cwd);
 
-    const project = db
+    // Get all projects
+    const projects = db
       .query<ProjectRow, []>("SELECT id, worktree FROM project")
       .all()
-      .find((p: ProjectRow) => resolve(p.worktree) === normalizedCwd);
+      .map((p: ProjectRow) => ({ id: p.id, worktree: resolve(p.worktree) }));
 
-    return project?.id ?? null;
+    // First try exact match
+    const exactMatch = projects.find((p) => p.worktree === normalizedCwd);
+    if (exactMatch) {
+      return exactMatch.id;
+    }
+
+    // Walk up directory tree to find parent project
+    let currentDir = normalizedCwd;
+    const root = resolve("/");
+    
+    while (currentDir !== root) {
+      currentDir = dirname(currentDir);
+      
+      const parentMatch = projects.find((p) => p.worktree === currentDir);
+      if (parentMatch) {
+        return parentMatch.id;
+      }
+    }
+
+    return null;
   } catch (error) {
     throw new Error(`${label} failed to query project: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -1009,9 +1044,26 @@ async function getSessionDetailFromJsonl(
     storage: "jsonl",
   };
 
+  // Include clone metadata if present (convert to proper type)
+  let clone: SessionCloneMetadata | undefined;
+  if (session.clone) {
+    clone = {
+      src: session.clone.src ? {
+        agent: session.clone.src.agent as AgentKind | undefined,
+        session_id: session.clone.src.session_id,
+        version: session.clone.src.version,
+      } : undefined,
+      dst: session.clone.dst ? {
+        agent: session.clone.dst.agent as AgentKind | undefined,
+        session_id: session.clone.dst.session_id,
+        version: session.clone.dst.version,
+      } : undefined,
+    };
+  }
+
   // JSONL adapter doesn't support full message retrieval in basic implementation
   // Return empty messages for now
-  return { ...baseSummary, messages: [] };
+  return { ...baseSummary, messages: [], ...(clone && { clone }) };
 }
 
 // ============================================================================
@@ -1027,4 +1079,116 @@ function normalizeRole(role?: string): "user" | "assistant" | "system" {
 
 function formatTimestamp(ms: number): string {
   return new Date(ms).toISOString();
+}
+
+// ============================================================================
+// Clone Destination Adapter
+// ============================================================================
+
+import { randomUUID } from "node:crypto";
+import { appendFileSync, writeFileSync } from "node:fs";
+import {
+  CloneDestinationAdapter,
+  CloneMetadata,
+  CloneSession,
+} from "../core/clone";
+
+export interface OpenCodeCloneDestinationOptions {
+  cwd?: string;
+}
+
+/**
+ * Creates a CloneDestinationAdapter for OpenCode that writes to JSONL.
+ * The adapter stores clone metadata in the session record.
+ */
+export function createOpenCodeCloneDestinationAdapter(
+  entry: OpenCodeAgentEntry,
+  options: OpenCodeCloneDestinationOptions = {}
+): CloneDestinationAdapter {
+  if (entry.agent !== "opencode") {
+    throw new Error(`[opencode:${entry.alias}] OpenCode destination adapter requires agent "opencode", got "${entry.agent}"`);
+  }
+
+  const label = `[${entry.agent}:${entry.alias}]`;
+  const cwd = options.cwd ?? process.cwd();
+  const defaults = getOpenCodeDefaults();
+  const storageInfo = resolveOpenCodeStorage(entry, defaults, { context: label });
+
+  // Clone destination always writes to JSONL (DB is managed by OpenCode itself)
+  const jsonlPath = storageInfo.jsonlPath;
+
+  return {
+    agent: "opencode",
+    alias: entry.alias,
+    version: "1.0.0",
+    
+    generateSessionId: () => {
+      return randomUUID();
+    },
+
+    hasSession: (session_id: string): boolean => {
+      try {
+        const sessions = parseJsonlFile(jsonlPath, label);
+        return sessions.some((s) => s.id === session_id);
+      } catch {
+        // If we can't read the file, assume session doesn't exist
+        return false;
+      }
+    },
+
+    createSession: async (input: {
+      session: CloneSession;
+      metadata: CloneMetadata;
+      session_id: string;
+    }): Promise<void> => {
+      const { session, metadata } = input;
+
+      // Create a JSONL record with clone metadata
+      const record: JsonlSessionRow & { clone?: CloneMetadata } = {
+        id: session.id,
+        projectID: "", // Will be set by OpenCode when it reads the session
+        directory: cwd,
+        title: session.title,
+        timeCreated: Date.parse(session.created_at),
+        timeUpdated: Date.parse(session.updated_at),
+        clone: metadata,
+      };
+
+      const line = JSON.stringify(record) + "\n";
+
+      try {
+        // Append to the JSONL file
+        appendFileSync(jsonlPath, line, "utf-8");
+      } catch (error) {
+        // If the file doesn't exist, create it
+        if (error instanceof Error && error.message.includes("ENOENT")) {
+          try {
+            writeFileSync(jsonlPath, line, "utf-8");
+          } catch (writeError) {
+            throw new Error(
+              `${label} failed to create JSONL file: ${jsonlPath} - ${writeError instanceof Error ? writeError.message : String(writeError)}`
+            );
+          }
+        } else {
+          throw new Error(
+            `${label} failed to append to JSONL file: ${jsonlPath} - ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+    },
+
+    isIdConflictError: (error: unknown): boolean => {
+      // SQLite constraint errors
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        return (
+          msg.includes("unique constraint") ||
+          msg.includes("primary key") ||
+          msg.includes("duplicate") ||
+          msg.includes("already exists")
+        );
+      }
+      return false;
+    },
+  };
 }

@@ -241,7 +241,7 @@ function formatAdapterLabel(agent: AgentKind, alias: string): string {
   return `[${agent}:${alias}]`;
 }
 
-function formatList(values: string[]): string {
+export function formatList(values: string[]): string {
   if (values.length === 0) {
     return "(none)";
   }

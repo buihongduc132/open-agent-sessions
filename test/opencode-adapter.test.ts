@@ -662,6 +662,45 @@ describe("OpenCode Adapter", () => {
       expect(sessions).toEqual([]);
     });
 
+    test("finds parent project when called from subdirectory", () => {
+      const parentCwd = "/home/user/project";
+      const subdirCwd = "/home/user/project/subdir/nested";
+      const projectId = "proj-parent";
+
+      seedProject(projectId, parentCwd);
+      seedSession("ses-1", projectId, "Parent session 1", parentCwd, 1000, 2000);
+      seedSession("ses-2", projectId, "Parent session 2", subdirCwd, 3000, 4000);
+
+      const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+      const adapter = createOpenCodeAdapter(entry, { cwd: subdirCwd });
+
+      const sessions = adapter.listSessions();
+
+      expect(sessions).toHaveLength(2);
+      expect(sessions.map((s) => s.id).sort()).toEqual(["ses-1", "ses-2"]);
+    });
+
+    test("prefers exact match over parent directory", () => {
+      const parentCwd = "/home/user/project";
+      const subdirCwd = "/home/user/project/subdir";
+      const parentProjectId = "proj-parent";
+      const subdirProjectId = "proj-subdir";
+
+      seedProject(parentProjectId, parentCwd);
+      seedProject(subdirProjectId, subdirCwd);
+      seedSession("ses-parent", parentProjectId, "Parent session", parentCwd, 1000, 2000);
+      seedSession("ses-subdir", subdirProjectId, "Subdir session", subdirCwd, 3000, 4000);
+
+      const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+      const adapter = createOpenCodeAdapter(entry, { cwd: subdirCwd });
+
+      const sessions = adapter.listSessions();
+
+      // Should only return subdir session (exact match), not parent
+      expect(sessions).toHaveLength(1);
+      expect(sessions[0].id).toBe("ses-subdir");
+    });
+
     test("orders sessions by updated_at descending", () => {
       const cwd = "/home/user/project";
       const projectId = "proj-1";

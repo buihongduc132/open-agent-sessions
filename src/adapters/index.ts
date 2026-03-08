@@ -1,3 +1,3 @@
-export { createCodexAdapter } from "./codex";
+export { createCodexAdapter, createCodexCloneSourceAdapter } from "./codex";
 export { createClaudeAdapter } from "./claude";
-export { createOpenCodeAdapter } from "./opencode";
+export { createOpenCodeAdapter, createOpenCodeCloneDestinationAdapter } from "./opencode";

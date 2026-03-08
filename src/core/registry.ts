@@ -71,6 +71,7 @@ function buildHandle(
   return {
     agent: entry.agent,
     alias: entry.alias,
+    version: adapter.version,
     listSessions: async () => {
       let sessions: Awaited<ReturnType<Adapter["listSessions"]>>;
       try {

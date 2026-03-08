@@ -11,6 +11,7 @@ type ClaudeAdapterOptions = {
 };
 
 type ClaudeRecord = {
+  id?: unknown;
   type?: string;
   timestamp?: unknown;
   content?: unknown;
@@ -25,6 +26,7 @@ export function createClaudeAdapter(
   }
 
   return {
+    version: "1.0.0", // TODO: Replace with actual version from package.json or similar
     listSessions: () => {
       const label = `[${entry.agent}:${entry.alias}]`;
       try {
@@ -117,7 +119,11 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
     const record = parseJsonLine(raw, filePath, i + 1);
     const recordType = record.type;
     if (record.timestamp !== undefined && record.timestamp !== null) {
-      const context = `Claude timestamp invalid for ${sessionId} at ${filePath}:${i + 1}`;
+      const recordId = record.id;
+      const context =
+        typeof recordId === "string" && recordId.length > 0
+          ? `Claude timestamp invalid for ${sessionId} record ${recordId} at ${filePath}:${i + 1}`
+          : `Claude timestamp invalid for ${sessionId} (missing record id) at ${filePath}:${i + 1}`;
       const timestampIso = normalizeTimestamp(record.timestamp, context);
       minTimestamp = minTimestamp ? minIso(minTimestamp, timestampIso) : timestampIso;
       maxTimestamp = maxTimestamp ? maxIso(maxTimestamp, timestampIso) : timestampIso;
