@@ -37,86 +37,98 @@ function findProjectId(db: Database, cwd: string): string | null {
 
 function listRecentSessions(limit: number = 10) {
   const cwd = process.cwd();
-  const db = new Database(DB_PATH, { readonly: true });
-  
-  const projectId = findProjectId(db, cwd);
-  if (!projectId) {
-    console.error(`No OpenCode project found for: ${cwd}`);
-    process.exit(1);
-  }
+  let db: Database | null = null;
 
-  const sessions = db
-    .query<
-      { id: string; title: string; time_updated: number; message_count: number },
-      [string, number]
-    >(
-      `SELECT 
-        s.id,
-        s.title,
-        s.time_updated,
-        (SELECT COUNT(*) FROM message WHERE session_id = s.id) as message_count
-      FROM session s
-      WHERE s.project_id = ?
-      ORDER BY s.time_updated DESC
-      LIMIT ?`
-    )
-    .all(projectId, limit);
+  try {
+    db = new Database(DB_PATH, { readonly: true });
 
-  if (sessions.length === 0) {
-    console.log("No sessions found.");
-    return;
-  }
+    const projectId = findProjectId(db, cwd);
+    if (!projectId) {
+      console.error(`No OpenCode project found for: ${cwd}`);
+      process.exit(1);
+    }
 
-  console.log("Recent sessions:");
-  console.log("");
-  
-  for (const session of sessions) {
-    const date = new Date(session.time_updated);
-    const title = session.title || "(untitled)";
-    console.log(`${session.id}  ${title}`);
-    console.log(`${' '.repeat(session.id.length)}  ${date.toLocaleString()}  (${session.message_count} messages)`);
+    const sessions = db
+      .query<
+        { id: string; title: string; time_updated: number; message_count: number },
+        [string, number]
+      >(
+        `SELECT
+          s.id,
+          s.title,
+          s.time_updated,
+          (SELECT COUNT(*) FROM message WHERE session_id = s.id) as message_count
+        FROM session s
+        WHERE s.project_id = ?
+        ORDER BY s.time_updated DESC
+        LIMIT ?`
+      )
+      .all(projectId, limit);
+
+    if (sessions.length === 0) {
+      console.log("No sessions found.");
+      return;
+    }
+
+    console.log("Recent sessions:");
     console.log("");
+
+    for (const session of sessions) {
+      const date = new Date(session.time_updated);
+      const title = session.title || "(untitled)";
+      console.log(`${session.id}  ${title}`);
+      console.log(`${' '.repeat(session.id.length)}  ${date.toLocaleString()}  (${session.message_count} messages)`);
+      console.log("");
+    }
+  } finally {
+    if (db) {
+      db.close();
+    }
   }
-  
-  db.close();
 }
 
 function findSession(sessionId: string) {
-  const db = new Database(DB_PATH, { readonly: true });
-  
-  const session = db
-    .query<
-      { id: string; title: string; directory: string; time_created: number; time_updated: number; message_count: number },
-      [string]
-    >(
-      `SELECT 
-        s.id,
-        s.title,
-        s.directory,
-        s.time_created,
-        s.time_updated,
-        (SELECT COUNT(*) FROM message WHERE session_id = s.id) as message_count
-      FROM session s
-      WHERE s.id LIKE ?`
-    )
-    .get(`${sessionId}%`);
+  let db: Database | null = null;
 
-  if (!session) {
-    console.error(`Session not found: ${sessionId}`);
-    process.exit(1);
+  try {
+    db = new Database(DB_PATH, { readonly: true });
+
+    const session = db
+      .query<
+        { id: string; title: string; directory: string; time_created: number; time_updated: number; message_count: number },
+        [string]
+      >(
+        `SELECT
+          s.id,
+          s.title,
+          s.directory,
+          s.time_created,
+          s.time_updated,
+          (SELECT COUNT(*) FROM message WHERE session_id = s.id) as message_count
+        FROM session s
+        WHERE s.id LIKE ?`
+      )
+      .get(`${sessionId}%`);
+
+    if (!session) {
+      console.error(`Session not found: ${sessionId}`);
+      process.exit(1);
+    }
+
+    const created = new Date(session.time_created);
+    const updated = new Date(session.time_updated);
+
+    console.log(`Session: ${session.id}`);
+    console.log(`Title:   ${session.title || "(untitled)"}`);
+    console.log(`Dir:     ${session.directory}`);
+    console.log(`Created: ${created.toLocaleString()}`);
+    console.log(`Updated: ${updated.toLocaleString()}`);
+    console.log(`Messages: ${session.message_count}`);
+  } finally {
+    if (db) {
+      db.close();
+    }
   }
-
-  const created = new Date(session.time_created);
-  const updated = new Date(session.time_updated);
-  
-  console.log(`Session: ${session.id}`);
-  console.log(`Title:   ${session.title || "(untitled)"}`);
-  console.log(`Dir:     ${session.directory}`);
-  console.log(`Created: ${created.toLocaleString()}`);
-  console.log(`Updated: ${updated.toLocaleString()}`);
-  console.log(`Messages: ${session.message_count}`);
-  
-  db.close();
 }
 
 // ============================================================================
@@ -343,6 +355,24 @@ function parseArgs(argv: string[]): ParsedArgs {
 // ============================================================================
 
 async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
+  // Validate --limit is a number when provided
+  if (parsed.options["limit"] !== undefined) {
+    const limit = parsed.options["limit"];
+    if (typeof limit !== "number" || isNaN(limit)) {
+      console.error("Invalid --limit value: must be a number");
+      process.exit(1);
+    }
+  }
+
+  // Validate --format is either "text" or "json" when provided
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (format !== "text" && format !== "json") {
+      console.error("Invalid --format value: must be 'text' or 'json'");
+      process.exit(1);
+    }
+  }
+
   const config = loadConfig();
   const getSessions = createSessionsService(config);
 
@@ -362,6 +392,33 @@ async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
 }
 
 async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
+  // Validate --first is a number when provided
+  if (parsed.options["first"] !== undefined) {
+    const first = parsed.options["first"];
+    if (typeof first !== "number" || isNaN(first)) {
+      console.error("Invalid --first value: must be a number");
+      process.exit(1);
+    }
+  }
+
+  // Validate --last is a number when provided
+  if (parsed.options["last"] !== undefined) {
+    const last = parsed.options["last"];
+    if (typeof last !== "number" || isNaN(last)) {
+      console.error("Invalid --last value: must be a number");
+      process.exit(1);
+    }
+  }
+
+  // Validate --format is either "text" or "json" when provided
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (format !== "text" && format !== "json") {
+      console.error("Invalid --format value: must be 'text' or 'json'");
+      process.exit(1);
+    }
+  }
+
   const config = loadConfig();
   const getSession = createReadService(config);
 

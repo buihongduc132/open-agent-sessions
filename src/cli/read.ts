@@ -1,14 +1,20 @@
 import { AgentEntry, AgentKind, Config } from "../config/types";
 import {
   SessionDetail,
-  SessionMessage,
-  SessionPart,
   MessageSelectionMode,
   MessageSelectionOptions,
   SessionReadOptions,
 } from "../core/types";
 import { CliResult } from "./types";
-import { formatRoleBadge, formatMetadata } from "./utils/colors";
+import {
+  formatSessionDetail,
+  formatSessionDetailJson,
+  type TextFormatterOptions,
+} from "./formatters/text";
+import type { ReadQuery } from "./formatters/text";
+
+// Re-export ReadQuery for external use
+export type { ReadQuery };
 
 const USAGE = `Usage: oas read --session <agent:alias:session_id> [options]
        oas read --agent <agent> --alias <alias> --id <session_id> [options]
@@ -33,12 +39,6 @@ Only one of --first, --last, --all, --range may be specified.`;
 // ============================================================================
 // Types
 // ============================================================================
-
-export type ReadQuery = {
-  agent: AgentKind;
-  alias: string;
-  id: string;
-};
 
 export type ReadService = (
   query: ReadQuery,
@@ -69,6 +69,13 @@ export type ReadOptions = {
 // ============================================================================
 
 export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
+  // Validate --format is either "text" or "json" when provided
+  if (options.format !== undefined) {
+    if (options.format !== "text" && options.format !== "json") {
+      return errorResult(`Invalid --format value: must be 'text' or 'json'.`);
+    }
+  }
+
   // Resolve config
   const configResult = resolveConfig(options);
   if (!configResult.ok) {
@@ -123,9 +130,12 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
   }
 
   // Format output
+  const formatterOptions: TextFormatterOptions = {
+    showTools: options.tools,
+  };
   const stdout = options.format === "json"
-    ? formatReadOutputJson(detail)
-    : formatReadOutput(detail, target) + "\n";
+    ? formatSessionDetailJson(detail)
+    : formatSessionDetail(detail, target, formatterOptions) + "\n";
   
   // Write to file if --output specified
   if (options.output) {
@@ -303,6 +313,12 @@ function parseSelectionOptions(
 
   // AC1: Parse --first N
   if (options.first !== undefined) {
+    if (typeof options.first !== "number" || isNaN(options.first)) {
+      return {
+        ok: false,
+        error: `Invalid --first value: must be a number.`,
+      };
+    }
     if (options.first <= 0) {
       return {
         ok: false,
@@ -317,6 +333,12 @@ function parseSelectionOptions(
 
   // AC2: Parse --last N (default 10)
   if (options.last !== undefined) {
+    if (typeof options.last !== "number" || isNaN(options.last)) {
+      return {
+        ok: false,
+        error: `Invalid --last value: must be a number.`,
+      };
+    }
     if (options.last <= 0) {
       return {
         ok: false,
@@ -404,109 +426,6 @@ function parseRange(rangeStr: string): ParseResult<MessageSelectionOptions> {
     ok: true,
     value: { mode: "range", start, end },
   };
-}
-
-// ============================================================================
-// Output Formatting
-// ============================================================================
-
-function formatReadOutputJson(detail: SessionDetail): string {
-  const output = {
-    session: {
-      id: detail.id,
-      agent: detail.agent,
-      alias: detail.alias,
-      title: detail.title,
-      message_count: detail.message_count,
-      created_at: detail.created_at,
-      updated_at: detail.updated_at,
-      storage: detail.storage,
-      clone: detail.clone,
-      warning: detail.warning,
-    },
-    messages: detail.messages ?? [],
-  };
-  return JSON.stringify(output, null, 2) + "\n";
-}
-
-function formatReadOutput(detail: SessionDetail, target: ReadQuery): string {
-  const lines: string[] = [];
-
-  // Header
-  const title = normalizeTitle(detail.title, detail.id);
-  lines.push(`Session [${target.agent}:${target.alias}]`);
-  lines.push(`id: ${detail.id}`);
-  lines.push(`title: ${title}`);
-  lines.push(`created_at: ${detail.created_at}`);
-  lines.push(`updated_at: ${detail.updated_at}`);
-  lines.push(`message_count: ${detail.message_count}`);
-  lines.push(`storage: ${detail.storage}`);
-  lines.push("");
-
-  // Warning (if any)
-  if (detail.warning) {
-    lines.push(`Warning: ${detail.warning}`);
-    lines.push("");
-  }
-
-  // Messages - show only if there are messages
-  const messages = detail.messages ?? [];
-  if (messages.length > 0) {
-    lines.push(`Messages (${messages.length}):`);
-    lines.push("---");
-    for (const message of messages) {
-      lines.push(...formatMessage(message));
-      lines.push("---");
-    }
-  }
-  // If no messages, show metadata only (no "No messages." text)
-
-  return lines.join("\n");
-}
-
-function formatMessage(message: SessionMessage): string[] {
-  const lines: string[] = [];
-  const roleBadge = formatRoleBadge(message.role);
-  const timestamp = message.created_at;
-
-  // Build agent/model suffix
-  let agentModel = "";
-  if (message.agent || message.modelID) {
-    const agent = message.agent || "";
-    const model = message.modelID || "";
-    agentModel = ` (${agent}/${model})`;
-  }
-
-  // Format: "> USER (agent/model) @ timestamp"
-  const metadata = formatMetadata(`${agentModel} @ ${timestamp}`);
-  lines.push(`${roleBadge}${metadata}`);
-  lines.push("");
-
-  for (const part of message.parts) {
-    lines.push(...formatPart(part));
-  }
-
-  return lines;
-}
-
-function formatPart(part: SessionPart): string[] {
-  if (part.type === "text") {
-    const text = (part as { text: string }).text.trim();
-    return text.split("\n").map((line) => `  ${line}`);
-  }
-
-  if (part.type === "tool") {
-    const toolPart = part as { tool: string; state: Record<string, unknown> };
-    return [`  [tool: ${toolPart.tool}]`];
-  }
-
-  if (part.type === "reasoning") {
-    const reasoningPart = part as { text: string };
-    return [`  [reasoning]`, ...reasoningPart.text.trim().split("\n").map((l) => `    ${l}`)];
-  }
-
-  // Unknown part type
-  return [`  [${part.type}]`];
 }
 
 // ============================================================================

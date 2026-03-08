@@ -221,7 +221,7 @@ describe("CLI read: coverage boost", () => {
       expect(result.stdout).toContain("Let me think about this");
     });
 
-    test("formats tool parts", async () => {
+    test("formats tool parts (with --tools flag)", async () => {
       const messages: SessionMessage[] = [
         {
           id: "msg-1",
@@ -236,12 +236,37 @@ describe("CLI read: coverage boost", () => {
 
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
+        tools: true,  // Tools only shown with --tools flag
         config: baseConfig,
         getSession: makeReadService(detail),
       });
 
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain("[tool: bash]");
+      expect(result.stdout).toContain("[tool: bash - completed]");
+    });
+
+    test("hides tool parts by default (without --tools flag)", async () => {
+      const messages: SessionMessage[] = [
+        {
+          id: "msg-1",
+          role: "assistant",
+          created_at: "2024-01-01T12:00:00Z",
+          parts: [
+            { type: "tool", tool: "bash", state: { status: "completed" } },
+          ],
+        },
+      ];
+      const detail = makeSessionDetail({ messages, message_count: 1 });
+
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        // No tools flag - tools should be hidden
+        config: baseConfig,
+        getSession: makeReadService(detail),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).not.toContain("[tool:");
     });
 
     test("formats unknown part types", async () => {

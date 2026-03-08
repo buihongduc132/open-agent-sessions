@@ -463,8 +463,8 @@ describe("cli read", () => {
       expect(result.stdout).toContain("Session [opencode:personal]");
       expect(result.stdout).toContain("id: session-001");
       expect(result.stdout).toContain("title: Test Session");
-      expect(result.stdout).toContain("created_at: 2024-01-01T00:00:00Z");
-      expect(result.stdout).toContain("updated_at: 2024-01-02T00:00:00Z");
+      expect(result.stdout).toContain("created_at: 2024-01-01 00:00:00");
+      expect(result.stdout).toContain("updated_at: 2024-01-02 00:00:00");
       expect(result.stdout).toContain("message_count: 5");
       expect(result.stdout).toContain("storage: db");
     });
@@ -483,8 +483,8 @@ describe("cli read", () => {
       expect(result.stdout).toContain("Session [opencode:personal]");
       expect(result.stdout).toContain("id: session-001");
       expect(result.stdout).toContain("title: Test Session");
-      expect(result.stdout).toContain("created_at: 2024-01-01T00:00:00Z");
-      expect(result.stdout).toContain("updated_at: 2024-01-02T00:00:00Z");
+      expect(result.stdout).toContain("created_at: 2024-01-01 00:00:00");
+      expect(result.stdout).toContain("updated_at: 2024-01-02 00:00:00");
       expect(result.stdout).toContain("message_count: 0");
       expect(result.stdout).toContain("storage: db");
       // Should NOT contain "No messages." or "Messages (0):"

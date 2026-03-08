@@ -2,6 +2,7 @@ import { AgentEntry, AgentKind, Config } from "../config/types";
 import { SessionSummary, TimeRangeOptions } from "../core/types";
 import { CliResult } from "./types";
 import { parseLastDuration, parseTimestamp, ParseResult } from "./utils/time-parser";
+import { formatSessionRow, formatSessionsJson, formatErrors } from "./formatters/text";
 
 const USAGE = `Usage: oas sessions [options]
 
@@ -60,6 +61,13 @@ export type SessionsOptions = {
 // ============================================================================
 
 export async function runSessionsCommand(options: SessionsOptions): Promise<CliResult> {
+  // Validate --format is either "text" or "json" when provided
+  if (options.format !== undefined) {
+    if (options.format !== "text" && options.format !== "json") {
+      return errorResult(`Invalid --format value: must be 'text' or 'json'.`);
+    }
+  }
+
   // Resolve config
   const configResult = resolveConfig(options);
   if (!configResult.ok) {
@@ -142,6 +150,17 @@ function resolveConfig(options: {
 
 function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions> {
   const now = Date.now();
+  
+  // Validate --limit is a number when provided
+  if (options.limit !== undefined) {
+    if (typeof options.limit !== "number" || isNaN(options.limit)) {
+      return {
+        ok: false,
+        error: `Invalid --limit value: must be a number.`,
+      };
+    }
+  }
+  
   const result: TimeRangeOptions = {
     limit: options.limit ?? 50,
   };
@@ -208,71 +227,6 @@ function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions>
   }
 
   return { ok: true, value: result };
-}
-
-// ============================================================================
-// Output Formatting
-// ============================================================================
-
-function formatSessionRow(session: SessionSummary): string {
-  const label = `[${session.agent}:${session.alias}]`;
-  const title = session.title.trim().length > 0 ? session.title : session.id;
-  const sessionId = session.id.length > 20 ? session.id.substring(0, 20) + "..." : session.id;
-  const messageCount = session.message_count.toString().padStart(4, " ");
-  const lastActivity = formatRelativeTime(session.updated_at);
-  
-  if (title === session.id) {
-    return `${label} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
-  }
-  const displayTitle = title.length > 40 ? title.substring(0, 37) + "..." : title;
-  return `${label} ${displayTitle.padEnd(40)} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
-}
-
-function formatSessionsJson(sessions: SessionSummary[]): string {
-  const output = sessions.map(session => ({
-    id: session.id,
-    agent: session.agent,
-    alias: session.alias,
-    title: session.title,
-    message_count: session.message_count,
-    created_at: session.created_at,
-    updated_at: session.updated_at,
-    storage: session.storage,
-  }));
-  return JSON.stringify(output, null, 2) + "\n";
-}
-
-function formatRelativeTime(timestamp: string): string {
-  const now = Date.now();
-  const then = new Date(timestamp).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return new Date(timestamp).toLocaleDateString();
-}
-
-function formatErrors(errors: SessionsError[]): string {
-  if (errors.length === 0) {
-    return "";
-  }
-  return (
-    errors
-      .map((error) => {
-        const label = `[${error.agent}:${error.alias}]`;
-        const message = error.message;
-        if (message.includes(label)) {
-          return message;
-        }
-        return `${label} ${message}`;
-      })
-      .join("\n") + "\n"
-  );
 }
 
 // ============================================================================
