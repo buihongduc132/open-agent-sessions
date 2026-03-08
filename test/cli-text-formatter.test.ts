@@ -194,7 +194,8 @@ describe("formatSessionsJson", () => {
     expect(parsed[0].message_count).toBe(10);
     expect(parsed[0].created_at).toBe("2024-01-01T00:00:00Z");
     expect(parsed[0].updated_at).toBe("2024-01-02T00:00:00Z");
-    expect(parsed[0].storage).toBe("jsonl");
+    // storage field is excluded from JSON output (implementation detail)
+    expect(parsed[0].storage).toBeUndefined();
   });
 
   test("outputs empty array for no sessions", () => {

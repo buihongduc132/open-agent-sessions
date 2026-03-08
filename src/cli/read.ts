@@ -134,7 +134,7 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
     showTools: options.tools,
   };
   const stdout = options.format === "json"
-    ? formatSessionDetailJson(detail)
+    ? formatSessionDetailJson(detail, formatterOptions)
     : formatSessionDetail(detail, target, formatterOptions) + "\n";
   
   // Write to file if --output specified

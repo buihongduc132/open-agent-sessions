@@ -786,10 +786,11 @@ describe("cli read", () => {
       expect(parsed.session.message_count).toBe(5);
       expect(parsed.session.created_at).toBe("2024-01-01T00:00:00Z");
       expect(parsed.session.updated_at).toBe("2024-01-02T00:00:00Z");
-      expect(parsed.session.storage).toBe("db");
+      // storage field is excluded from JSON output (implementation detail)
+      expect(parsed.session.storage).toBeUndefined();
     });
 
-    test("JSON includes message parts", async () => {
+    test("JSON includes message parts (tools filtered by default)", async () => {
       const messages = [
         {
           id: "msg-1",
@@ -812,6 +813,37 @@ describe("cli read", () => {
 
       expect(result.exitCode).toBe(0);
       const parsed = JSON.parse(result.stdout);
+      // Tool parts are filtered by default (matching text format behavior)
+      expect(parsed.messages[0].parts.length).toBe(1);
+      expect(parsed.messages[0].parts[0].type).toBe("text");
+      expect(parsed.messages[0].parts[0].text).toBe("Hello world");
+    });
+
+    test("JSON includes tool parts with --tools flag", async () => {
+      const messages = [
+        {
+          id: "msg-1",
+          role: "user" as const,
+          created_at: "2024-01-01T12:00:00Z",
+          parts: [
+            { type: "text", text: "Hello world" },
+            { type: "tool", tool: "bash", state: { status: "completed" } },
+          ],
+        },
+      ];
+      const detail = makeSessionDetail({ messages, message_count: 1 });
+
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        format: "json",
+        tools: true,
+        config: baseConfig,
+        getSession: makeReadService(detail),
+      });
+
+      expect(result.exitCode).toBe(0);
+      const parsed = JSON.parse(result.stdout);
+      // Tool parts are included with --tools flag
       expect(parsed.messages[0].parts.length).toBe(2);
       expect(parsed.messages[0].parts[0].type).toBe("text");
       expect(parsed.messages[0].parts[0].text).toBe("Hello world");

@@ -67,21 +67,9 @@ export function formatSessionsTable(sessions: SessionSummary[]): string {
 }
 
 /**
- * Format sessions as JSON
+ * Format sessions as JSON (re-export from json.ts)
  */
-export function formatSessionsJson(sessions: SessionSummary[]): string {
-  const output = sessions.map(session => ({
-    id: session.id,
-    agent: session.agent,
-    alias: session.alias,
-    title: session.title,
-    message_count: session.message_count,
-    created_at: session.created_at,
-    updated_at: session.updated_at,
-    storage: session.storage,
-  }));
-  return JSON.stringify(output, null, 2) + "\n";
-}
+export { formatSessionsJson } from "./json";
 
 // ============================================================================
 // Session Detail Formatting
@@ -135,25 +123,18 @@ export function formatSessionDetail(
 }
 
 /**
- * Format session detail as JSON
+ * Format session detail as JSON (re-export from json.ts)
+ * 
+ * Note: Tool visibility is controlled by the adapter's filtering based on the
+ * read mode. The formatter respects the adapter's output.
  */
-export function formatSessionDetailJson(detail: SessionDetail): string {
-  const output = {
-    session: {
-      id: detail.id,
-      agent: detail.agent,
-      alias: detail.alias,
-      title: detail.title,
-      message_count: detail.message_count,
-      created_at: detail.created_at,
-      updated_at: detail.updated_at,
-      storage: detail.storage,
-      clone: detail.clone,
-      warning: detail.warning,
-    },
-    messages: detail.messages ?? [],
-  };
-  return JSON.stringify(output, null, 2) + "\n";
+export function formatSessionDetailJson(
+  detail: SessionDetail,
+  options?: TextFormatterOptions
+): string {
+  // Import dynamically to avoid circular dependency
+  const { formatMessagesJson } = require("./json");
+  return formatMessagesJson(detail, { includeTools: options?.showTools });
 }
 
 // ============================================================================
