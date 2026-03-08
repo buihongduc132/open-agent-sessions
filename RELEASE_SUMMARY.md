@@ -50,7 +50,6 @@
 - Comprehensive .gitignore
 
 **Removed:**
-- .ralph/, .ralph-tui/ - Internal AI agent state
 - _GOAL_KEEP_GOING.md - Internal goal tracking
 - flow/ - Internal planning documents
 - .beads-specs/, .beads/ - Internal issue tracking
