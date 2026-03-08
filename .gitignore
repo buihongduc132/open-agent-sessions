@@ -73,7 +73,12 @@ temp/
 
 # Session analysis findings (project-specific, not for repo)
 _findings/
+<<<<<<< Updated upstream
 
 # Worktrees
 open-agent-sessions-wt-*
 
+=======
+# bd worktree
+open-agent-sessions-wt-bd-open-agent-sessions-oqa-opencode-cli-first/
+>>>>>>> Stashed changes
