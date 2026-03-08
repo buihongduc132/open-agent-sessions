@@ -698,4 +698,47 @@ describe("column alignment", () => {
       expect(line).toContain("msg");
     }
   });
+
+  test("pads label to fixed width for column alignment", () => {
+    // Test with different label lengths (all under 25 chars to test padding)
+    const shortLabel = makeSession({ agent: "codex", alias: "a", title: "Test" });
+    const mediumLabel = makeSession({ agent: "opencode", alias: "personal", title: "Test" });
+    const longerLabel = makeSession({ agent: "opencode", alias: "work-project", title: "Test" });
+
+    const shortResult = formatSessionRow(shortLabel);
+    const mediumResult = formatSessionRow(mediumLabel);
+    const longerResult = formatSessionRow(longerLabel);
+
+    // All labels should be padded to 25 characters
+    // Find the position after the label (first space after label)
+    const getLabelEnd = (str: string) => {
+      const match = str.match(/^\[.*?\]\s*/);
+      return match ? match[0].length : -1;
+    };
+
+    const shortEnd = getLabelEnd(shortResult);
+    const mediumEnd = getLabelEnd(mediumResult);
+    const longerEnd = getLabelEnd(longerResult);
+
+    // All should end at the same position (25 chars for label + 1 space = 26)
+    expect(shortEnd).toBe(26);
+    expect(mediumEnd).toBe(26);
+    expect(longerEnd).toBe(26);
+  });
+
+  test("ensures columns start at same position regardless of label length", () => {
+    const sessions = [
+      makeSession({ agent: "codex", alias: "a", id: "id1", title: "Title" }),
+      makeSession({ agent: "opencode", alias: "work-project", id: "id2", title: "Title" }),
+    ];
+
+    const [line1, line2] = sessions.map(formatSessionRow);
+
+    // Find where "Title" appears in each line - should be at same position
+    const titlePos1 = line1.indexOf("Title");
+    const titlePos2 = line2.indexOf("Title");
+
+    expect(titlePos1).toBe(titlePos2);
+    expect(titlePos1).toBeGreaterThan(0);
+  });
 });

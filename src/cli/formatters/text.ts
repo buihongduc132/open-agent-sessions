@@ -40,7 +40,7 @@ export interface TextFormatterOptions {
  * Format: [agent:alias] SESSION_ID...            MSG   LAST_ACTIVITY
  */
 export function formatSessionRow(session: SessionSummary): string {
-  const label = `[${session.agent}:${session.alias}]`;
+  const label = `[${session.agent}:${session.alias}]`.padEnd(25);
   const title = session.title.trim().length > 0 ? session.title : session.id;
   const sessionId = truncateId(session.id, 20);
   const messageCount = session.message_count.toString().padStart(4, " ");
