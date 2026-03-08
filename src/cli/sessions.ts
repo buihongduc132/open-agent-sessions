@@ -1,6 +1,7 @@
 import { AgentEntry, AgentKind, Config } from "../config/types";
 import { SessionSummary, TimeRangeOptions } from "../core/types";
 import { CliResult } from "./types";
+import { parseLastDuration, parseTimestamp, ParseResult } from "./utils/time-parser";
 
 const USAGE = `Usage: oas sessions [options]
 
@@ -139,8 +140,6 @@ function resolveConfig(options: {
 // Time Range Parsing
 // ============================================================================
 
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
-
 function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions> {
   const now = Date.now();
   const result: TimeRangeOptions = {
@@ -209,92 +208,6 @@ function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions>
   }
 
   return { ok: true, value: result };
-}
-
-/**
- * Parse --last duration format (e.g., "4h", "2d", "1w")
- */
-function parseLastDuration(value: string, now: number): ParseResult<number> {
-  const trimmed = value.trim();
-  
-  // Match pattern: number + unit (h/d/w)
-  const match = trimmed.match(/^(\d+)([hdw])$/);
-  if (!match) {
-    return {
-      ok: false,
-      error: `Invalid time format. Use: 4h, 2d, 1w, or ISO-8601 timestamp (2026-03-05T14:00:00Z)`,
-    };
-  }
-
-  const amount = parseInt(match[1], 10);
-  const unit = match[2];
-
-  if (amount <= 0) {
-    return {
-      ok: false,
-      error: `Invalid --last value: ${value}. Duration must be positive.`,
-    };
-  }
-
-  let ms: number;
-  switch (unit) {
-    case "h":
-      ms = amount * 60 * 60 * 1000;
-      break;
-    case "d":
-      ms = amount * 24 * 60 * 60 * 1000;
-      break;
-    case "w":
-      ms = amount * 7 * 24 * 60 * 60 * 1000;
-      break;
-    default:
-      return {
-        ok: false,
-        error: `Invalid time unit: ${unit}. Use h (hours), d (days), or w (weeks).`,
-      };
-  }
-
-  const since = now - ms;
-  return { ok: true, value: since };
-}
-
-/**
- * Parse ISO-8601 timestamp with strict timezone requirement
- * 
- * Accepts formats with timezone:
- * - 2024-01-01T00:00:00Z (UTC)
- * - 2024-01-01T00:00:00+00:00 (with offset)
- * - 2024-01-01T00:00:00.000Z (with milliseconds)
- * 
- * Rejects formats without timezone:
- * - 2024-01-01 (date only)
- * - 2024-01-01T00:00:00 (no timezone)
- */
-function parseTimestamp(value: string): ParseResult<number> {
-  const trimmed = value.trim();
-  
-  // Strict ISO-8601 pattern requiring timezone
-  // Pattern: YYYY-MM-DDTHH:MM:SS[.sss](Z|±HH:MM)
-  const iso8601WithTimezone = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
-  
-  if (!iso8601WithTimezone.test(trimmed)) {
-    return {
-      ok: false,
-      error: `Invalid timestamp format: "${value}". ISO-8601 with timezone required (e.g., 2024-01-01T00:00:00Z or 2024-01-01T00:00:00+00:00). Date-only strings like "2024-01-01" are not accepted.`,
-    };
-  }
-  
-  // Parse the timestamp - timezone is preserved from the input
-  const date = new Date(trimmed);
-  
-  if (isNaN(date.getTime())) {
-    return {
-      ok: false,
-      error: `Invalid timestamp: "${value}". Could not parse as valid date.`,
-    };
-  }
-
-  return { ok: true, value: date.getTime() };
 }
 
 // ============================================================================
