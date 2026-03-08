@@ -351,6 +351,7 @@ async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
     since: parsed.options["since"] as string | undefined,
     until: parsed.options["until"] as string | undefined,
     limit: parsed.options["limit"] as number | undefined,
+    format: parsed.options["format"] as "text" | "json" | undefined,
     config,
     getSessions,
   });
@@ -364,8 +365,11 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
   const config = loadConfig();
   const getSession = createReadService(config);
 
+  // Support positional session-id: `oas read <session-id>`
+  const sessionSpec = parsed.options["session"] as string | undefined || parsed.positional[0];
+
   const result = await runReadCommand({
-    session: parsed.options["session"] as string | undefined,
+    session: sessionSpec,
     agent: parsed.options["agent"] as string | undefined,
     alias: parsed.options["alias"] as string | undefined,
     id: parsed.options["id"] as string | undefined,
@@ -375,6 +379,8 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
     range: parsed.options["range"] as string | undefined,
     tools: parsed.options["tools"] as boolean | undefined,
     role: parsed.options["role"] as string | undefined,
+    format: parsed.options["format"] as "text" | "json" | undefined,
+    output: parsed.options["output"] as string | undefined,
     config,
     getSession,
   });
@@ -419,7 +425,8 @@ function showHelp() {
   console.log("");
   console.log("  New Commands (multi-agent):");
   console.log("    sessions [options]     List sessions with time filtering");
-  console.log("    read [options]         Read session messages");
+  console.log("    read <session-id>      Read session messages");
+  console.log("    read [options]         Read session messages (alternative)");
   console.log("    search [options]       Search sessions by title and content");
   console.log("    onboard                Initialize bd (beads) for the project");
   console.log("");
@@ -428,11 +435,13 @@ function showHelp() {
   console.log("    --since TIMESTAMP      Start time (ISO-8601 format)");
   console.log("    --until TIMESTAMP      End time (ISO-8601 format)");
   console.log("    --limit N              Maximum results (default: 50, 0 = all)");
+  console.log("    --format FORMAT        Output format: text (default) or json");
   console.log("");
   console.log("Search Command Options:");
   console.log("    --text QUERY           Search text (required)");
   console.log("");
   console.log("Read Command Options:");
+  console.log("    <session-id>           Positional session spec (agent:alias:session_id)");
   console.log("    --session SPEC         Session spec (agent:alias:session_id)");
   console.log("    --agent NAME           Agent name (e.g., opencode, codex, claude)");
   console.log("    --alias NAME           Agent alias (e.g., default)");
@@ -443,6 +452,8 @@ function showHelp() {
   console.log("    --range START:END      Message range (1-indexed, inclusive)");
   console.log("    --tools                Include tool messages (default: hide)");
   console.log("    --role ROLE            Filter by role (user, assistant, system)");
+  console.log("    --format FORMAT        Output format: text (default) or json");
+  console.log("    --output FILE          Write output to file (recommended for large outputs)");
   console.log("");
   console.log("Global Options:");
   console.log("    --help, -h             Show this help message");
@@ -456,8 +467,11 @@ function showHelp() {
   console.log("  # New commands");
   console.log("  oas sessions --last 4h           Sessions from last 4 hours");
   console.log("  oas sessions --last 2d --limit 20  Sessions from last 2 days");
-  console.log("  oas read --session opencode:default:abc123");
-  console.log("  oas read --session opencode:default:abc123 --last 20");
+  console.log("  oas sessions --format json       Sessions in JSON format");
+  console.log("  oas read opencode:default:abc123            Read session (positional)");
+  console.log("  oas read opencode:default:abc123 --last 20  Last 20 messages");
+  console.log("  oas read opencode:default:abc123 --format json  Read in JSON");
+  console.log("  oas read --session opencode:default:abc123  Read session (flag)");
   console.log("  oas read --session opencode:default:abc123 --all --tools");
   console.log("  oas search --text \"error\"        Search for sessions containing 'error'");
   process.exit(0);

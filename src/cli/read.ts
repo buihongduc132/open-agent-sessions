@@ -23,6 +23,8 @@ Options:
   --range S:E     Message range (1-indexed, inclusive)
   --tools         Include tool messages (default: hide)
   --role R        Filter by role (user, assistant, system)
+  --format F      Output format: text (default) or json
+  --output FILE   Write output to file (recommended for large outputs)
 
 Either --session or all of --agent, --alias, --id must be specified.
 Only one of --first, --last, --all, --range may be specified.`;
@@ -53,6 +55,8 @@ export type ReadOptions = {
   range?: string;
   tools?: boolean;
   role?: string;
+  format?: "text" | "json";
+  output?: string;
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -118,7 +122,37 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
   }
 
   // Format output
-  const stdout = formatReadOutput(detail, target) + "\n";
+  const stdout = options.format === "json"
+    ? formatReadOutputJson(detail)
+    : formatReadOutput(detail, target) + "\n";
+  
+  // Write to file if --output specified
+  if (options.output) {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const outputPath = path.resolve(options.output);
+    try {
+      fs.writeFileSync(outputPath, stdout, "utf-8");
+      return {
+        exitCode: 0,
+        stdout: "",
+        stderr: `Output written to: ${outputPath}\n`,
+      };
+    } catch (error) {
+      return errorResult(`Failed to write to file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  // Warn if output is large and might be truncated by subprocess buffer
+  if (stdout.length > 60000) {
+    const stderr = `Warning: Large output (${stdout.length} bytes). For reliable piping, use --output flag.\n`;
+    return {
+      exitCode: 0,
+      stdout,
+      stderr,
+    };
+  }
+  
   return {
     exitCode: 0,
     stdout,
@@ -374,6 +408,25 @@ function parseRange(rangeStr: string): ParseResult<MessageSelectionOptions> {
 // ============================================================================
 // Output Formatting
 // ============================================================================
+
+function formatReadOutputJson(detail: SessionDetail): string {
+  const output = {
+    session: {
+      id: detail.id,
+      agent: detail.agent,
+      alias: detail.alias,
+      title: detail.title,
+      message_count: detail.message_count,
+      created_at: detail.created_at,
+      updated_at: detail.updated_at,
+      storage: detail.storage,
+      clone: detail.clone,
+      warning: detail.warning,
+    },
+    messages: detail.messages ?? [],
+  };
+  return JSON.stringify(output, null, 2) + "\n";
+}
 
 function formatReadOutput(detail: SessionDetail, target: ReadQuery): string {
   const lines: string[] = [];

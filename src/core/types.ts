@@ -83,9 +83,9 @@ export interface SessionKey {
 }
 
 export interface Adapter {
-  listSessions(): Promise<SessionSummary[]> | SessionSummary[];
-  listSessionsByTimeRange?(options: TimeRangeOptions): Promise<SessionSummary[]> | SessionSummary[];
-  searchSessions?(query: SearchQuery): Promise<SessionSummary[]> | SessionSummary[];
+  listSessions(): SessionSummary[];
+  listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
+  searchSessions?(query: SearchQuery): SessionSummary[];
   getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail>;
 }
 

@@ -329,9 +329,9 @@ function listSessionsByTimeRangeFromDb(
   const conditions: string[] = ["project_id = ?"];
   const params: (string | number)[] = [projectId];
 
-  // Add time filters
+  // Add time filters (both use time_updated for "last activity" semantics)
   if (options.since !== undefined) {
-    conditions.push("time_created >= ?");
+    conditions.push("time_updated >= ?");
     params.push(options.since);
   }
 
@@ -902,8 +902,8 @@ function listSessionsByTimeRangeFromJsonl(
       return false;
     }
 
-    // Check time range filters
-    if (options.since !== undefined && s.timeCreated < options.since) {
+    // Check time range filters (both use timeUpdated for "last activity" semantics)
+    if (options.since !== undefined && s.timeUpdated < options.since) {
       return false;
     }
 

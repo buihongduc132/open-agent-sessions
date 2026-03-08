@@ -9,6 +9,7 @@ Options:
   --since TIMESTAMP   Start time (ISO-8601 format)
   --until TIMESTAMP   End time (ISO-8601 format)
   --limit N           Maximum results (default: 50, 0 = all)
+  --format FORMAT     Output format: text (default) or json
 
 Time formats:
   --last 4h           Last 4 hours
@@ -46,6 +47,7 @@ export type SessionsOptions = {
   since?: string;
   until?: string;
   limit?: number;
+  format?: "text" | "json";
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -91,12 +93,15 @@ export async function runSessionsCommand(options: SessionsOptions): Promise<CliR
   if (result.sessions.length === 0) {
     return {
       exitCode: 0,
-      stdout: "No sessions found.\n",
+      stdout: options.format === "json" ? "[]\n" : "No sessions found.\n",
       stderr,
     };
   }
 
-  const stdout = result.sessions.map(formatSessionRow).join("\n") + "\n";
+  const stdout = options.format === "json"
+    ? formatSessionsJson(result.sessions)
+    : result.sessions.map(formatSessionRow).join("\n") + "\n";
+  
   return {
     exitCode: 0,
     stdout,
@@ -299,10 +304,44 @@ function parseTimestamp(value: string): ParseResult<number> {
 function formatSessionRow(session: SessionSummary): string {
   const label = `[${session.agent}:${session.alias}]`;
   const title = session.title.trim().length > 0 ? session.title : session.id;
+  const sessionId = session.id.length > 20 ? session.id.substring(0, 20) + "..." : session.id;
+  const messageCount = session.message_count.toString().padStart(4, " ");
+  const lastActivity = formatRelativeTime(session.updated_at);
+  
   if (title === session.id) {
-    return `${label} ${session.id}`;
+    return `${label} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
   }
-  return `${label} ${title} (${session.id})`;
+  const displayTitle = title.length > 40 ? title.substring(0, 37) + "..." : title;
+  return `${label} ${displayTitle.padEnd(40)} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
+}
+
+function formatSessionsJson(sessions: SessionSummary[]): string {
+  const output = sessions.map(session => ({
+    id: session.id,
+    agent: session.agent,
+    alias: session.alias,
+    title: session.title,
+    message_count: session.message_count,
+    created_at: session.created_at,
+    updated_at: session.updated_at,
+    storage: session.storage,
+  }));
+  return JSON.stringify(output, null, 2) + "\n";
+}
+
+function formatRelativeTime(timestamp: string): string {
+  const now = Date.now();
+  const then = new Date(timestamp).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return new Date(timestamp).toLocaleDateString();
 }
 
 function formatErrors(errors: SessionsError[]): string {

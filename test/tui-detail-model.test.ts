@@ -27,11 +27,11 @@ describe("tui detail model", () => {
 
     result = applyDetailKey(state, { name: "q" });
     expect(result.effect?.type).toBe("exit");
-    expect(result.effect?.reason).toBe("quit");
+    expect(result.effect?.type === "exit" && result.effect.reason).toBe("quit");
 
     result = applyDetailKey(state, { name: "c", ctrl: true });
     expect(result.effect?.type).toBe("exit");
-    expect(result.effect?.reason).toBe("ctrl-c");
+    expect(result.effect?.type === "exit" && result.effect.reason).toBe("ctrl-c");
   });
 
   test("help overlay closes with Esc or ?", () => {

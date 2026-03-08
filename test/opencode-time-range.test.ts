@@ -196,7 +196,7 @@ describe("OpenCode Adapter - Time-based Session Listing (oas-9rs)", () => {
       const projectId = "proj-1";
       seedProject(projectId, cwd);
 
-      seedSession("ses-old", projectId, "Old", cwd, 1000, 1500);
+      seedSession("ses-old", projectId, "Old", cwd, 1000, 1400);
       seedSession("ses-new1", projectId, "New 1", cwd, 2000, 2500);
       seedSession("ses-new2", projectId, "New 2", cwd, 3000, 3500);
 
@@ -205,7 +205,7 @@ describe("OpenCode Adapter - Time-based Session Listing (oas-9rs)", () => {
 
       const result = adapter.listSessionsByTimeRange!({ since: 1500 });
 
-      // Should only include sessions created at or after 1500
+      // Should only include sessions updated at or after 1500 (last activity semantics)
       expect(result.length).toBe(2);
       expect(result.map((s) => s.id).sort()).toEqual(["ses-new1", "ses-new2"]);
     });
@@ -574,7 +574,7 @@ describe("OpenCode Adapter - Time-based Session Listing (oas-9rs)", () => {
           directory: cwd,
           title: "Old",
           timeCreated: 1000,
-          timeUpdated: 1500,
+          timeUpdated: 1400,
         },
         {
           id: "ses-new1",
@@ -602,6 +602,7 @@ describe("OpenCode Adapter - Time-based Session Listing (oas-9rs)", () => {
         until: 3000,
       });
 
+      // Should only include sessions updated in range [1500, 3000] (last activity semantics)
       expect(result.length).toBe(2);
       expect(result.map((s) => s.id).sort()).toEqual(["ses-new1", "ses-new2"]);
     });

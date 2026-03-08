@@ -1,0 +1,3 @@
+[test]
+coverage = true
+coverageExclude = ["src/tui/**", "src/**/__tests__/**", "test/**"]

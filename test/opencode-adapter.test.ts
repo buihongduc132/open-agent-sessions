@@ -5,6 +5,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createOpenCodeAdapter } from "../src/adapters/opencode";
 import { OpenCodeAgentEntry, OpenCodeStorageConfig } from "../src/config/types";
+import { SessionPart } from "../src/core/types";
+
+// Helper type assertions for SessionPart union type in tests
+type TextPart = { type: "text"; text: string };
+type ToolPart = { type: "tool"; tool: string; state: Record<string, unknown> };
+const asTextPart = (p: SessionPart | undefined): TextPart => p as TextPart;
+const asToolPart = (p: SessionPart | undefined): ToolPart => p as ToolPart;
 
 describe("OpenCode Adapter", () => {
   let tempDir: string;
@@ -547,7 +554,7 @@ describe("OpenCode Adapter", () => {
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
       try {
-        await adapter.getSessionDetail("nonexistent", { mode: "last_message" });
+        await adapter.getSessionDetail!("nonexistent", { mode: "last_message" });
         expect(true).toBe(false); // Should not reach
       } catch (error) {
         expect(error instanceof Error).toBe(true);
@@ -707,7 +714,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const results = adapter.searchSessions({ text: "auth", cwd });
+      const results = adapter.searchSessions!({ text: "auth", cwd });
 
       expect(results).toHaveLength(2);
       expect(results.map((s) => s.id).sort()).toEqual(["ses-1", "ses-3"]);
@@ -730,7 +737,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const results = adapter.searchSessions({ text: "oauth", cwd });
+      const results = adapter.searchSessions!({ text: "oauth", cwd });
 
       expect(results).toHaveLength(1);
       expect(results[0].id).toBe("ses-1");
@@ -746,7 +753,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const results = adapter.searchSessions({ text: "nonexistent", cwd });
+      const results = adapter.searchSessions!({ text: "nonexistent", cwd });
 
       expect(results).toEqual([]);
     });
@@ -767,7 +774,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd: cwdA });
 
-      const results = adapter.searchSessions({ text: "auth", cwd: cwdA });
+      const results = adapter.searchSessions!({ text: "auth", cwd: cwdA });
 
       expect(results).toHaveLength(2);
       expect(results.map((s) => s.id).sort()).toEqual(["ses-a1", "ses-a2"]);
@@ -789,7 +796,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const results = adapter.searchSessions({ text: "databas", cwd });
+      const results = adapter.searchSessions!({ text: "databas", cwd });
 
       expect(results).toHaveLength(1);
       expect(results[0].id).toBe("ses-3");
@@ -815,11 +822,11 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const detail = await adapter.getSessionDetail("ses-1", { mode: "last_message" });
+      const detail = await adapter.getSessionDetail!("ses-1", { mode: "last_message" });
 
       expect(detail.id).toBe("ses-1");
       expect(detail.messages).toHaveLength(1);
-      expect(detail.messages?.[0].parts[0].text).toBe("Last message");
+      expect((detail.messages?.[0].parts[0] as { type: "text"; text: string }).text).toBe("Last message");
     });
 
     test("returns all messages without tool parts with mode=all_no_tools", async () => {
@@ -841,7 +848,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const detail = await adapter.getSessionDetail("ses-1", { mode: "all_no_tools" });
+      const detail = await adapter.getSessionDetail!("ses-1", { mode: "all_no_tools" });
 
       expect(detail.messages).toHaveLength(2);
       expect(detail.messages?.[0].parts).toHaveLength(1);
@@ -871,15 +878,15 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const detail = await adapter.getSessionDetail("ses-1", { mode: "all_with_tools" });
+      const detail = await adapter.getSessionDetail!("ses-1", { mode: "all_with_tools" });
 
       expect(detail.messages).toHaveLength(2);
       expect(detail.messages?.[1].parts).toHaveLength(2);
 
-      const toolPart = detail.messages?.[1].parts.find((p) => p.type === "tool");
+      const toolPart = detail.messages?.[1].parts.find((p) => p.type === "tool") as { type: "tool"; tool: string; state: Record<string, unknown> } | undefined;
       expect(toolPart).toBeDefined();
       expect(toolPart?.tool).toBe("bash");
-      expect(toolPart?.state?.input?.command).toBe("ls");
+      expect((toolPart?.state?.input as { command: string })?.command).toBe("ls");
       expect(toolPart?.state?.output).toBe("file1\nfile2");
     });
 
@@ -893,7 +900,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      const detail = await adapter.getSessionDetail("ses-1", { mode: "last_message" });
+      const detail = await adapter.getSessionDetail!("ses-1", { mode: "last_message" });
 
       expect(detail.id).toBe("ses-1");
       expect(detail.title).toBe("Test session");
@@ -909,7 +916,7 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
       const adapter = createOpenCodeAdapter(entry, { cwd });
 
-      expect(adapter.getSessionDetail("ses-nonexistent", { mode: "last_message" })).rejects.toThrow(
+      expect(adapter.getSessionDetail!("ses-nonexistent", { mode: "last_message" })).rejects.toThrow(
         /not found/
       );
     });
@@ -917,7 +924,7 @@ describe("OpenCode Adapter", () => {
 
   describe("error handling", () => {
     test("throws when agent is not opencode", () => {
-      const entry = { agent: "codex", alias: "main", enabled: true, storage: { mode: "auto" } } as OpenCodeAgentEntry;
+      const entry = { agent: "codex", alias: "main", enabled: true, storage: { mode: "auto" } } as unknown as OpenCodeAgentEntry;
       expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/opencode/);
     });
   });
@@ -964,7 +971,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-tool-1", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-tool-1", { mode: "all_no_tools" });
 
         expect(detail.messages?.[0].parts).toHaveLength(2);
         expect(detail.messages?.[0].parts.every((p) => p.type === "text")).toBe(true);
@@ -979,10 +986,10 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-tool-2", { mode: "all_with_tools" });
+        const detail = await adapter.getSessionDetail!("ses-tool-2", { mode: "all_with_tools" });
 
         expect(detail.messages?.[0].parts).toHaveLength(2);
-        const toolPart = detail.messages?.[0].parts.find((p) => p.type === "tool");
+        const toolPart = detail.messages?.[0].parts.find((p) => p.type === "tool") as { type: "tool"; tool: string; state: Record<string, unknown> } | undefined;
         expect(toolPart).toBeDefined();
         expect(toolPart?.tool).toBe("bash");
       });
@@ -999,7 +1006,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-step-1", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-step-1", { mode: "all_no_tools" });
 
         const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
         expect(allTypes).not.toContain("step-start");
@@ -1015,7 +1022,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-step-2", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-step-2", { mode: "all_no_tools" });
 
         const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
         expect(allTypes).not.toContain("step-finish");
@@ -1034,7 +1041,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-step-3", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-step-3", { mode: "all_no_tools" });
 
         const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
         expect(allTypes).toEqual(["text", "text"]);
@@ -1050,7 +1057,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-step-4", { mode: "all_with_tools" });
+        const detail = await adapter.getSessionDetail!("ses-step-4", { mode: "all_with_tools" });
 
         const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
         expect(allTypes).toContain("step-start");
@@ -1071,7 +1078,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-preserve-1", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-preserve-1", { mode: "all_no_tools" });
 
         const textParts = detail.messages?.[0].parts.filter((p) => p.type === "text") || [];
         expect(textParts).toHaveLength(3);
@@ -1092,7 +1099,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-preserve-2", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-preserve-2", { mode: "all_no_tools" });
 
         const reasoningParts = detail.messages?.[0].parts.filter((p) => p.type === "reasoning") || [];
         expect(reasoningParts).toHaveLength(2);
@@ -1114,7 +1121,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-preserve-3", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-preserve-3", { mode: "all_no_tools" });
 
         const allTypes = detail.messages?.[0].parts.map((p) => p.type) || [];
         expect(allTypes).toEqual(["text", "reasoning", "text", "reasoning"]);
@@ -1131,7 +1138,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-default-1", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-default-1", { mode: "all_no_tools" });
 
         expect(detail.messages?.[0].parts).toHaveLength(1);
         expect(detail.messages?.[0].parts[0].type).toBe("text");
@@ -1149,7 +1156,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         // Call getSessionDetail WITHOUT specifying mode - should default to excluding tools
-        const detail = await adapter.getSessionDetail("ses-default-omitted", {});
+        const detail = await adapter.getSessionDetail!("ses-default-omitted", {});
 
         // Should have 2 parts: text and reasoning (tool and step-start excluded by default)
         expect(detail.messages?.[0].parts).toHaveLength(2);
@@ -1169,7 +1176,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-default-2", { mode: "all_with_tools" });
+        const detail = await adapter.getSessionDetail!("ses-default-2", { mode: "all_with_tools" });
 
         expect(detail.messages?.[0].parts).toHaveLength(2);
       });
@@ -1190,7 +1197,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-last-1", { mode: "last_message" });
+        const detail = await adapter.getSessionDetail!("ses-last-1", { mode: "last_message" });
 
         // Last message should include the tool
         expect(detail.messages).toHaveLength(1);
@@ -1210,7 +1217,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-edge-1", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-edge-1", { mode: "all_no_tools" });
 
         expect(detail.messages?.[0].parts).toEqual([]);
       });
@@ -1224,7 +1231,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-edge-2", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-edge-2", { mode: "all_no_tools" });
 
         expect(detail.messages?.[0].parts).toEqual([]);
       });
@@ -1242,7 +1249,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-edge-3", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-edge-3", { mode: "all_no_tools" });
 
         expect(detail.messages?.[0].parts).toHaveLength(2);
         const types = detail.messages?.[0].parts.map((p) => p.type) || [];
@@ -1259,7 +1266,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-edge-4", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-edge-4", { mode: "all_no_tools" });
 
         expect(detail.messages?.[0].parts).toHaveLength(2);
         const customPart = detail.messages?.[0].parts.find((p) => p.type === "custom-type");
@@ -1272,7 +1279,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-edge-5", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-edge-5", { mode: "all_no_tools" });
 
         expect(detail.messages?.[0].parts).toEqual([]);
       });
@@ -1301,7 +1308,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-multi-1", { mode: "all_no_tools" });
+        const detail = await adapter.getSessionDetail!("ses-multi-1", { mode: "all_no_tools" });
 
         expect(detail.messages).toHaveLength(3);
         expect(detail.messages?.[0].parts).toHaveLength(1);
@@ -1375,14 +1382,14 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-first-1", {
+        const detail = await adapter.getSessionDetail!("ses-first-1", {
           selection: { mode: "first", count: 5 },
         });
 
         expect(detail.messages).toHaveLength(5);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 1 (user)");
         // i=5 is odd, so role is user
-        expect(detail.messages?.[4].parts[0].text).toBe("Message 5 (user)");
+        expect(asTextPart(detail.messages?.[4].parts[0]).text).toBe("Message 5 (user)");
       });
 
       test("returns first 1 message", async () => {
@@ -1392,12 +1399,12 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-first-2", {
+        const detail = await adapter.getSessionDetail!("ses-first-2", {
           selection: { mode: "first", count: 1 },
         });
 
         expect(detail.messages).toHaveLength(1);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 1 (user)");
       });
 
       test("defaults to 10 when count not specified", async () => {
@@ -1407,14 +1414,14 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-first-3", {
+        const detail = await adapter.getSessionDetail!("ses-first-3", {
           selection: { mode: "first" },
         });
 
         expect(detail.messages).toHaveLength(10);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 1 (user)");
         // i=10 is even, so role is assistant
-        expect(detail.messages?.[9].parts[0].text).toBe("Message 10 (assistant)");
+        expect(asTextPart(detail.messages?.[9].parts[0]).text).toBe("Message 10 (assistant)");
       });
 
       test("returns all messages when count exceeds total", async () => {
@@ -1424,7 +1431,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-first-4", {
+        const detail = await adapter.getSessionDetail!("ses-first-4", {
           selection: { mode: "first", count: 100 },
         });
 
@@ -1440,16 +1447,16 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-last-1", {
+        const detail = await adapter.getSessionDetail!("ses-last-1", {
           selection: { mode: "last", count: 5 },
         });
 
         expect(detail.messages).toHaveLength(5);
         // Last 5 messages are 11, 12, 13, 14, 15
         // i=11 is odd, so role is user
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 11 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 11 (user)");
         // i=15 is odd, so role is user
-        expect(detail.messages?.[4].parts[0].text).toBe("Message 15 (user)");
+        expect(asTextPart(detail.messages?.[4].parts[0]).text).toBe("Message 15 (user)");
       });
 
       test("returns last 1 message", async () => {
@@ -1459,13 +1466,13 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-last-2", {
+        const detail = await adapter.getSessionDetail!("ses-last-2", {
           selection: { mode: "last", count: 1 },
         });
 
         expect(detail.messages).toHaveLength(1);
         // i=15 is odd, so role is user
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 15 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 15 (user)");
       });
 
       test("defaults to 10 when count not specified", async () => {
@@ -1475,16 +1482,16 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-last-3", {
+        const detail = await adapter.getSessionDetail!("ses-last-3", {
           selection: { mode: "last" },
         });
 
         expect(detail.messages).toHaveLength(10);
         // Last 10 messages are 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
         // i=6 is even, so role is assistant
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 6 (assistant)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 6 (assistant)");
         // i=15 is odd, so role is user
-        expect(detail.messages?.[9].parts[0].text).toBe("Message 15 (user)");
+        expect(asTextPart(detail.messages?.[9].parts[0]).text).toBe("Message 15 (user)");
       });
 
       test("returns all messages when count exceeds total", async () => {
@@ -1494,7 +1501,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-last-4", {
+        const detail = await adapter.getSessionDetail!("ses-last-4", {
           selection: { mode: "last", count: 100 },
         });
 
@@ -1510,14 +1517,14 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-all-1", {
+        const detail = await adapter.getSessionDetail!("ses-all-1", {
           selection: { mode: "all" },
         });
 
         expect(detail.messages).toHaveLength(15);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 1 (user)");
         // i=15 is odd, so role is user
-        expect(detail.messages?.[14].parts[0].text).toBe("Message 15 (user)");
+        expect(asTextPart(detail.messages?.[14].parts[0]).text).toBe("Message 15 (user)");
       });
 
       test("returns empty array when no messages", async () => {
@@ -1529,7 +1536,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-empty", {
+        const detail = await adapter.getSessionDetail!("ses-empty", {
           selection: { mode: "all" },
         });
 
@@ -1559,7 +1566,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-large", {
+        const detail = await adapter.getSessionDetail!("ses-large", {
           selection: { mode: "all" },
         });
 
@@ -1592,7 +1599,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-exact-100", {
+        const detail = await adapter.getSessionDetail!("ses-exact-100", {
           selection: { mode: "all" },
         });
 
@@ -1609,14 +1616,14 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-range-1", {
+        const detail = await adapter.getSessionDetail!("ses-range-1", {
           selection: { mode: "range", start: 3, end: 7 },
         });
 
         expect(detail.messages).toHaveLength(5);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 3 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 3 (user)");
         // i=7 is odd, so role is user
-        expect(detail.messages?.[4].parts[0].text).toBe("Message 7 (user)");
+        expect(asTextPart(detail.messages?.[4].parts[0]).text).toBe("Message 7 (user)");
       });
 
       test("returns single message when start equals end", async () => {
@@ -1626,13 +1633,13 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-range-2", {
+        const detail = await adapter.getSessionDetail!("ses-range-2", {
           selection: { mode: "range", start: 5, end: 5 },
         });
 
         expect(detail.messages).toHaveLength(1);
         // i=5 is odd, so role is user
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 5 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 5 (user)");
       });
 
       test("returns from start to end when end not specified", async () => {
@@ -1642,14 +1649,14 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-range-3", {
+        const detail = await adapter.getSessionDetail!("ses-range-3", {
           selection: { mode: "range", start: 13 },
         });
 
         expect(detail.messages).toHaveLength(3);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 13 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 13 (user)");
         // i=15 is odd, so role is user
-        expect(detail.messages?.[2].parts[0].text).toBe("Message 15 (user)");
+        expect(asTextPart(detail.messages?.[2].parts[0]).text).toBe("Message 15 (user)");
       });
 
       test("returns from beginning to end when start not specified", async () => {
@@ -1659,13 +1666,13 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-range-4", {
+        const detail = await adapter.getSessionDetail!("ses-range-4", {
           selection: { mode: "range", end: 3 },
         });
 
         expect(detail.messages).toHaveLength(3);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
-        expect(detail.messages?.[2].parts[0].text).toBe("Message 3 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 1 (user)");
+        expect(asTextPart(detail.messages?.[2].parts[0]).text).toBe("Message 3 (user)");
       });
     });
 
@@ -1677,7 +1684,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-user-1", {
+        const detail = await adapter.getSessionDetail!("ses-user-1", {
           selection: { mode: "user-only" },
         });
 
@@ -1702,7 +1709,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-no-user", {
+        const detail = await adapter.getSessionDetail!("ses-no-user", {
           selection: { mode: "user-only" },
         });
 
@@ -1718,12 +1725,12 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-index-1", {
+        const detail = await adapter.getSessionDetail!("ses-index-1", {
           selection: { mode: "range", start: 1, end: 1 },
         });
 
         expect(detail.messages).toHaveLength(1);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 1 (user)");
       });
 
       test("range 1:3 returns first 3 messages", async () => {
@@ -1733,14 +1740,14 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-index-2", {
+        const detail = await adapter.getSessionDetail!("ses-index-2", {
           selection: { mode: "range", start: 1, end: 3 },
         });
 
         expect(detail.messages).toHaveLength(3);
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 1 (user)");
-        expect(detail.messages?.[1].parts[0].text).toBe("Message 2 (assistant)");
-        expect(detail.messages?.[2].parts[0].text).toBe("Message 3 (user)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 1 (user)");
+        expect(asTextPart(detail.messages?.[1].parts[0]).text).toBe("Message 2 (assistant)");
+        expect(asTextPart(detail.messages?.[2].parts[0]).text).toBe("Message 3 (user)");
       });
     });
 
@@ -1752,14 +1759,14 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-edge-range-1", {
+        const detail = await adapter.getSessionDetail!("ses-edge-range-1", {
           selection: { mode: "range", start: 10, end: 100 },
         });
 
         // Should return messages 10-15 (6 messages total)
         expect(detail.messages).toHaveLength(6);
         // i=10 is even, so role is assistant
-        expect(detail.messages?.[0].parts[0].text).toBe("Message 10 (assistant)");
+        expect(asTextPart(detail.messages?.[0].parts[0]).text).toBe("Message 10 (assistant)");
       });
 
       test("start > end throws error", async () => {
@@ -1770,7 +1777,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         expect(
-          adapter.getSessionDetail("ses-edge-range-2", {
+          adapter.getSessionDetail!("ses-edge-range-2", {
             selection: { mode: "range", start: 5, end: 3 },
           })
         ).rejects.toThrow(/invalid range.*start.*5.*end.*3/);
@@ -1784,7 +1791,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         expect(
-          adapter.getSessionDetail("ses-edge-range-3", {
+          adapter.getSessionDetail!("ses-edge-range-3", {
             selection: { mode: "range", start: 0, end: 5 },
           })
         ).rejects.toThrow(/invalid range.*start.*0.*must be >= 1/);
@@ -1798,7 +1805,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         expect(
-          adapter.getSessionDetail("ses-edge-range-4", {
+          adapter.getSessionDetail!("ses-edge-range-4", {
             selection: { mode: "range", start: -1, end: 5 },
           })
         ).rejects.toThrow(/invalid range.*start.*-1.*must be >= 1/);
@@ -1812,7 +1819,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         expect(
-          adapter.getSessionDetail("ses-edge-range-5", {
+          adapter.getSessionDetail!("ses-edge-range-5", {
             selection: { mode: "range", start: 1, end: 0 },
           })
         ).rejects.toThrow(/invalid range.*end.*0.*must be >= 1/);
@@ -1826,7 +1833,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         expect(
-          adapter.getSessionDetail("ses-edge-range-6", {
+          adapter.getSessionDetail!("ses-edge-range-6", {
             selection: { mode: "range", start: 1, end: -5 },
           })
         ).rejects.toThrow(/invalid range.*end.*-5.*must be >= 1/);
@@ -1841,7 +1848,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-zero", {
+        const detail = await adapter.getSessionDetail!("ses-zero", {
           selection: { mode: "all" },
         });
 
@@ -1861,7 +1868,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-tools-only", {
+        const detail = await adapter.getSessionDetail!("ses-tools-only", {
           mode: "all_no_tools",
           selection: { mode: "all" },
         });
@@ -1882,7 +1889,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-tools-show", {
+        const detail = await adapter.getSessionDetail!("ses-tools-show", {
           mode: "all_with_tools",
           selection: { mode: "all" },
         });
@@ -1914,7 +1921,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-combo-1", {
+        const detail = await adapter.getSessionDetail!("ses-combo-1", {
           mode: "all_no_tools",
           selection: { mode: "first", count: 2 },
         });
@@ -1943,7 +1950,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-combo-2", {
+        const detail = await adapter.getSessionDetail!("ses-combo-2", {
           mode: "all_with_tools",
           selection: { mode: "range", start: 1, end: 2 },
         });
@@ -1970,7 +1977,7 @@ describe("OpenCode Adapter", () => {
         const entry = makeEntry("main", { mode: "db", db_path: dbPath });
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
-        const detail = await adapter.getSessionDetail("ses-combo-3", {
+        const detail = await adapter.getSessionDetail!("ses-combo-3", {
           mode: "all_no_tools",
           selection: { mode: "user-only" },
         });

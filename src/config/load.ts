@@ -10,7 +10,7 @@ export function loadConfigFromFile(path: string): Config {
     throw new Error("Config path must be a non-empty string");
   }
 
-  let stat;
+  let stat: ReturnType<typeof statSync> | undefined;
   try {
     stat = statSync(path);
   } catch (error) {
@@ -66,7 +66,7 @@ function resolveAgentPaths(config: Config, baseDir: string): Config {
       return entry;
     }
     const resolved = resolvePath(pathValue, baseDir);
-    return { ...record, path: resolved } as typeof entry;
+    return { ...record, path: resolved } as unknown as typeof entry;
   });
   return { agents };
 }

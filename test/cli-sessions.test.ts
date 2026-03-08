@@ -760,4 +760,87 @@ describe("cli sessions", () => {
       expect(diff).toBeLessThan(1000);
     });
   });
+
+  // ==========================================================================
+  // JSON Format Tests
+  // ==========================================================================
+  describe("JSON format", () => {
+    test("outputs valid JSON array", async () => {
+      const sessions = [
+        makeSession({ id: "session-001", title: "First Session" }),
+        makeSession({ id: "session-002", title: "Second Session" }),
+      ];
+
+      const result = await runSessionsCommand({
+        format: "json",
+        config: baseConfig,
+        getSessions: makeSessionsService(sessions),
+      });
+
+      expect(result.exitCode).toBe(0);
+      const parsed = JSON.parse(result.stdout);
+      expect(Array.isArray(parsed)).toBe(true);
+      expect(parsed.length).toBe(2);
+    });
+
+    test("JSON includes all session fields", async () => {
+      const sessions = [
+        makeSession({
+          id: "session-001",
+          agent: "opencode",
+          alias: "personal",
+          title: "Test Session",
+          message_count: 42,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-02T00:00:00Z",
+          storage: "db",
+        }),
+      ];
+
+      const result = await runSessionsCommand({
+        format: "json",
+        config: baseConfig,
+        getSessions: makeSessionsService(sessions),
+      });
+
+      expect(result.exitCode).toBe(0);
+      const parsed = JSON.parse(result.stdout);
+      expect(parsed[0].id).toBe("session-001");
+      expect(parsed[0].agent).toBe("opencode");
+      expect(parsed[0].alias).toBe("personal");
+      expect(parsed[0].title).toBe("Test Session");
+      expect(parsed[0].message_count).toBe(42);
+      expect(parsed[0].created_at).toBe("2024-01-01T00:00:00Z");
+      expect(parsed[0].updated_at).toBe("2024-01-02T00:00:00Z");
+      expect(parsed[0].storage).toBe("db");
+    });
+
+    test("JSON outputs empty array for no sessions", async () => {
+      const result = await runSessionsCommand({
+        format: "json",
+        config: baseConfig,
+        getSessions: makeSessionsService([]),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toBe("[]\n");
+    });
+
+    test("JSON can be piped to jq", async () => {
+      const sessions = [
+        makeSession({ id: "session-001", title: "Test" }),
+      ];
+
+      const result = await runSessionsCommand({
+        format: "json",
+        config: baseConfig,
+        getSessions: makeSessionsService(sessions),
+      });
+
+      expect(result.exitCode).toBe(0);
+      // Verify it's valid JSON by parsing it
+      const parsed = JSON.parse(result.stdout);
+      expect(parsed[0].id).toBe("session-001");
+    });
+  });
 });
