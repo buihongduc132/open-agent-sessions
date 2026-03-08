@@ -8,10 +8,13 @@ import { Database } from "bun:sqlite";
 import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
 import { runReadCommand, type ReadService } from "../src/cli/read";
 import { runSearchCommand, type SearchService } from "../src/cli/search";
+import { runListCommand, type ListService } from "../src/cli/list";
+import { runDetailCommand, type DetailService } from "../src/cli/detail";
 
 // Core imports
 import { createAdapterRegistry } from "../src/core/registry";
-import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery } from "../src/core/types";
+import { createListService } from "../src/core/list";
+import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery, SessionListQuery, SessionListResult } from "../src/core/types";
 
 // Config imports
 import { loadConfigFromFile, type Config } from "../src/config";
@@ -290,6 +293,34 @@ function createSearchService(config: Config): SearchService {
   };
 }
 
+function createListServiceFromConfig(config: Config): ListService {
+  const registry = createAdapterRegistry(config, {
+    opencode: (entry) => createOpenCodeAdapter(entry, { cwd: process.cwd() }),
+  });
+
+  return createListService(registry);
+}
+
+function createDetailService(config: Config): DetailService {
+  return async (query) => {
+    const entry = config.agents.find(
+      (e) => e.agent === query.agent && e.alias === query.alias && e.enabled
+    );
+
+    if (!entry) {
+      return null;
+    }
+
+    const adapter = createOpenCodeAdapter(entry as any, { cwd: process.cwd() });
+    
+    if (!adapter.getSessionDetail) {
+      throw new Error(`Adapter does not support session detail retrieval`);
+    }
+
+    return adapter.getSessionDetail(query.id, {});
+  };
+}
+
 // ============================================================================
 // Argument Parsing
 // ============================================================================
@@ -462,6 +493,44 @@ async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
   process.exit(result.exitCode);
 }
 
+async function handleListNewCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const list = createListServiceFromConfig(config);
+
+  const result = await runListCommand({
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
+    q: parsed.options["q"] as string | undefined,
+    config,
+    list,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const getSession = createDetailService(config);
+
+  // Support positional session spec: `oas detail <session-id>`
+  const sessionSpec = parsed.options["session"] as string | undefined || parsed.positional[0];
+
+  const result = await runDetailCommand({
+    session: sessionSpec,
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
+    id: parsed.options["id"] as string | undefined,
+    config,
+    getSession,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
 // ============================================================================
 // Help
 // ============================================================================
@@ -482,6 +551,8 @@ function showHelp() {
   console.log("");
   console.log("  New Commands (multi-agent):");
   console.log("    sessions [options]     List sessions with time filtering");
+  console.log("    list-new [options]     List sessions with agent/alias/query filters");
+  console.log("    detail [options]       Show session detail view");
   console.log("    read <session-id>      Read session messages");
   console.log("    read [options]         Read session messages (alternative)");
   console.log("    search [options]       Search sessions by title and content");
@@ -493,6 +564,18 @@ function showHelp() {
   console.log("    --until TIMESTAMP      End time (ISO-8601 format)");
   console.log("    --limit N              Maximum results (default: 50, 0 = all)");
   console.log("    --format FORMAT        Output format: text (default) or json");
+  console.log("");
+  console.log("List-New Command Options:");
+  console.log("    --agent NAME           Filter by agent (opencode, codex, claude)");
+  console.log("    --alias NAME           Filter by agent alias");
+  console.log("    --q QUERY              Filter by session ID or title");
+  console.log("");
+  console.log("Detail Command Options:");
+  console.log("    <session-id>           Positional session spec (agent:alias:session_id)");
+  console.log("    --session SPEC         Session spec (agent:alias:session_id)");
+  console.log("    --agent NAME           Agent name (e.g., opencode, codex, claude)");
+  console.log("    --alias NAME           Agent alias (e.g., default)");
+  console.log("    --id SESSION_ID        Session ID");
   console.log("");
   console.log("Search Command Options:");
   console.log("    --text QUERY           Search text (required)");
@@ -531,6 +614,17 @@ function showHelp() {
   console.log("  oas read --session opencode:default:abc123  Read session (flag)");
   console.log("  oas read --session opencode:default:abc123 --all --tools");
   console.log("  oas search --text \"error\"        Search for sessions containing 'error'");
+  console.log("");
+  console.log("  # List-new command (agent/alias/query filters)");
+  console.log("  oas list-new                      List all sessions from all agents");
+  console.log("  oas list-new --agent opencode     List sessions from opencode agent");
+  console.log("  oas list-new --alias default      List sessions with 'default' alias");
+  console.log("  oas list-new --q \"bug\"            List sessions with 'bug' in title/ID");
+  console.log("");
+  console.log("  # Detail command (session detail view)");
+  console.log("  oas detail opencode:default:abc123    Show session details (positional)");
+  console.log("  oas detail --session opencode:abc123  Show details with inferred alias");
+  console.log("  oas detail --agent codex --alias work --id cx-100");
   process.exit(0);
 }
 
@@ -606,6 +700,26 @@ async function main() {
     return;
   }
 
+  if (command === "list-new") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleListNewCommand(parsed);
+    return;
+  }
+
+  if (command === "detail") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleDetailCommand(parsed);
+    return;
+  }
+
   if (command === "onboard") {
     // Explanation: This command initializes 'bd' (beads) for the project.
     // It will set up the necessary configuration files for issue tracking.
@@ -627,6 +741,8 @@ async function main() {
   console.log("  list, recent   List recent sessions");
   console.log("  find, show     Show session details");
   console.log("  sessions       List sessions with time filtering");
+  console.log("  list-new       List sessions with agent/alias/query filters");
+  console.log("  detail         Show session detail view");
   console.log("  read           Read session messages");
   console.log("  search         Search sessions by title and content");
   console.log("  onboard        Initialize bd (beads) for the project");
