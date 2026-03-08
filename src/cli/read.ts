@@ -8,6 +8,7 @@ import {
   SessionReadOptions,
 } from "../core/types";
 import { CliResult } from "./types";
+import { formatRoleBadge, formatMetadata } from "./utils/colors";
 
 const USAGE = `Usage: oas read --session <agent:alias:session_id> [options]
        oas read --agent <agent> --alias <alias> --id <session_id> [options]
@@ -465,7 +466,7 @@ function formatReadOutput(detail: SessionDetail, target: ReadQuery): string {
 
 function formatMessage(message: SessionMessage): string[] {
   const lines: string[] = [];
-  const roleIcon = message.role === "user" ? ">" : message.role === "assistant" ? "<" : "#";
+  const roleBadge = formatRoleBadge(message.role);
   const timestamp = message.created_at;
 
   // Build agent/model suffix
@@ -476,7 +477,9 @@ function formatMessage(message: SessionMessage): string[] {
     agentModel = ` (${agent}/${model})`;
   }
 
-  lines.push(`[${roleIcon}] ${message.role}${agentModel} @ ${timestamp}`);
+  // Format: "> USER (agent/model) @ timestamp"
+  const metadata = formatMetadata(`${agentModel} @ ${timestamp}`);
+  lines.push(`${roleBadge}${metadata}`);
   lines.push("");
 
   for (const part of message.parts) {

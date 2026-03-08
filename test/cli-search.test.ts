@@ -2,6 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { runSearchCommand, type SearchService, type SearchResult } from "../src/cli/search";
 import { type Config } from "../src/config/types";
 
+import { loadConfigFromFile } from "../src/config/load";
+
+import { SessionSummary } from "../src/core/types";
+
+import { CliResult } from "./types";
+
+import { SearchError } from "../src/cli/search";
+
 const baseConfig: Config = {
   agents: [
     { agent: "opencode", alias: "personal", enabled: true, storage: { mode: "auto" } },
@@ -11,6 +19,20 @@ const baseConfig: Config = {
 
 function makeSearchService(result: SearchResult): SearchService {
   return async () => result;
+}
+
+function makeSession(overrides: Partial<SessionSummary> = {}): SessionSummary {
+  return {
+    id: "session-001",
+    agent: "opencode",
+    alias: "personal",
+    title: "Test Session",
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-02T00:00:00Z",
+    message_count: 5,
+    storage: "db",
+    ...overrides,
+  }
 }
 
 describe("cli search", () => {
@@ -41,7 +63,6 @@ describe("cli search", () => {
       config: baseConfig,
       searchSessions: makeSearchService({ sessions: [], errors: [] }),
     });
-
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("No sessions found");
   });
@@ -66,7 +87,6 @@ describe("cli search", () => {
         errors: [],
       }),
     });
-
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("[opencode:personal]");
     expect(result.stdout).toContain("Fix error in production");
@@ -86,14 +106,13 @@ describe("cli search", () => {
             title: "",
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-02T00:00:00Z",
-            message_count: 2,
+            message_count: 1,
             storage: "other",
           },
         ],
         errors: [],
       }),
     });
-
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("[codex:work]");
     expect(result.stdout).toContain("cx-100");
@@ -127,7 +146,6 @@ describe("cli search", () => {
         ],
       }),
     });
-
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Test session");
     expect(result.stderr).toContain("codex:work");
@@ -142,8 +160,140 @@ describe("cli search", () => {
         throw new Error("Service unavailable");
       },
     });
-
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Service unavailable");
+  });
+
+  // Additional tests for coverage improvement
+
+  describe("config resolution", () => {
+    test("returns error when config is missing", async () => {
+      const result = await runSearchCommand({
+        text: "test",
+        searchSessions: makeSearchService({ sessions: [], errors: [] }),
+      });
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Missing config");
+    });
+  });
+
+  describe("error handling", () => {
+    test("handles non-Error exceptions", async () => {
+      const result = await runSearchCommand({
+        text: "test",
+        config: baseConfig,
+        searchSessions: async () => {
+          throw "String error";
+        },
+      });
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("String error");
+    });
+
+    test("handles unknown error types", async () => {
+      const result = await runSearchCommand({
+        text: "test",
+        config: baseConfig,
+        searchSessions: async () => {
+          throw { custom: "object" };
+        },
+      });
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Unknown error");
+    });
+  });
+
+  describe("multiple sessions and errors", () => {
+    test("handles multiple sessions", async () => {
+      const result = await runSearchCommand({
+        text: "test",
+        config: baseConfig,
+        searchSessions: makeSearchService({
+          sessions: [
+            {
+              id: "session-1",
+              agent: "opencode",
+              alias: "personal",
+              title: "First Session",
+              created_at: "2024-01-01T00:00:00Z",
+              updated_at: "2024-01-02T00:00:00Z",
+              message_count: 5,
+              storage: "db",
+            },
+            {
+              id: "session-2",
+              agent: "codex",
+              alias: "work",
+              title: "Second Session",
+              created_at: "2024-01-01T00:00:00Z",
+              updated_at: "2024-01-02T00:00:00Z",
+              message_count: 3,
+              storage: "other",
+            },
+          ],
+          errors: [],
+        }),
+      });
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("First Session");
+      expect(result.stdout).toContain("Second Session");
+    });
+
+    test("handles multiple errors", async () => {
+      const result = await runSearchCommand({
+        text: "test",
+        config: baseConfig,
+        searchSessions: makeSearchService({
+          sessions: [
+            {
+              id: "session-1",
+              agent: "opencode",
+              alias: "personal",
+              title: "Session",
+              created_at: "2024-01-01T00:00:00Z",
+              updated_at: "2024-01-02T00:00:00Z",
+              message_count: 1,
+              storage: "db",
+            },
+          ],
+          errors: [
+            {
+              agent: "codex",
+              alias: "work",
+              message: "Connection failed",
+            },
+            {
+              agent: "opencode",
+              alias: "other",
+              message: "Timeout",
+            },
+          ],
+        })
+      });
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toContain("Connection failed");
+      expect(result.stderr).toContain("Timeout");
+    });
+
+    test("error message already contains label", async () => {
+      const result = await runSearchCommand({
+        text: "test",
+        config: baseConfig,
+        searchSessions: makeSearchService({
+          sessions: [],
+          errors: [
+            {
+              agent: "opencode",
+              alias: "personal",
+              message: "[opencode:personal] Already labeled error",
+            },
+          ],
+        })
+      });
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toContain("[opencode:personal] Already labeled error");
+      // Should not duplicate the label
+      expect(result.stderr).not.toContain("[opencode:personal] [opencode:personal]");
+    });
   });
 });

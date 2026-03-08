@@ -509,8 +509,8 @@ describe("cli read", () => {
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain("Messages (2):");
-      expect(result.stdout).toContain("[>] user");
-      expect(result.stdout).toContain("[<] assistant");
+      expect(result.stdout).toContain("> USER");
+      expect(result.stdout).toContain("< ASSISTANT");
       expect(result.stdout).toContain("Hello world");
       expect(result.stdout).toContain("Hi there!");
     });
