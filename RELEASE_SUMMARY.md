@@ -45,7 +45,7 @@
 
 **Verified Clean:**
 - No credentials or API keys
-- No personal information (except git author metadata - normal)
+- No sensitive information (except git author metadata - normal)
 - All internal files removed (150+ files)
 - Comprehensive .gitignore
 
@@ -86,23 +86,18 @@ All emojis removed from documentation and replaced with text equivalents:
 
 **Manual Steps Required:**
 
-1. Update contact emails (search for TODO comments):
-   - SECURITY.md lines 22, 140: Replace security@example.com
-   - CODE_OF_CONDUCT.md line 63: Replace conduct@example.com
-   - README.md line 294: Replace security@example.com
-
-2. Verify repository URL (currently set to: https://github.com/bhd/open-agent-sessions)
+1. Verify repository URL (currently set to: https://github.com/bhd/open-agent-sessions)
    - Update in package.json, README.md, CHANGELOG.md if different
 
-3. Create GitHub repository:
+2. Create GitHub repository:
    ```bash
    git remote add origin https://github.com/bhd/open-agent-sessions.git
    git push -u origin main
    ```
 
-4. Verify CI passes on GitHub Actions
+3. Verify CI passes on GitHub Actions
 
-5. Create release tag:
+4. Create release tag:
    ```bash
    git tag -a v0.1.0 -m "Initial release"
    git push origin v0.1.0
@@ -134,12 +129,12 @@ All emojis removed from documentation and replaced with text equivalents:
 
 ## Approval Status
 
-- [APPROVED] Security & Privacy - @verifier
-- [APPROVED] Documentation Quality - @verifier
-- [APPROVED] Code Quality - @verifier (102/105 tests passing)
-- [APPROVED] Open Source Readiness - @verifier
-- [APPROVED] Cross-Agent Roadmap - @verifier
-- [APPROVED] Scope Control - @verifier
+- [APPROVED] Security & Privacy - Verified
+- [APPROVED] Documentation Quality - Verified
+- [APPROVED] Code Quality - Verified (102/105 tests passing)
+- [APPROVED] Open Source Readiness - Verified
+- [APPROVED] Cross-Agent Roadmap - Verified
+- [APPROVED] Scope Control - Verified
 
 **READY FOR PUBLIC RELEASE**
 

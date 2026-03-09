@@ -104,11 +104,11 @@ Build a unified session management library that enables developers to access, se
 
 ## Contributing
 
-Have ideas for features or improvements? We welcome contributions!
+Contributions are welcome!
 
 1. Check existing issues and discussions
 2. Open a feature request issue
-3. Discuss the proposal with maintainers
+3. Discuss the proposal via GitHub Discussions
 4. Submit a pull request
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details.

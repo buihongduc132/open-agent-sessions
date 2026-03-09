@@ -87,10 +87,10 @@ Enable developers to:
    - Transfer to agent with specific plugins when needed
    - Return to original agent with enhanced context
 
-3. **Team Collaboration**
-   - Share sessions across team members using different agents
+3. **Cross-Agent Collaboration**
+   - Share sessions across different agents seamlessly
    - Maintain consistent conversation history
-   - Enable agent-agnostic collaboration
+   - Enable agent-agnostic workflows
 
 4. **Experimentation and Comparison**
    - Fork sessions to test different agents on same problem

@@ -4,7 +4,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ## Code of Conduct
 
-This project adheres to the Contributor Covenant Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to the project maintainers.
+This project adheres to the Contributor Covenant Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior by opening a GitHub Issue on this repository.
 
 ## Getting Started
 
@@ -168,10 +168,10 @@ Brief description of the changes
 
 ### Review Process
 
-1. Maintainers will review your PR
+1. Pull requests will be reviewed
 2. Address any feedback or requested changes
-3. Once approved, your PR will be merged
-4. Your contribution will be credited in the changelog
+3. Once approved, the PR will be merged
+4. Contributions will be credited in the changelog
 
 ## Feature Requests and Bug Reports
 

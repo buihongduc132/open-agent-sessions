@@ -11,7 +11,7 @@ A unified session management library for AI coding agents. Access, search, and m
   - List sessions with filtering and sorting
   - Search sessions by content
   - View detailed session information with messages
-  - Clone sessions between agents (planned)
+  - Clone sessions between agents
 - **Multiple Interfaces**:
   - Programmatic API for library usage
   - CLI commands for terminal workflows
@@ -79,8 +79,8 @@ agents:
 #### Agent Types
 
 - `opencode`: OpenCode AI agent sessions
-- `codex`: Codex agent sessions (planned)
-- `claude`: Claude Desktop sessions (planned)
+- `codex`: Codex agent sessions
+- `claude`: Claude Desktop sessions
 
 ## Usage
 
@@ -135,30 +135,58 @@ for (const message of detail.messages || []) {
 }
 ```
 
-### CLI Usage (Planned)
+### CLI Usage
+
+The `oas` CLI provides legacy (OpenCode-only) and new (multi-agent) commands:
 
 ```bash
-# List all sessions
-oas list
+# Legacy Commands (OpenCode only)
+oas list [limit]            # List recent OpenCode sessions (default: 10)
+oas recent [limit]          # Same as list
+oas find <session-id>       # Show session details by ID
+oas show <session-id>       # Same as find
 
-# List sessions for specific agent
-oas list --agent opencode --alias main
-
-# Search sessions
-oas search "bug fix"
-
-# View session detail
-oas detail opencode:main:abc123
-
-# Clone session to another agent
-oas clone opencode:main:abc123 codex:default
+# New Commands (multi-agent)
+oas sessions [options]      # List sessions with time filtering
+oas list-new [options]      # List sessions with agent/alias filters
+oas detail [options]        # Show session detail view
+oas read <session-id>       # Read session messages
+oas search --text <query>   # Search sessions by title and content
+oas clone --from <spec> --to <spec>  # Clone session between agents
+oas onboard                 # Initialize bd (beads) for project
 ```
 
-### TUI Usage (Planned)
+#### Command Options
+
+**sessions** - Time-based filtering:
+- `--last DURATION` - Last duration (e.g., 4h, 2d, 1w)
+- `--since TIMESTAMP` - Start time (ISO-8601)
+- `--until TIMESTAMP` - End time (ISO-8601)
+- `--limit N` - Maximum results (default: 50, 0 = all)
+- `--format FORMAT` - Output format: text (default) or json
+
+**list-new** - Agent/alias filtering:
+- `--agent NAME` - Filter by agent (opencode, codex, claude)
+- `--alias NAME` - Filter by agent alias
+- `--q QUERY` - Filter by session ID or title
+
+**detail** - Session spec (positional or flags):
+- `<session-id>` - Positional: `agent:alias:session_id`
+- `--session SPEC`, `--agent NAME`, `--alias NAME`, `--id SESSION_ID`
+
+**search** - Content search:
+- `--text QUERY` - Search text (required)
+
+**clone** - Cross-agent copy:
+- `--from SPEC` - Source (agent:session_id or agent:alias:session_id)
+- `--to SPEC` - Destination (agent:alias)
+
+### TUI Usage
+
+A Terminal User Interface (TUI) is implemented in `src/tui/` but is not currently wired to the `bin/oas` CLI. To run the TUI directly during development:
 
 ```bash
-# Launch interactive terminal UI
-oas tui
+bun run src/tui/App.tsx
 ```
 
 ## Architecture
@@ -201,6 +229,19 @@ interface SessionSummary {
 
 ## Development
 
+### Scripts
+
+```bash
+# Run tests
+bun test                      # Run all tests
+bun run test:coverage         # Run with coverage
+bun run test:coverage:core    # Coverage excluding TUI
+
+# Build and typecheck
+bun run build                 # Build to ./dist
+bun run typecheck             # TypeScript type checking
+```
+
 ### Running Tests
 
 ```bash
@@ -219,9 +260,9 @@ bun test --watch
 ```
 src/
 ├── adapters/       # Platform-specific adapters
-│   ├── opencode.ts # OpenCode adapter (implemented)
-│   ├── codex.ts    # Codex adapter (stub)
-│   └── claude.ts   # Claude adapter (stub)
+│   ├── opencode.ts # OpenCode adapter (full: list, search, detail)
+│   ├── codex.ts    # Codex adapter (list, clone source)
+│   └── claude.ts   # Claude adapter (list)
 ├── cli/            # Command-line interface
 │   ├── list.ts
 │   ├── detail.ts
@@ -257,6 +298,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 This project is in active development. Core functionality for OpenCode sessions is implemented and tested. See [ROADMAP.md](ROADMAP.md) for planned features and development direction.
 
+### Current Status (as of 2026-03-09)
+
+- **Beads Issues**: No open issues ready for work (`bd ready --json` returns `[]`)
+- **Test Status**: 871 pass, 2 skip, 5 fail, 4 errors
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
@@ -267,8 +313,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 ## Security
 
-<!-- TODO: Replace security@example.com with actual security contact -->
-Please report security vulnerabilities to security@example.com. See [SECURITY.md](SECURITY.md) for details.
+Please report security vulnerabilities via [GitHub Security Advisories](https://github.com/bhd/open-agent-sessions/security/advisories). See [SECURITY.md](SECURITY.md) for details.
 
 ## Links
 

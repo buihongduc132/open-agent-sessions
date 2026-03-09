@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We release patches for security vulnerabilities. Currently supported versions:
+Patches are released for security vulnerabilities. Currently supported versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -10,7 +10,7 @@ We release patches for security vulnerabilities. Currently supported versions:
 
 ## Reporting a Vulnerability
 
-We take the security of open-agent-sessions seriously. If you believe you have found a security vulnerability, please report it to us as described below.
+The security of open-agent-sessions is taken seriously. If you believe you have found a security vulnerability, please report it as described below.
 
 ### Please Do Not
 
@@ -19,30 +19,30 @@ We take the security of open-agent-sessions seriously. If you believe you have f
 
 ### Please Do
 
-1. **Email us directly** at security@example.com <!-- TODO: Update with actual security contact email -->
+1. **Report via GitHub Security Advisories**: [Report a vulnerability](https://github.com/bhd/open-agent-sessions/security/advisories)
 2. **Provide detailed information** including:
    - Description of the vulnerability
    - Steps to reproduce the issue
    - Potential impact
    - Suggested fix (if any)
-3. **Allow time for response**: We aim to respond within 48 hours
-4. **Work with us**: We may need additional information to understand and address the issue
+3. **Allow time for response**: Responses are aimed within 48 hours
+4. **Provide additional information**: Additional information may be needed to understand and address the issue
 
 ### What to Expect
 
-1. **Acknowledgment**: We will acknowledge receipt of your vulnerability report within 48 hours
-2. **Assessment**: We will assess the vulnerability and determine its impact and severity
-3. **Fix Development**: We will work on a fix and keep you informed of progress
-4. **Disclosure**: Once a fix is available, we will:
-   - Release a security patch
-   - Publish a security advisory
-   - Credit you for the discovery (unless you prefer to remain anonymous)
+1. **Acknowledgment**: Receipt of your vulnerability report will be acknowledged within 48 hours
+2. **Assessment**: The vulnerability will be assessed to determine its impact and severity
+3. **Fix Development**: A fix will be developed and progress will be communicated
+4. **Disclosure**: Once a fix is available:
+   - A security patch will be released
+   - A security advisory will be published
+   - Credit will be given for the discovery (unless you prefer to remain anonymous)
 
 ### Security Update Process
 
 When a security vulnerability is confirmed:
 
-1. A fix will be developed in a private repository
+1. A fix will be developed
 2. A security advisory will be drafted
 3. A new version will be released with the fix
 4. The security advisory will be published
@@ -128,7 +128,7 @@ When contributing code:
 
 ## Disclosure Policy
 
-We follow responsible disclosure principles:
+Responsible disclosure principles are followed:
 
 1. Security issues are fixed privately
 2. Fixes are released before public disclosure
@@ -137,7 +137,7 @@ We follow responsible disclosure principles:
 
 ## Contact
 
-For security concerns, please contact: security@example.com <!-- TODO: Update with actual security contact email -->
+For security concerns, please use [GitHub Security Advisories](https://github.com/bhd/open-agent-sessions/security/advisories).
 
 For general questions, use GitHub Issues or Discussions.
 
