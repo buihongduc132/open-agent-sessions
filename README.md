@@ -298,10 +298,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 This project is in active development. Core functionality for OpenCode sessions is implemented and tested. See [ROADMAP.md](ROADMAP.md) for planned features and development direction.
 
-### Current Status (as of 2026-03-09)
+### Current Status (as of 2026-03-10)
 
 - **Beads Issues**: No open issues ready for work (`bd ready --json` returns `[]`)
-- **Test Status**: 871 pass, 2 skip, 5 fail, 4 errors
+- **Test Status**: 872 pass, 7 skip, 0 fail
 
 ## Contributing
 
