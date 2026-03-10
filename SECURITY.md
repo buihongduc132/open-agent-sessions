@@ -19,7 +19,7 @@ The security of open-agent-sessions is taken seriously. If you believe you have 
 
 ### Please Do
 
-1. **Report via GitHub Security Advisories**: [Report a vulnerability](https://github.com/bhd/open-agent-sessions/security/advisories)
+1. **Report via GitHub Security Advisories**: [Report a vulnerability](https://github.com/buihongduc132/open-agent-sessions/security/advisories)
 2. **Provide detailed information** including:
    - Description of the vulnerability
    - Steps to reproduce the issue
@@ -137,7 +137,7 @@ Responsible disclosure principles are followed:
 
 ## Contact
 
-For security concerns, please use [GitHub Security Advisories](https://github.com/bhd/open-agent-sessions/security/advisories).
+For security concerns, please use [GitHub Security Advisories](https://github.com/buihongduc132/open-agent-sessions/security/advisories).
 
 For general questions, use GitHub Issues or Discussions.
 

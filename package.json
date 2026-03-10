@@ -31,12 +31,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bhd/open-agent-sessions.git"
+    "url": "https://github.com/buihongduc132/open-agent-sessions.git"
   },
   "bugs": {
-    "url": "https://github.com/bhd/open-agent-sessions/issues"
+    "url": "https://github.com/buihongduc132/open-agent-sessions/issues"
   },
-  "homepage": "https://github.com/bhd/open-agent-sessions#readme",
+  "homepage": "https://github.com/buihongduc132/open-agent-sessions#readme",
   "engines": {
     "bun": ">=1.0.0"
   },

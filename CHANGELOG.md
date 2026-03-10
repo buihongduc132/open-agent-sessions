@@ -33,4 +33,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security policy and best practices
 - Code of Conduct (Contributor Covenant 2.0)
 
-[0.1.0]: https://github.com/bhd/open-agent-sessions/releases/tag/v0.1.0
+[0.1.0]: https://github.com/buihongduc132/open-agent-sessions/releases/tag/v0.1.0

@@ -86,12 +86,12 @@ All emojis removed from documentation and replaced with text equivalents:
 
 **Manual Steps Required:**
 
-1. Verify repository URL (currently set to: https://github.com/bhd/open-agent-sessions)
+1. Verify repository URL (currently set to: https://github.com/buihongduc132/open-agent-sessions)
    - Update in package.json, README.md, CHANGELOG.md if different
 
 2. Create GitHub repository:
    ```bash
-   git remote add origin https://github.com/bhd/open-agent-sessions.git
+   git remote add origin https://github.com/buihongduc132/open-agent-sessions.git
    git push -u origin main
    ```
 

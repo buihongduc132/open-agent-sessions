@@ -27,7 +27,7 @@ This project requires [Bun](https://bun.sh) runtime.
 curl -fsSL https://bun.sh/install | bash
 
 # Clone the repository
-git clone https://github.com/bhd/open-agent-sessions.git
+git clone https://github.com/buihongduc132/open-agent-sessions.git
 cd open-agent-sessions
 
 # Install dependencies
@@ -313,9 +313,9 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 ## Security
 
-Please report security vulnerabilities via [GitHub Security Advisories](https://github.com/bhd/open-agent-sessions/security/advisories). See [SECURITY.md](SECURITY.md) for details.
+Please report security vulnerabilities via [GitHub Security Advisories](https://github.com/buihongduc132/open-agent-sessions/security/advisories). See [SECURITY.md](SECURITY.md) for details.
 
 ## Links
 
-- [Issue Tracker](https://github.com/bhd/open-agent-sessions/issues)
+- [Issue Tracker](https://github.com/buihongduc132/open-agent-sessions/issues)
 - [Changelog](CHANGELOG.md)

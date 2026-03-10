@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
 # Open Agent Sessions (oas) Installer
-# https://github.com/bhd/open-agent-sessions
+# https://github.com/buihongduc132/open-agent-sessions
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/bhd/open-agent-sessions/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/buihongduc132/open-agent-sessions/main/scripts/install.sh | bash
 #
 # Environment Variables:
 #   OAS_INSTALL_DIR   - Installation directory (default: ~/.oas)
 #   OAS_BIN_DIR       - Directory for oas symlink (default: ~/.local/bin)
-#   OAS_REPO_URL      - Git repository URL (default: https://github.com/bhd/open-agent-sessions.git)
+#   OAS_REPO_URL      - Git repository URL (default: https://github.com/buihongduc132/open-agent-sessions.git)
 #   OAS_BRANCH        - Branch to install (default: main)
 #   OAS_SKIP_BUN      - Skip Bun installation if already installed elsewhere
 #
@@ -17,16 +17,16 @@
 set -euo pipefail
 
 # Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+RED='\\033[0;31m'
+GREEN='\\033[0;32m'
+YELLOW='\\033[0;33m'
+BLUE='\\033[0;34m'
+NC='\\033[0m' # No Color
 
 # Configuration with environment variable overrides
 OAS_INSTALL_DIR="${OAS_INSTALL_DIR:-$HOME/.oas}"
 OAS_BIN_DIR="${OAS_BIN_DIR:-$HOME/.local/bin}"
-OAS_REPO_URL="${OAS_REPO_URL:-https://github.com/bhd/open-agent-sessions.git}"
+OAS_REPO_URL="${OAS_REPO_URL:-https://github.com/buihongduc132/open-agent-sessions.git}"
 OAS_BRANCH="${OAS_BRANCH:-main}"
 OAS_SKIP_BUN="${OAS_SKIP_BUN:-false}"
 
@@ -276,7 +276,7 @@ print_summary() {
     fi
     echo ""
     echo "To update in the future, run:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/bhd/open-agent-sessions/main/scripts/install.sh | bash"
+    echo "  curl -fsSL https://raw.githubusercontent.com/buihongduc132/open-agent-sessions/main/scripts/install.sh | bash"
     echo ""
 }
 
@@ -316,7 +316,7 @@ main() {
     
     # Handle help flag
     if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-        echo "Usage: curl -fsSL https://raw.githubusercontent.com/bhd/open-agent-sessions/main/scripts/install.sh | bash"
+        echo "Usage: curl -fsSL https://raw.githubusercontent.com/buihongduc132/open-agent-sessions/main/scripts/install.sh | bash"
         echo ""
         echo "Environment Variables:"
         echo "  OAS_INSTALL_DIR   Installation directory (default: ~/.oas)"
