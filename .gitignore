@@ -59,6 +59,7 @@ dolt/
 
 # Internal planning and data (not for public release)
 .beads/
+.beads-backup/
 .beads-specs/
 .ralph/
 .ralph-tui/
