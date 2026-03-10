@@ -78,12 +78,7 @@ temp/
 _findings/
 
 # Internal planning documents
-_PLAN.md
-_BEADS_SUMMARY.md
-_COMPARISON_analysis.md
-_BASELINE.md
-_CHILD_SESSION.md
-_GOAL_OPENCODE.md
+_*.md
 
 # Worktrees
 open-agent-sessions-wt-*
