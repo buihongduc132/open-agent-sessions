@@ -1,0 +1,185 @@
+name: Install Script
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'scripts/install.sh'
+      - '.github/workflows/install.yml'
+      - 'bin/oas'
+      - 'package.json'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'scripts/install.sh'
+      - '.github/workflows/install.yml'
+      - 'bin/oas'
+      - 'package.json'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  test-install:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for git operations
+    
+    - name: Setup Bun (for faster install)
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+    
+    - name: Run install script
+      env:
+        OAS_INSTALL_DIR: /tmp/oas-test
+        OAS_BIN_DIR: /tmp/oas-test/bin
+        # Use local repo for testing
+        OAS_REPO_URL: ${{ github.workspace }}
+      run: |
+        bash scripts/install.sh
+        
+    - name: Verify installation
+      run: |
+        # Check repository was cloned
+        if [ ! -d "/tmp/oas-test/open-agent-sessions" ]; then
+          echo "ERROR: Repository not cloned"
+          exit 1
+        fi
+        
+        # Check dependencies were installed
+        if [ ! -d "/tmp/oas-test/open-agent-sessions/node_modules" ]; then
+          echo "ERROR: Dependencies not installed"
+          exit 1
+        fi
+        
+        # Check CLI wrapper exists
+        if [ ! -f "/tmp/oas-test/bin/oas" ]; then
+          echo "ERROR: CLI wrapper not created"
+          exit 1
+        fi
+        
+        # Check CLI wrapper is executable
+        if [ ! -x "/tmp/oas-test/bin/oas" ]; then
+          echo "ERROR: CLI wrapper not executable"
+          exit 1
+        fi
+        
+        # Verify wrapper has correct baked-in path (not hard-coded ~/.oas)
+        if grep -q "/tmp/oas-test/open-agent-sessions" /tmp/oas-test/bin/oas; then
+          echo "Wrapper has correct baked-in install path"
+        else
+          echo "ERROR: Wrapper does not contain expected install path"
+          cat /tmp/oas-test/bin/oas
+          exit 1
+        fi
+        
+        echo "Installation verification passed!"
+        
+    - name: Test oas --help (without OAS_ROOT)
+      run: |
+        # Test that oas --help works WITHOUT setting OAS_ROOT
+        # This proves the wrapper has the correct baked-in path
+        output=$(/tmp/oas-test/bin/oas --help 2>&1) || true
+        
+        # Check that help output contains expected content
+        if echo "$output" | grep -q "Open Agent Sessions"; then
+          echo "CLI help output verified (without OAS_ROOT override)!"
+        else
+          echo "ERROR: CLI help output missing expected content"
+          echo "Output was:"
+          echo "$output"
+          exit 1
+        fi
+        
+    - name: Test idempotent install
+      env:
+        OAS_INSTALL_DIR: /tmp/oas-test
+        OAS_BIN_DIR: /tmp/oas-test/bin
+        OAS_REPO_URL: ${{ github.workspace }}
+      run: |
+        echo "Running install script a second time..."
+        bash scripts/install.sh
+        echo "Idempotent install test passed!"
+        
+  test-install-fresh:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Test fresh install (with Bun auto-install)
+      env:
+        OAS_INSTALL_DIR: /tmp/oas-test-fresh
+        OAS_BIN_DIR: /tmp/oas-test-fresh/bin
+        OAS_REPO_URL: ${{ github.workspace }}
+      run: |
+        # Remove Bun from PATH to test fresh install scenario
+        export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        
+        # Verify Bun is not in PATH
+        if command -v bun &> /dev/null; then
+          echo "Bun unexpectedly found in PATH, removing from PATH for test"
+        fi
+        
+        # Run install script (should install Bun automatically)
+        bash scripts/install.sh
+        
+        # Verify Bun was installed
+        export PATH="$HOME/.bun/bin:$PATH"
+        if ! command -v bun &> /dev/null; then
+          echo "ERROR: Bun was not installed"
+          exit 1
+        fi
+        
+        # Verify CLI works WITHOUT OAS_ROOT (proves wrapper has correct path)
+        output=$(/tmp/oas-test-fresh/bin/oas --help 2>&1) || true
+        if echo "$output" | grep -q "Open Agent Sessions"; then
+          echo "Fresh install with Bun auto-install test passed (without OAS_ROOT)!"
+        else
+          echo "ERROR: CLI not working after fresh install"
+          exit 1
+        fi
+        
+  test-custom-install-dir:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+    
+    - name: Test with custom install directory
+      env:
+        OAS_INSTALL_DIR: /opt/custom-oas
+        OAS_BIN_DIR: /opt/custom-bin
+        OAS_REPO_URL: ${{ github.workspace }}
+      run: |
+        # Install to custom location
+        bash scripts/install.sh
+        
+        # Verify wrapper has the custom path baked in
+        if grep -q "/opt/custom-oas/open-agent-sessions" /opt/custom-bin/oas; then
+          echo "Wrapper correctly uses custom install path"
+        else
+          echo "ERROR: Wrapper does not contain custom install path"
+          cat /opt/custom-bin/oas
+          exit 1
+        fi
+        
+        # Test CLI works without OAS_ROOT
+        output=$(/opt/custom-bin/oas --help 2>&1) || true
+        if echo "$output" | grep -q "Open Agent Sessions"; then
+          echo "Custom install dir test passed (without OAS_ROOT)!"
+        else
+          echo "ERROR: CLI not working with custom install dir"
+          exit 1
+        fi
