@@ -65,6 +65,8 @@ dolt/
 .ralph-tui/
 flow/
 .bv/
+import.sql
+import_issues.py
 
 # Temporary files
 tmp/
