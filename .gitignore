@@ -74,11 +74,11 @@ temp/
 *.tmp
 .ralph
 
-# Session analysis findings (project-specific, not for repo)
-_findings/
+# Internal directories and files (broad pattern)
+_*
 
-# Internal planning documents
-_*.md
+# Environment files (broad pattern)
+.env*
 
 # Worktrees
 open-agent-sessions-wt-*

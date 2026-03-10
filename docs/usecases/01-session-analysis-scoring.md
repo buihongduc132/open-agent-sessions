@@ -24,7 +24,7 @@ What are their commits , ask @verifier on how do we be able to consolidate them 
 ## User Request 3: Documentation and Further Analysis
 
 ```
-1. Remember to note all of these into ./_findings/<scoring>/* , ensure to stored the session id for me ; 
+1. Remember to note all of these into ./notes/<scoring>/* , ensure to stored the session id for me ; 
 
 Then list MORE session DURING these duration per group ; 
 SEE what else can we get and how much can we recover to them ; 
@@ -72,7 +72,7 @@ This use case demonstrates a comprehensive session analysis workflow for recover
 - **7 commits** cherry-picked to clean branch `feat/yahoo-volume-consolidation-clean`
 - **87 tests** included
 - **0 infrastructure contamination**
-- Complete documentation in `./_findings/scoring/`
+- Complete documentation in `./notes/scoring/`
 
 ## Key Learnings
 
