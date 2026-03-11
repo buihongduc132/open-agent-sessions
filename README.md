@@ -4,18 +4,31 @@ A unified session management library for AI coding agents. Access, search, and m
 
 ## Features
 
-- **Multi-Agent Support**: Unified interface for OpenCode, Codex, and Claude sessions
+| Feature | CLI | Library | Notes |
+|---------|:---:|:-------:|-------|
+| **OpenCode Sessions** | ✅ | ✅ | Full support: list, search, detail, read |
+| **Codex Sessions** | ⚠️ Clone only | ✅ | CLI: clone source only; Library: list |
+| **Claude Sessions** | ❌ | ✅ | Library: list only; CLI: not supported |
+| **Session Search** | ✅ OpenCode | ✅ | CLI: OpenCode only |
+| **Clone Sessions** | ✅ Codex→OpenCode | ✅ | CLI: Codex source → OpenCode dest only |
+| **TUI (Interactive)** | 📋 Planned | — | Code exists, not wired to CLI |
+
+> **Note**: CLI is **OpenCode-only** (except clone). Codex/Claude adapters are library-only.
+> See [docs/cli-feature-matrix.md](docs/cli-feature-matrix.md) for detailed feature status.
+
+### Core Capabilities
+
 - **Flexible Storage**: Support for SQLite databases and JSONL files
 - **YAML Configuration**: Simple, declarative configuration for multiple agent instances
 - **Session Operations**:
   - List sessions with filtering and sorting
   - Search sessions by content
   - View detailed session information with messages
-  - Clone sessions between agents
+  - Clone sessions between agents (Codex → OpenCode)
 - **Multiple Interfaces**:
-  - Programmatic API for library usage
-  - CLI commands for terminal workflows
-  - TUI (Terminal UI) for interactive browsing
+  - Programmatic API for library usage (all agents)
+  - CLI commands for terminal workflows (OpenCode)
+  - TUI (Terminal UI) for interactive browsing (planned)
 - **Type-Safe**: Written in TypeScript with full type definitions
 
 ## Installation
@@ -41,8 +54,11 @@ bun test
 
 Create a YAML configuration file to define your agent instances:
 
+> ⚠️ **For CLI usage**: Only enable `opencode` agents. Codex/Claude will cause CLI errors.
+
 ```yaml
 agents:
+  # OpenCode - CLI ready
   - agent: opencode
     alias: main
     enabled: true
@@ -58,14 +74,16 @@ agents:
       mode: db
       db_path: ~/work/.opencode/sessions.db
 
-  - agent: codex
-    alias: default
-    enabled: true
-    path: ~/.codex
+  # Codex - library only (disable for CLI use)
+  # - agent: codex
+  #   alias: default
+  #   enabled: false
+  #   path: ~/.codex
 
-  - agent: claude
-    alias: desktop
-    enabled: false
+  # Claude - library only (disable for CLI use)
+  # - agent: claude
+  #   alias: desktop
+  #   enabled: false
 ```
 
 ### Configuration Options
@@ -137,22 +155,26 @@ for (const message of detail.messages || []) {
 
 ### CLI Usage
 
-The `oas` CLI provides legacy (OpenCode-only) and new (multi-agent) commands:
+> ⚠️ **CLI is OpenCode-only** (except `clone`). Codex/Claude adapters are library-only and will cause CLI errors if enabled in config.
 
 ```bash
-# Legacy Commands (OpenCode only)
+# List Sessions
 oas list [limit]            # List recent OpenCode sessions (default: 10)
 oas recent [limit]          # Same as list
+oas sessions [options]      # List with time filtering
+oas list-new [options]      # List with agent/alias filters
+
+# View Session
 oas find <session-id>       # Show session details by ID
 oas show <session-id>       # Same as find
-
-# New Commands (multi-agent)
-oas sessions [options]      # List sessions with time filtering
-oas list-new [options]      # List sessions with agent/alias filters
 oas detail [options]        # Show session detail view
 oas read <session-id>       # Read session messages
+
+# Search & Clone
 oas search --text <query>   # Search sessions by title and content
-oas clone --from <spec> --to <spec>  # Clone session between agents
+oas clone --from <spec> --to <spec>  # Clone session (Codex→OpenCode)
+
+# Utility
 oas onboard                 # Initialize bd (beads) for project
 ```
 
@@ -181,9 +203,9 @@ oas onboard                 # Initialize bd (beads) for project
 - `--from SPEC` - Source (agent:session_id or agent:alias:session_id)
 - `--to SPEC` - Destination (agent:alias)
 
-### TUI Usage
+### TUI (Planned)
 
-A Terminal User Interface (TUI) is implemented in `src/tui/` but is not currently wired to the `bin/oas` CLI. To run the TUI directly during development:
+A Terminal User Interface (TUI) is implemented in `src/tui/` but not wired to the `bin/oas` CLI. To run during development:
 
 ```bash
 bun run src/tui/App.tsx

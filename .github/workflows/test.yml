@@ -21,16 +21,11 @@ jobs:
     - name: Install dependencies
       run: bun install
     
-    # Note: 3 TUI tests currently fail due to @opentui/react/jsx-dev-runtime module resolution
-    # These are known issues with the TUI component tests and do not affect core functionality.
-    # The failures are in:
-    # - test/tui-app-detail.test.tsx
-    # - test/registry.test.ts (imports TUI components)
-    # - test/config.test.ts (imports TUI components)
-    # Core functionality (102 tests) passes successfully.
     - name: Run tests
       run: bun test
-      continue-on-error: true
     
     - name: Type check
       run: bun run typecheck
+    
+    - name: Build
+      run: bun run build

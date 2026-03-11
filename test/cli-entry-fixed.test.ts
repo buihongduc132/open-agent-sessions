@@ -87,13 +87,13 @@ describe("CLI: help output verification", () => {
     const result = await runCLI(["--help"]);
     
     expect(result.exitCode).toBe(0);
-    // Legacy commands
+    // OpenCode commands
     expect(result.stdout).toContain("list");
     expect(result.stdout).toContain("recent");
     expect(result.stdout).toContain("find");
     expect(result.stdout).toContain("show");
     
-    // New commands
+    // Extended commands
     expect(result.stdout).toContain("sessions");
     expect(result.stdout).toContain("read");
     expect(result.stdout).toContain("search");
@@ -185,7 +185,7 @@ describe("CLI: help output verification", () => {
 // ============================================================================
 
 describe("CLI: command routing", () => {
-  describe("legacy commands", () => {
+  describe("OpenCode commands", () => {
     test("list command is recognized (even if it fails due to missing db)", async () => {
       const result = await runCLI(["list"]);
       
@@ -215,7 +215,7 @@ describe("CLI: command routing", () => {
     });
   });
 
-  describe("new commands", () => {
+  describe("Extended commands", () => {
     test("sessions command is recognized", async () => {
       const result = await runCLI(["sessions", "--help"]);
       
