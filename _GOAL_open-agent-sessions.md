@@ -48,16 +48,16 @@ SELECT id, category, title, status, priority, phase
 FROM requirements
 ORDER BY
   CASE category
-    WHEN 'Core'      THEN 0
-    WHEN 'SDK'        THEN 1
-    WHEN 'CLI'        THEN 2
-    WHEN 'Adapter'    THEN 3
-    WHEN 'Cross-Agent'THEN 4
-    WHEN 'Export'     THEN 5
-    WHEN 'Import'     THEN 6
-    WHEN 'Performance'THEN 7
-    WHEN 'Ecosystem' THEN 8
-    WHEN 'Quality'   THEN 9
+    WHEN 'Core'       THEN 0
+    WHEN 'SDK'         THEN 1
+    WHEN 'CLI'         THEN 2
+    WHEN 'Adapter'     THEN 3
+    WHEN 'Cross-Agent' THEN 4
+    WHEN 'Export'      THEN 5
+    WHEN 'Import'      THEN 6
+    WHEN 'Performance' THEN 7
+    WHEN 'Ecosystem'  THEN 8
+    WHEN 'Quality'    THEN 9
   END,
   priority ASC,
   CAST(SUBSTRING(id, 4) AS SIGNED);
@@ -151,7 +151,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-07 20:35 UTC) — Derived from Dolt Matrix
+## Current State Snapshot (2026-04-07 20:45 UTC) — Derived from Dolt Matrix
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Incomplete items |
 |----------|-------|------|---------|----------|----------|-----------------|
