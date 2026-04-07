@@ -148,6 +148,45 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 <!-- END BEADS INTEGRATION -->
 
+## CLI Agent Session Taxonomy
+
+The `flow/providers/` system maps heterogeneous agent session formats onto a unified `SessionSummary` / `SessionDetail` schema via adapter plugins. Agents are classified into two maturity tiers based on storage architecture.
+
+### Maturity Tiers
+
+| Tier | Description |
+|------|-------------|
+| **Mature** | SQLite + structured schema, or well-defined JSONL with predictable fields. Rich metadata (tokens, model, tool calls) is available without inference. |
+| **Minor** | JSONL event streams with flexible content shapes. Metadata (tokens, costs) either requires auxiliary files or is absent. These are normalised into the unified schema via the adapter pattern. |
+
+The long-term goal is: **Minor agents → Unified Schema → Adapter pattern**, so all agents become queryable through a single interface regardless of their native storage format.
+
+### Agent Reference Table
+
+| Name | Maturity | Storage Type | Session ID Format | Key Metadata Fields |
+|------|----------|-------------|-------------------|---------------------|
+| `opencode` | Mature | SQLite (`opencode.db`) + JSONL | UUID (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) | `projects`, `sessions`, `messages`, `message_parts` tables; tool calls stored inline as structured rows |
+| `claude` | Mature | JSONL transcripts in `~/.claude/sessions/` | Directory name (human-readable slug) | Content is flexible (`string \| array \| object`); token counts must be inferred |
+| `codex` | Mature | SQLite (`state_5.sqlite` threads + `logs_1.sqlite` messages) + JSONL index | Integer thread ID | `messages.message` is a JSON string requiring parse; git context preserved in index |
+| `openclaw` | Minor | JSONL event stream per session + `sessions.json` metadata index | UUID (`*.jsonl` filenames) | Index at `~/.openclaw/agents/main/sessions/sessions.json`; per-session stream has mixed event types |
+| `pi` / `oh-my-pi (OMP)` | Minor | JSONL event stream + `stats.db` (tokens/costs) + `history.db` (FTS prompts) | `<timestamp>_<id>.jsonl` under `~/.omp/agent/sessions/<slug>/` | Event types: `session`, `model_change`, `thinking_level_change`, `custom_message`, `message`, `compaction` |
+
+### Adapter Interface
+
+Each agent is served by an `Adapter` (defined in `src/core/types.ts`) that implements:
+
+```typescript
+interface Adapter {
+  readonly version: string;
+  listSessions(): SessionSummary[];
+  listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
+  searchSessions?(query: SearchQuery): SessionSummary[];
+  getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail>;
+}
+```
+
+The canonical session key is `(agent, alias, session_id)`. The `AdapterRegistry` in `src/core/types.ts` holds handles for all registered agents and is the single entry point for cross-agent queries.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
