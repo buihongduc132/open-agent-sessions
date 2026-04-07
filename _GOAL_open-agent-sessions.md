@@ -48,6 +48,7 @@ SELECT id, category, title, status, priority, phase
 FROM requirements
 ORDER BY
   CASE category
+    WHEN 'Core'      THEN 0
     WHEN 'SDK'        THEN 1
     WHEN 'CLI'        THEN 2
     WHEN 'Adapter'    THEN 3
@@ -57,7 +58,6 @@ ORDER BY
     WHEN 'Performance'THEN 7
     WHEN 'Ecosystem' THEN 8
     WHEN 'Quality'   THEN 9
-    WHEN 'Core'      THEN 0
   END,
   priority ASC,
   CAST(SUBSTRING(id, 4) AS SIGNED);
