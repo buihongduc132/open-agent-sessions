@@ -4,8 +4,8 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-07 20:07 UTC (17 done / 18 planned / 2 lib-only / 1 deferred) ✅
-**Last synced:** 2026-04-07 20:35 UTC — confirmed Dolt matches snapshot exactly (17/18/2/1)
+**Last verified against Dolt:** 2026-04-07 20:35 UTC
+**Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
 
@@ -53,10 +53,11 @@ ORDER BY
     WHEN 'Adapter'    THEN 3
     WHEN 'Cross-Agent'THEN 4
     WHEN 'Export'     THEN 5
-    WHEN 'Import'    THEN 6
+    WHEN 'Import'     THEN 6
     WHEN 'Performance'THEN 7
     WHEN 'Ecosystem' THEN 8
     WHEN 'Quality'   THEN 9
+    WHEN 'Core'      THEN 0
   END,
   priority ASC,
   CAST(SUBSTRING(id, 4) AS SIGNED);
@@ -102,8 +103,6 @@ The following must always be true:
 
 ```sql
 USE open_agent_sessions;
--- No adapter may have duplicate normalization logic
--- This is enforced by code review; query verifies status
 SELECT id, category, title, status
 FROM requirements
 WHERE category IN ('Adapter', 'SDK', 'Core')
@@ -152,32 +151,46 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-07 20:07 UTC) — Dolt Matrix is Source of Trust
+## Current State Snapshot (2026-04-07 20:35 UTC) — Derived from Dolt Matrix
 
-| Category | Total | Done | Planned | Lib-only | Deferred |
-|----------|-------|------|---------|----------|----------|
-| Core | 3 | 3 | 0 | 0 | 0 |
-| SDK | 6 | 4 | 2 | 0 | 0 |
-| CLI | 8 | 7 | 1 | 0 | 0 |
-| Adapter | 7 | 2 | 3 | 2 | 0 |
-| Cross-Agent | 4 | 0 | 3 | 0 | 1 |
-| Export | 2 | 0 | 2 | 0 | 0 |
-| Import | 1 | 0 | 1 | 0 | 0 |
-| Performance | 2 | 0 | 2 | 0 | 0 |
-| Ecosystem | 3 | 0 | 3 | 0 | 0 |
-| Quality | 2 | 1 | 1 | 0 | 0 |
-| **Total** | **38** | **17** | **18** | **2** | **1** |
+| Category | Total | Done | Planned | Lib-only | Deferred | Incomplete items |
+|----------|-------|------|---------|----------|----------|-----------------|
+| Core | 3 | 3 | 0 | 0 | 0 | — |
+| SDK | 6 | 4 | 2 | 0 | 0 | R-38, R-39 |
+| CLI | 8 | 7 | 1 | 0 | 0 | R-15 |
+| Adapter | 7 | 2 | 3 | 2 | 0 | R-21, R-22, R-31 |
+| Cross-Agent | 4 | 0 | 3 | 0 | 1 | R-19, R-32, R-33 (R-20 deferred) |
+| Export | 2 | 0 | 2 | 0 | 0 | R-16, R-17 |
+| Import | 1 | 0 | 1 | 0 | 0 | R-18 |
+| Performance | 2 | 0 | 2 | 0 | 0 | R-23, R-24 |
+| Ecosystem | 3 | 0 | 3 | 0 | 0 | R-25, R-26, R-27 |
+| Quality | 2 | 1 | 1 | 0 | 0 | R-29 |
+| **Total** | **38** | **17** | **18** | **2** | **1** | |
 
-> Incomplete: R-38, R-39 (SDK); R-15 (CLI); R-21, R-22, R-31 (Adapter); R-19, R-32, R-33 (Cross-Agent); R-16, R-17 (Export); R-18 (Import); R-23, R-24 (Performance); R-25, R-26, R-27 (Ecosystem); R-29 (Quality). Source: Dolt `requirements` table.
+> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM requirements` — totals are: 17 done, 18 planned, 2 lib-only, 1 deferred. If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
-> **Note:** This snapshot is derived from `SELECT COUNT(*) FROM requirements` in Dolt. The Dolt `requirements` table is the source of truth. If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
+---
+
+## Incomplete Requirements (18 planned + 1 deferred)
+
+Ordered by execution priority:
+
+1. **SDK** (P1): R-38 (workspace scoped imports), R-39 (session fork API)
+2. **CLI** (P2): R-15 (TUI wiring to CLI)
+3. **Adapter** (P3): R-31 (acpx), R-21 (Codex full), R-22 (Claude full)
+4. **Cross-Agent** (P4): R-32 (git-root scoping), R-33 (named sessions), R-19 (cross-agent search)
+5. **Export/Import** (P5): R-16 (CSF), R-17 (Markdown/text), R-18 (OpenCode import)
+6. **Performance** (P6): R-23 (pagination), R-24 (caching)
+7. **Ecosystem** (P7): R-25 (VS Code), R-26 (Web UI), R-27 (Docker)
+8. **Quality**: R-29 (CI/CD pipeline)
+9. **DEFERRED**: R-20 (session forking — blocked by R-38, R-39)
 
 ---
 
 ## Files Produced by This Goal
 
-- `src/sdk/index.ts` — SDK entry point (exists, needs completion)
-- `src/adapters/index.ts` — Adapter barrel (exists, needs sync)
+- `src/sdk/index.ts` — SDK entry point (exists)
+- `src/adapters/index.ts` — Adapter barrel (exists)
 - `src/types/index.ts` — Type-only export (exists)
 - `src/sdk/workspace.ts` — Workspace-scoped session factory (R-38, not yet implemented)
 - `src/sdk/session.ts` — Session fork API (R-39, not yet implemented)
@@ -193,7 +206,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 The following are explicitly excluded from this goal:
 
-1. **Zed adapter** — zed is documented via `flow/providers/mature/zed/SHAPE.md` only (R-35 is planned, not done); runtime implementation of Zed adapter is not in scope until R-35 is promoted to planned with implementation intent. **acpx adapter (R-31)** and **Codex full (R-21)** and **Claude full (R-22)** ARE runtime implementations — these requirements are `planned` and require actual code
+1. **Zed adapter** — zed is documented via `flow/providers/mature/zed/SHAPE.md` only; runtime implementation of Zed adapter is not in scope until R-35 is promoted to planned with implementation intent. **acpx adapter (R-31)** and **Codex full (R-21)** and **Claude full (R-22)** ARE runtime implementations — these requirements are `planned` and require actual code
 2. Real-time session synchronization across agents
 3. Guaranteed lossless cross-agent transfer
 4. Multi-agent concurrent editing
