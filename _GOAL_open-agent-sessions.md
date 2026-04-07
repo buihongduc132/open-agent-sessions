@@ -5,6 +5,7 @@
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
 **Last verified against Dolt:** 2026-04-07 20:07 UTC (17 done / 18 planned / 2 lib-only / 1 deferred) ✅
+**Last synced:** 2026-04-07 20:35 UTC — confirmed Dolt matches snapshot exactly (17/18/2/1)
 
 ---
 
