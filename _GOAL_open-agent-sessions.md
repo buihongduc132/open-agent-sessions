@@ -4,6 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
+**Last verified against Dolt:** 2026-04-07 (17 done / 18 planned / 2 lib-only / 1 deferred)
 
 ---
 
@@ -24,7 +25,7 @@ The goal is complete when ALL of the following are true:
 5. All **Export/Import requirements** (R-16, R-17, R-18) are **done**
 6. All **Performance requirements** (R-23, R-24) are **done**
 7. R-20 (Session Forking) is **unblocked** — all blocking requirements resolved
-8. R-28 (TDD) and R-29 (CI/CD) are **done**
+8. R-28 (TDD) is **done** and R-29 (CI/CD) is **done**
 9. All **Ecosystem requirements** (R-25, R-26, R-27) are **done** or formally closed
 10. DRY invariant is **verified** — no duplicate logic across adapters; shared normalization lives in `src/core/normalize.ts` only
 
