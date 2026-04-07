@@ -150,7 +150,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-07) — Dolt Matrix is Source of Trust
+## Current State Snapshot (2026-04-07 20:07 UTC) — Dolt Matrix is Source of Trust
 
 | Category | Total | Done | Planned | Lib-only | Deferred |
 |----------|-------|------|---------|----------|----------|
@@ -163,8 +163,8 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Performance | 2 | 0 | 2 | 0 | 0 |
 | Ecosystem | 3 | 0 | 3 | 0 | 0 |
 | Quality | 2 | 1 | 1 | 0 | 0 |
-| SDK | 6 | 0 | 6 | 0 | 0 |
-| **Total** | **38** | **13** | **22** | **2** | **1** |
+| SDK | 6 | 4 | 2 | 0 | 0 |
+| **Total** | **38** | **17** | **18** | **2** | **1** |
 
 > **Note:** This snapshot is derived from `SELECT COUNT(*) FROM requirements` in Dolt. The Dolt `requirements` table is the source of truth. If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
