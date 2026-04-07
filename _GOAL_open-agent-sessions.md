@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-07 21:08 UTC — MATCH
+**Last verified against Dolt:** 2026-04-07 21:25 UTC — MATCH
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -48,14 +48,14 @@ SELECT id, category, title, status, priority, phase
 FROM requirements
 ORDER BY
   CASE category
-    WHEN 'Core'       THEN 0
+    WHEN 'Core'        THEN 0
     WHEN 'SDK'         THEN 1
     WHEN 'CLI'         THEN 2
-    WHEN 'Adapter'     THEN 3
-    WHEN 'Cross-Agent' THEN 4
-    WHEN 'Export'      THEN 5
-    WHEN 'Import'      THEN 6
-    WHEN 'Performance' THEN 7
+    WHEN 'Adapter'    THEN 3
+    WHEN 'Cross-Agent'THEN 4
+    WHEN 'Export'     THEN 5
+    WHEN 'Import'     THEN 6
+    WHEN 'Performance'THEN 7
     WHEN 'Ecosystem'  THEN 8
     WHEN 'Quality'    THEN 9
   END,
@@ -151,7 +151,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-07 21:05 UTC) — Derived from Dolt Matrix
+## Current State Snapshot (2026-04-07 21:25 UTC) — Derived from Dolt Matrix
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Incomplete items |
 |----------|-------|------|---------|----------|----------|-----------------|
@@ -189,9 +189,9 @@ Ordered by execution priority:
 
 ## Files Produced by This Goal
 
-- `src/sdk/index.ts` — SDK entry point (exists)
-- `src/adapters/index.ts` — Adapter barrel (exists)
-- `src/types/index.ts` — Type-only export (exists)
+- `src/sdk/index.ts` — SDK entry point (done — R-35)
+- `src/adapters/index.ts` — Adapter barrel (done — R-36)
+- `src/types/index.ts` — Type-only export (done — R-37)
 - `src/sdk/workspace.ts` — Workspace-scoped session factory (R-38, not yet implemented)
 - `src/sdk/session.ts` — Session fork API (R-39, not yet implemented)
 - `flow/providers/mature/zed/SHAPE.md` — Zed storage shape
@@ -206,7 +206,7 @@ Ordered by execution priority:
 
 The following are explicitly excluded from this goal:
 
-1. **Zed adapter** — zed is documented via `flow/providers/mature/zed/SHAPE.md` only; runtime implementation of Zed adapter is not in scope until R-35 is promoted to planned with implementation intent. **acpx adapter (R-31)** and **Codex full (R-21)** and **Claude full (R-22)** ARE runtime implementations — these requirements are `planned` and require actual code
+1. **Zed adapter** — zed is documented via `flow/providers/mature/zed/SHAPE.md` only; runtime implementation of Zed adapter is not in scope. **acpx adapter (R-31)**, **Codex full (R-21)**, and **Claude full (R-22)** ARE runtime implementations — these requirements are `planned` and require actual code.
 2. Real-time session synchronization across agents
 3. Guaranteed lossless cross-agent transfer
 4. Multi-agent concurrent editing
