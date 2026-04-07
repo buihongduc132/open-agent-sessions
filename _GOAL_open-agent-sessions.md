@@ -17,8 +17,8 @@
 
 The goal is complete when ALL of the following are true:
 
-1. All **SDK requirements** (R-34, R-35, R-36, R-37, R-38, R-39) are **done**
-2. All **CLI requirements** (R-08 through R-15) are **done** — 6 done, 2 planned (R-15 TUI wiring, R-18 Import)
+1. All **SDK requirements** (R-34, R-35, R-36, R-37, R-38, R-39) are **done** — 4 done, 2 planned (R-38 workspace, R-39 fork API)
+2. All **CLI requirements** (R-08 through R-15) are **done** — 7 done, 1 planned (R-15 TUI wiring)
 3. All **adapter requirements** (R-04, R-05, R-06, R-07, R-21, R-22, R-31) are **done** — 2 done, 2 lib-only, 3 planned
 4. All **Cross-Agent requirements** (R-19, R-32, R-33) are **done**
 5. All **Export/Import requirements** (R-16, R-17, R-18) are **done**
@@ -155,16 +155,18 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Category | Total | Done | Planned | Lib-only | Deferred |
 |----------|-------|------|---------|----------|----------|
 | Core | 3 | 3 | 0 | 0 | 0 |
+| SDK | 6 | 4 | 2 | 0 | 0 |
+| CLI | 8 | 7 | 1 | 0 | 0 |
 | Adapter | 7 | 2 | 3 | 2 | 0 |
-| CLI | 8 | 6 | 2 | 0 | 0 |
 | Cross-Agent | 4 | 0 | 3 | 0 | 1 |
 | Export | 2 | 0 | 2 | 0 | 0 |
 | Import | 1 | 0 | 1 | 0 | 0 |
 | Performance | 2 | 0 | 2 | 0 | 0 |
 | Ecosystem | 3 | 0 | 3 | 0 | 0 |
 | Quality | 2 | 1 | 1 | 0 | 0 |
-| SDK | 6 | 4 | 2 | 0 | 0 |
 | **Total** | **38** | **17** | **18** | **2** | **1** |
+
+> Incomplete: R-38, R-39 (SDK); R-15 (CLI); R-21, R-22, R-31 (Adapter); R-19, R-32, R-33 (Cross-Agent); R-16, R-17 (Export); R-18 (Import); R-23, R-24 (Performance); R-25, R-26, R-27 (Ecosystem); R-29 (Quality). Source: Dolt `requirements` table.
 
 > **Note:** This snapshot is derived from `SELECT COUNT(*) FROM requirements` in Dolt. The Dolt `requirements` table is the source of truth. If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
