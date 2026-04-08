@@ -1,5 +1,22 @@
 # Agent Instructions
 
+> **⚠️ TOP AUTHORITY — READ FIRST**
+>
+> All **requirements, priorities, statuses, ordering, and goal state** live in the Dolt matrix.
+>
+> **Query it at any time:**
+> ```bash
+> cd .beads/dolt && dolt sql -q "USE open_agent_sessions; SELECT id, category, title, status, priority FROM requirements ORDER BY CAST(SUBSTRING(id,4) AS SIGNED);"
+> ```
+>
+> - The `_GOAL_open-agent-sessions.md` file is **derived from** the Dolt matrix — never the reverse
+> - The `_GOAL_*.md` file documents the verification algorithm and DRY rules
+> - Any **contradiction** between this file, the GOAL file, and the Dolt matrix → **Dolt wins**, discard the others
+> - If this file says something different from the Dolt matrix → trust Dolt, update this file to match
+> - **Never update the Dolt matrix from this file or the GOAL file** — always write status changes directly to Dolt
+
+---
+
 This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
 
 ## Quick Reference
@@ -11,21 +28,6 @@ bd update <id> --claim  # Claim work atomically
 bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
-
---- BEGIN AGENTS.MD CONTENT ---
-## Issue Tracking
-
-This project uses **bd (beads)** for issue tracking.
-Run `bd prime` for workflow context, or install hooks (`bd hooks install`) for auto-injection.
-
-**Quick reference:**
-- `bd ready` - Find unblocked work
-- `bd create "Title" --type task --priority 2` - Create issue
-- `bd close <id>` - Complete work
-- `bd dolt push` - Push beads to remote
-
-For full workflow details: `bd prime`
---- END AGENTS.MD CONTENT ---
 
 For GitHub Copilot users:
 Add the same content to .github/copilot-instructions.md
