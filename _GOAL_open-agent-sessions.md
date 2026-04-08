@@ -138,8 +138,8 @@ When choosing which requirement to work on, apply this ordering:
 
 | Priority | Category | Rationale |
 |----------|----------|-----------|
-| P1 | SDK | SDK is the foundation; all other work builds on it |
 | P1 | Core | R-01, R-02, R-03 — must be done first |
+| P1 | SDK | SDK is the foundation; all other work builds on it |
 | P2 | CLI | SDK is done → CLI is next consumer |
 | P3 | Adapter | SDK + Core done → adapters |
 | P4 | Cross-Agent | Cross-agent depends on multiple adapters |
