@@ -20,7 +20,7 @@
 The goal is complete when ALL of the following are true:
 
 1. All **SDK requirements** (R-34, R-35, R-36, R-37, R-38, R-39) are **done** — 4 done, 2 planned (R-38 workspace, R-39 fork API)
-2. All **CLI requirements** (R-08 through R-15) are **done** — 6 done, 2 planned (R-15 TUI wiring, R-18 Import)
+2. All **CLI requirements** (R-08 through R-15) are **done** — 7 done, 1 planned (R-15 TUI wiring); R-18 is in Import, not CLI
 3. All **adapter requirements** (R-04, R-05, R-06, R-07, R-21, R-22, R-31) are **done** — 2 done, 2 lib-only, 3 planned
 4. All **Cross-Agent requirements** (R-19, R-32, R-33) are **done**
 5. All **Export/Import requirements** (R-16, R-17, R-18) are **done**
@@ -176,11 +176,11 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 Ordered by execution priority:
 
 1. **SDK** (P1): R-38 (workspace scoped imports), R-39 (session fork API)
-2. **CLI** (P2): R-15 (TUI wiring to CLI), R-18 (OpenCode import)
+2. **CLI** (P2): R-15 (TUI wiring to CLI) — R-18 moved to Import priority below
 3. **Adapter** (P3): R-31 (acpx), R-21 (Codex full), R-22 (Claude full)
 4. **Cross-Agent** (P4): R-32 (git-root scoping), R-33 (named sessions), R-19 (cross-agent search)
 5. **Export** (P5): R-16 (CSF), R-17 (Markdown/text)
-6. **Import** (P5): R-18 (OpenCode import)
+6. **Import** (P5): R-18 (OpenCode write-path import)
 7. **Performance** (P6): R-23 (pagination), R-24 (caching)
 8. **Ecosystem** (P7): R-25 (VS Code), R-26 (Web UI), R-27 (Docker)
 9. **Quality**: R-29 (CI/CD pipeline)
