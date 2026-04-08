@@ -157,7 +157,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 |----------|-------|------|---------|----------|----------|-----------------|
 | Core | 3 | 3 | 0 | 0 | 0 | — |
 | SDK | 6 | 4 | 2 | 0 | 0 | R-38, R-39 |
-| CLI | 8 | 6 | 2 | 0 | 0 | R-15, R-18 |
+| CLI | 8 | 7 | 1 | 0 | 0 | R-15 |
 | Adapter | 7 | 2 | 3 | 2 | 0 | R-21, R-22, R-31 |
 | Cross-Agent | 4 | 0 | 3 | 0 | 1 | R-19, R-32, R-33 (R-20 deferred) |
 | Export | 2 | 0 | 2 | 0 | 0 | R-16, R-17 |
@@ -176,7 +176,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 Ordered by execution priority:
 
 1. **SDK** (P1): R-38 (workspace scoped imports), R-39 (session fork API)
-2. **CLI** (P2): R-15 (TUI wiring to CLI) — R-18 moved to Import priority below
+2. **CLI** (P2): R-15 (TUI wiring to CLI)
 3. **Adapter** (P3): R-31 (acpx), R-21 (Codex full), R-22 (Claude full)
 4. **Cross-Agent** (P4): R-32 (git-root scoping), R-33 (named sessions), R-19 (cross-agent search)
 5. **Export** (P5): R-16 (CSF), R-17 (Markdown/text)
