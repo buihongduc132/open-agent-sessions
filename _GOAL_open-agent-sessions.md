@@ -56,7 +56,7 @@ ORDER BY
     WHEN 'Export'       THEN 5
     WHEN 'Import'       THEN 6
     WHEN 'Performance'  THEN 7
-    WHEN 'Ecosystem'    THEN 8
+    WHEN 'Ecosystem'   THEN 8
     WHEN 'Quality'      THEN 9
   END,
   priority ASC,
@@ -151,7 +151,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-07 22:09 UTC) — Derived from Dolt Matrix
+## Current State Snapshot (2026-04-08 00:02 UTC) — Derived from Dolt Matrix
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Incomplete items |
 |----------|-------|------|---------|----------|----------|-----------------|
