@@ -56,7 +56,7 @@ ORDER BY
     WHEN 'Export'       THEN 5
     WHEN 'Import'       THEN 6
     WHEN 'Performance'  THEN 7
-    WHEN 'Ecosystem'   THEN 8
+    WHEN 'Ecosystem'    THEN 8
     WHEN 'Quality'      THEN 9
   END,
   priority ASC,
