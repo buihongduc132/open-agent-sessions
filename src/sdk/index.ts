@@ -3,6 +3,7 @@
 //
 // Export surface:
 //   - Registry factory: createAdapterRegistry, createRegistry, createAdapter
+//   - Workspace: createWorkspaceSession, WorkspaceSession, WorkspaceConfig
 //   - Config: loadConfig, Config
 //   - Types: Adapter, SessionSummary, SessionDetail, SearchQuery, TimeRangeOptions,
 //            SessionReadOptions, AdapterFactory, SessionRef
@@ -10,6 +11,18 @@
 //   - Normalization: normalizeSessionSummary
 
 export { createAdapterRegistry, createRegistry, createAdapter } from "../core/registry";
+
+// Workspace session factory
+export {
+  createWorkspaceSession,
+  setWorkspaceFactories,
+  resolveScope,
+  findGitRoot,
+  buildCanonicalAlias,
+  type WorkspaceConfig,
+  type WorkspaceSession,
+  type SessionRef,
+} from "./workspace";
 
 // Config
 export { loadConfigFromFile, parseConfigText } from "../config/load";
@@ -48,6 +61,12 @@ export type {
   TimeRangeOptions,
 } from "../core/types";
 
+export type {
+  WorkspaceConfig,
+  WorkspaceSession,
+  SessionRef as WorkspaceSessionRef,
+} from "./workspace";
+
 // Adapters — barrel re-export
 export {
   createOpenCodeAdapter,
@@ -59,4 +78,8 @@ export {
 export type { SessionSummary, SessionDetail } from "../adapters";
 
 // Normalization
-export { normalizeSessionSummary, normalizeSession } from "../core/normalize";
+export { normalizeSessionSummary } from "../core/normalize";
+
+// Session fork (R-39)
+export { forkSession } from "./session";
+export type { ForkResult, SessionRef } from "./session";
