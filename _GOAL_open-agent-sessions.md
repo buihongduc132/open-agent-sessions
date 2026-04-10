@@ -4,9 +4,9 @@
 **Created:** 2026-04-07
 **Status:** complete
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-05-09 — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); Verification loop executed: all 39 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-22 ✓ (toolSearchSessions in opencode adapter, 11 test cases), R-40 ✓ (detailCache Map + clearDetailCache + invalidateDetailCache in registry.ts), R-41 ✓ (Fuzzy Tool/MCP/Skills Search); DRY check query: 0 incomplete Core/SDK/Adapter rows
+**Last verified against Dolt:** 2026-05-09 — ALL COMPLETE (38/38 rows; 35 done, 2 lib-only (R-06 Codex, R-07 Claude), 1 DEFERRED (R-20)); Verification loop executed: all 38 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-22 ✓ (searchSessions/getSessionDetail in Claude adapter), R-40 ✓ (detailCache Map + clearDetailCache + invalidateDetailCache in registry.ts), R-41 ✓ (Fuzzy Tool/MCP/Skills Search in OpenCode adapter); DRY check query: 0 incomplete Core/SDK/Adapter rows
 
-**Last re-verified:** 2026-05-09 — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 deferred (R-20)); DRY invariant: 0 incomplete Core/SDK/Adapter rows; spot-checked R-22, R-40, R-41 ✓; Dolt commit: rh9cf36ig30vr5eilmkv71r9b5ntjmaa
+**Last re-verified:** [CURRENT SESSION] — ALL COMPLETE (38/38 rows; 35 done, 2 lib-only (R-06 Codex listSessions-only, R-07 Claude listSessions-only), 1 deferred (R-20)); DRY invariant: 0 incomplete Core/SDK/Adapter rows; spot-checked R-22, R-40, R-41 ✓; Dolt branch: main, commit: mt9j5oclqd9cltj5lfu5qlujril460g3
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -23,12 +23,12 @@ The goal is complete when ALL of the following are true:
 
 1. All **SDK requirements** (R-34, R-35, R-36, R-37, R-38, R-39) are **done** — 6/6 ✅
 2. All **CLI requirements** (R-08 through R-15) are **done** — 8/8 ✅ (list, sessions, read, search, list-new, detail, clone, tui)
-3. All **Adapter requirements** (R-04, R-05, R-06, R-07, R-21, R-22, R-31) are **done** or **lib-only** — 6 done (R-04, R-05, R-06, R-21, R-22, R-31), 1 lib-only (R-07 Zed) ✅
+3. All **Adapter requirements** (R-04, R-05, R-06, R-07, R-21, R-22, R-31) are **done** or **lib-only** — 5 done (R-04, R-05, R-21, R-22, R-31), 2 lib-only (R-06 Codex listSessions-only, R-07 Claude listSessions-only) ✅
 4. All **Cross-Agent requirements** (R-19, R-20, R-32, R-33) are **done** or **DEFERRED** — 3 done, 1 deferred ✅
 5. All **Export/Import requirements** (R-16, R-17, R-18) are **done** — 3/3 ✅
 6. All **Performance requirements** (R-23, R-24, R-40) are **done** — 3/3 ✅
 7. R-20 (Session Forking) is **DEFERRED** — R-38 and R-39 (SDK blockers) are done ✅
-8. All **Quality requirements** (R-28 TDD, R-29 CI/CD, R-30 Documentation, R-42 DRY) are **done** — 4/4 ✅
+8. All **Quality requirements** (R-28 TDD, R-29 CI/CD, R-42 DRY) are **done** — 3/3 ✅ (no R-30 Documentation requirement exists in the Dolt matrix)
 9. **Ecosystem requirements** (R-25, R-26, R-27) are **not applicable** — no Ecosystem requirements exist in the Dolt matrix ✅
 10. **DRY invariant is verified** — no duplicate logic across adapters; shared normalization lives in `src/core/normalize.ts` only ✅
 11. All requirements are **done**, **DEFERRED**, or **lib-only** — no incomplete items remain.
@@ -104,13 +104,13 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-05-09):** ✅ PASSED — VERIFIED this session
-- `normalize.ts` is the only normalization module — confirmed
-- `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed
-- `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed
-- No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations in adapter code — confirmed
+**DRY Verification ([CURRENT SESSION]):** ✅ PASSED — VERIFIED
+- `normalize.ts` is the only normalization module — confirmed (grep verified)
+- `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed (grep verified)
+- `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed (grep verified)
+- No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations in adapter code — confirmed (grep verified, 0 matches)
 - `createAdapter()` from `registry.ts` is the sole factory — confirmed
-- Barrel exports synchronized across `src/sdk/index.ts`, `src/core/index.ts`, `src/adapters/index.ts`, `package.json` — confirmed
+- Barrel exports synchronized across `src/sdk/index.ts`, `src/core/index.ts`, `src/adapters/index.ts`, `package.json` — confirmed (verified manually)
 - DRY check query: `SELECT id FROM \`open_agent_sessions\`.requirements WHERE category IN ('Adapter', 'SDK', 'Core') AND status NOT IN ('done', 'lib-only')` — 0 rows ✅
 
 **DRY Check Query:**
@@ -124,6 +124,8 @@ WHERE category IN ('Adapter', 'SDK', 'Core')
 ```
 
 Result: 0 rows — all Core, SDK, and Adapter requirements are done or lib-only. DRY verification complete.
+
+> ⚠️ **Snapshot vs Dolt discrepancy (corrected):** This file previously reported 39 rows / 37 done / 1 lib-only. Dolt at commit `mt9j5oclqd9cltj5lfu5qlujril460g3` has **38 rows / 35 done / 2 lib-only (R-06 Codex, R-07 Claude) / 1 DEFERRED (R-20)**. R-30 (Documentation) does not exist in the Dolt matrix. This file has been corrected to match Dolt. Dolt is always the authoritative source.
 
 ---
 
@@ -165,23 +167,23 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-13 06:23 UTC) — Derived from Dolt Matrix
+## Current State Snapshot ([CURRENT SESSION]) — Derived from Dolt Matrix (authoritative)
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Closed | Incomplete items |
 |----------|-------|------|---------|----------|----------|--------|-----------------|
 | Core | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | SDK | 6 | 6 | 0 | 0 | 0 | 0 | — |
 | CLI | 8 | 8 | 0 | 0 | 0 | 0 | — |
-| Adapter | 7 | 6 | 0 | 1 | 0 | 0 | — (R-07 Zed is lib-only) |
+| Adapter | 7 | 5 | 0 | 2 | 0 | 0 | — (R-06 Codex listSessions-only lib-only, R-07 Claude listSessions-only lib-only) |
 | Cross-Agent | 4 | 3 | 0 | 0 | 1 | 0 | R-20 (DEFERRED) |
 | Export | 2 | 2 | 0 | 0 | 0 | 0 | — |
 | Import | 1 | 1 | 0 | 0 | 0 | 0 | — |
 | Performance | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | Search | 1 | 1 | 0 | 0 | 0 | 0 | — |
 | Quality | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| **Total** | **39** | **37** | **0** | **1** | **1** | **0** | — |
+| **Total** | **38** | **35** | **0** | **2** | **1** | **0** | — |
 
-> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM open_agent_sessions.requirements` — totals: 37 done, 1 lib-only (R-07 Zed), 1 deferred (R-20), 0 planned. R-06 (Codex listSessions-only) is **not** an adapter requirement — it was a mis-categorized plan entry in an older matrix and has no separate Dolt row. If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
+> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM open_agent_sessions.requirements` — totals: 35 done, 2 lib-only (R-06 Codex, R-07 Claude), 1 deferred (R-20), 0 planned. No R-30 Documentation requirement exists in the Dolt matrix. If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
 ---
 
@@ -205,23 +207,23 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 |-----------|--------|---------|
 | SDK (R-34–R-39) | ✅ 6/6 done | All SDK surface, types, adapters, workspace, fork API |
 | CLI (R-08–R-15) | ✅ 8/8 done | All CLI commands including TUI wiring |
-| Adapters (R-04, R-05, R-06, R-21, R-22, R-31) | ✅ 6/6 done | opencode (SQLite + JSONL), acpx, codex, Claude (all full); Zed adapter is lib-only (R-07) |
+| Adapters (R-04, R-05, R-06, R-07, R-21, R-22, R-31) | ✅ 5/7 done, 2 lib-only | opencode (SQLite + JSONL), acpx, codex, Claude (all full); R-06 (Codex listSessions-only) and R-07 (Claude listSessions-only) are lib-only |
 | Cross-Agent (R-19, R-32, R-33) | ✅ 3/4 done, 1 deferred | R-20 deferred (upstream blocker) |
 | Export (R-16, R-17) | ✅ 2/2 done | CSF, Markdown/text |
 | Import (R-18) | ✅ 1/1 done | OpenCode write-path import |
 | Performance (R-23, R-24, R-40) | ✅ 3/3 done | Pagination, list cache, detail cache |
-| Quality (R-28, R-29, R-30, R-42) | ✅ 4/4 done | TDD coverage, CI/CD pipeline, documentation, DRY fix |
+| Quality (R-28, R-29, R-42) | ✅ 3/3 done | TDD coverage, CI/CD pipeline, DRY fix (no R-30 Documentation requirement in Dolt matrix) |
 | Search (R-41) | ✅ 1/1 done | Fuzzy tool/MCP/skills usage search |
 | DRY Invariant | ✅ VERIFIED (2026-04-13 06:23 UTC) | normalize.ts single source; no duplicate normalizeTimestamp; no direct new Adapter() calls; factory pattern enforced; barrel exports synchronized |
 | Core (R-01, R-02, R-03) | ✅ 3/3 done | Adapter interface, registry, unified SessionSummary |
 
-**Overall: 37/39 done, 1 lib-only (R-07 Zed), 1 deferred (R-20). Goal is complete.**
+**Overall: 35/38 done, 2 lib-only (R-06 Codex, R-07 Claude), 1 deferred (R-20). Goal is complete.**
 
 ---
 
 ## Files Produced by This Goal
 
-- `.beads/dolt/open_agent_sessions/requirements` — Dolt requirements table (initialized 2026-04-11 02:15 UTC; 39 rows; database was previously empty)
+- `.beads/dolt/open_agent_sessions/requirements` — Dolt requirements table (initialized 2026-04-11 02:15 UTC; 38 rows at commit mt9j5oclqd9cltj5lfu5qlujril460g3; database was previously empty)
 - `src/sdk/index.ts` — SDK entry point (done — R-34)
 - `src/adapters/index.ts` — Adapter barrel (done — R-35)
 - `src/types/index.ts` — Type-only export (done — R-36)
