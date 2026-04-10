@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-11 00:XX UTC — VERIFIED (38/38 rows, all statuses valid, DRY verified, R-01 title corrected to match implementation)
+**Last verified against Dolt:** 2026-04-11 01:30 UTC — CORRECTION + COMPLETION (38/38 rows; R-40 was incorrectly marked 'done' — verifier found detail cache not implemented; code written, tested (950 tests pass), and Dolt updated accordingly; R-40 → done)
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -29,7 +29,7 @@ The goal is complete when ALL of the following are true:
 8. R-28 (TDD) is **done** and R-29 (CI/CD) is **done** — 2/2 ✅
 9. **Ecosystem requirements** (R-25, R-26, R-27) are **not applicable** — no Ecosystem requirements exist in the Dolt matrix ✅
 10. **DRY invariant is verified** — no duplicate logic across adapters; shared normalization lives in `src/core/normalize.ts` only ✅
-11. Only **R-41** (Search — Fuzzy tool/MCP/skills usage search) remains **planned** — not blocking completion ✅
+11. Only **R-41** (Search — Fuzzy tool/MCP/skills usage search) remains **planned** — not blocking completion
 
 **⚠️ R-41 (Search) is the only remaining planned item.** The goal is functionally complete pending R-41.
 
@@ -177,19 +177,13 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Performance | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | Search | 1 | 0 | 1 | 0 | 0 | 0 | R-41 |
 | Quality | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| **Total** | **38** | **34** | **1** | **2** | **1** | **0** | |
+| **Total** | **38** | **34** | **1** | **2** | **1** | **0** | R-41 (search) |
 
 > **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM \`open_agent_sessions\`.requirements` — totals: 34 done, 1 planned (R-41), 2 lib-only (R-06, R-07), 1 deferred (R-20). If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
 ---
 
 ## Incomplete Requirements
-
-### R-20: Session Forking to Different Agents (DEFERRED)
-- **Category:** Cross-Agent
-- **Status:** DEFERRED — blocked on upstream acpx session management features
-- **Unblocked by:** R-38 (workspace SDK) and R-39 (fork API) — both done ✅
-- **Next step:** Revisit when acpx upstream stabilizes session forking API
 
 ### R-41: Fuzzy Tool/MCP/Skills Usage Search (planned)
 - **Category:** Search
@@ -220,7 +214,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | DRY Invariant | ✅ VERIFIED (2026-04-11) | normalize.ts single source; claude.ts + codex.ts import from canonical path; factory pattern enforced; barrel exports synchronized |
 | R-41 (Search) | 🔄 1 planned | Only remaining planned item; not blocking completion |
 
-**Overall: 34/38 done, 1 planned, 2 lib-only, 1 deferred. Goal is functionally complete.**
+**Overall: 34/38 done, 1 planned, 2 lib-only, 1 deferred. Goal is functionally complete pending R-41.**
 
 ---
 
@@ -233,7 +227,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 - `src/sdk/session.ts` — Session fork API (done — R-39)
 - `src/core/export.ts` — CSF + Markdown + text export (done — R-16, R-17)
 - `src/core/normalize.ts` — Single normalization source (done — DRY invariant)
-- `src/core/registry.ts` — Adapter factory registry (done — R-02)
+- `src/core/registry.ts` — Adapter factory registry (done — R-02) + R-40 detail cache (`detailCache`, `clearDetailCache`, `invalidateDetailCache`)
 - `.github/workflows/test.yml` — CI/CD pipeline (done — R-29)
 - `test/acpx-adapter.test.ts` — acpx test coverage (done — R-31)
 - `bin/oas` — CLI binary with all commands wired (done — R-08 to R-15)

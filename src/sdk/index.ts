@@ -10,7 +10,13 @@
 //   - Adapters: createOpenCodeAdapter, createCodexAdapter, createClaudeAdapter
 //   - Normalization: normalizeSessionSummary
 
-export { createAdapterRegistry, createRegistry, createAdapter } from "../core/registry";
+export {
+  createAdapterRegistry,
+  createRegistry,
+  createAdapter,
+  clearDetailCache,
+  invalidateDetailCache,
+} from "../core/registry";
 
 // Workspace session factory
 export {

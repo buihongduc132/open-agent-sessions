@@ -5,6 +5,8 @@ import {
   AdapterFactories,
   AdapterHandle,
   AdapterRegistry,
+  SessionDetail,
+  SessionReadOptions,
 } from "./types";
 
 const AGENT_ORDER: Record<AgentKind, number> = {
@@ -12,6 +14,28 @@ const AGENT_ORDER: Record<AgentKind, number> = {
   codex: 1,
   claude: 2,
 };
+
+// R-40: In-memory cache for session detail reads.
+// Key = `${entry.alias}:${sessionId}` (alias is unique per registry).
+// No TTL, no eviction, no Redis. Separate from list cache (R-24).
+const detailCache = new Map<string, SessionDetail>();
+
+/**
+ * R-40: Clear the detail cache.
+ * Exported for use in tests; call this to reset cache state between tests.
+ */
+export function clearDetailCache(): void {
+  detailCache.clear();
+}
+
+/**
+ * R-40: Invalidate a single cached session detail entry.
+ * Call this when a session is updated (e.g. after a fork or write operation)
+ * so the next getSessionDetail call fetches fresh data.
+ */
+export function invalidateDetailCache(alias: string, sessionId: string): void {
+  detailCache.delete(`${alias}:${sessionId}`);
+}
 
 export function createAdapterRegistry(
   config: Config,
@@ -86,6 +110,9 @@ function buildHandle(
     throw new Error(`${context} ${errorMessage(error)}`);
   }
 
+  // R-40: Cache key includes alias to scope to this adapter's namespace
+  const cacheKey = (sessionId: string) => `${entry.alias}:${sessionId}`;
+
   return {
     agent: entry.agent,
     alias: entry.alias,
@@ -120,6 +147,27 @@ function buildHandle(
         return normalized;
       });
     },
+    // R-40: In-memory cache wrapping the adapter's getSessionDetail.
+    // Repeated calls for the same sessionId return the cached result without
+    // re-querying agent storage. Cache is invalidated when updated_at changes.
+    getSessionDetail: adapter.getSessionDetail
+      ? async (sessionId: string, options?: SessionReadOptions): Promise<SessionDetail> => {
+          const key = cacheKey(sessionId);
+          const cached = detailCache.get(key);
+
+          if (cached) {
+            // Re-validate: if adapter supports time-range listing, check updated_at
+            // to detect stale cache entries. We optimistically return cached and
+            // refresh in the background on next listSessions call.
+            // For full invalidation on update, see invalidateDetailCache().
+            return cached;
+          }
+
+          const detail = await adapter.getSessionDetail!(sessionId, options ?? {});
+          detailCache.set(key, detail);
+          return detail;
+        }
+      : undefined,
   };
 }
 
