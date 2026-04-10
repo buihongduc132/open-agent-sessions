@@ -26,7 +26,7 @@ jobs:
           - "1.1"
           - "latest"
 
-        # Reduce matrix noise: skip older Bun patch on non-Ubuntu
+        # Reduce matrix noise: skip Bun 1.0 on non-Ubuntu
         exclude:
           - os: macos-latest
             bun-version: "1.0"
@@ -44,19 +44,11 @@ jobs:
 
       - name: Cache node_modules
         uses: actions/cache@v4
-        if: matrix.os != 'windows-latest'
         with:
           path: node_modules
-          key: ${{ runner.os }}-bun${{ matrix.bun-version }}-v1-${{ hashFiles('bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ matrix.bun-version }}-${{ hashFiles('bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-bun${{ matrix.bun-version }}-v1-
-
-      - name: Cache node_modules (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-bun${{ matrix.bun-version }}-v1-${{ hashFiles('bun.lock') }}
+            ${{ runner.os }}-bun-${{ matrix.bun-version }}-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -64,12 +56,7 @@ jobs:
       - name: TypeScript type check
         run: bun run typecheck
 
-      - name: Build (Linux / macOS)
-        if: matrix.os != 'windows-latest'
-        run: bun run build
-
-      - name: Build (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Build
         run: bun run build
 
       - name: Run tests
@@ -93,29 +80,20 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Check: No secrets committed
-        run: |
-          echo "=== Scanning for credentials / secrets ==="
-          ! grep -r -i -E '(password|secret|api[_-]?key|token|credential|private[_-]?key)\s*[:=]\s*["\x27][a-zA-Z0-9+/]{8,}["\x27]' \
-            --include="*.ts" --include="*.js" --include="*.json" \
-            --include="*.yaml" --include="*.yml" \
-            --include="!.git/" \
-            . || {
-              echo "SECRETS DETECTED — aborting"
-              exit 1
-            }
-          echo "No secrets detected ✓"
+        run: bash scripts/check-no-secrets.sh
 
       - name: Check: No console.log / debug statements in source
         run: |
           echo "=== Scanning for debug statements ==="
-          ! grep -rn "console\.\(log\|debug\|info\)" \
+          FOUND=$(grep -rn "console\.\(log\|debug\|info\)" \
             --include="*.ts" \
-            src/ \
-            bin/ \
-            | grep -v "// debug" | grep -v "/* debug" || {
-              echo "Debug statements found — clean up before merge"
-              exit 1
-            }
+            src/ bin/ 2>/dev/null || true)
+          # Filter out allowed patterns (commented debug, etc.)
+          if [ -n "$FOUND" ]; then
+            echo "Debug statements found — clean up before merge"
+            echo "$FOUND"
+            exit 1
+          fi
           echo "No debug statements found ✓"
 
       - name: Check: package.json scripts are valid
@@ -126,7 +104,7 @@ jobs:
           bun run typecheck --help > /dev/null 2>&1 || true
           echo "Scripts are executable ✓"
 
-      - name: Check: bin/oas is executable
+      - name: Check: bin/oas shebang
         run: |
           echo "=== Checking bin/oas shebang ==="
           head -1 bin/oas | grep -q 'env bun' && echo "Shebang is correct ✓" || {
