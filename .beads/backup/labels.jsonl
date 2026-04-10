@@ -1,8 +1,5 @@
 {"issue_id":"oas-14y","label":"process:test"}
 {"issue_id":"oas-14y","label":"quality:verification"}
-{"issue_id":"oas-16s","label":"component:time-parser"}
-{"issue_id":"oas-16s","label":"process:test"}
-{"issue_id":"oas-16s","label":"quality:unit-tests"}
 {"issue_id":"oas-23k","label":"component:cli"}
 {"issue_id":"oas-23k","label":"group:commands"}
 {"issue_id":"oas-23k","label":"process:implement"}
@@ -11,9 +8,6 @@
 {"issue_id":"oas-3e4","label":"component:cli"}
 {"issue_id":"oas-3e4","label":"group:formatters"}
 {"issue_id":"oas-3e4","label":"process:implement"}
-{"issue_id":"oas-5uh","label":"component:adapter"}
-{"issue_id":"oas-5uh","label":"process:test"}
-{"issue_id":"oas-5uh","label":"quality:unit-tests"}
 {"issue_id":"oas-7dk","label":"component:adapter"}
 {"issue_id":"oas-7dk","label":"group:infrastructure"}
 {"issue_id":"oas-7dk","label":"process:implement"}
@@ -23,8 +17,6 @@
 {"issue_id":"oas-ap2","label":"component:cli"}
 {"issue_id":"oas-ap2","label":"group:commands"}
 {"issue_id":"oas-ap2","label":"process:implement"}
-{"issue_id":"oas-cgq","label":"component:cli"}
-{"issue_id":"oas-cgq","label":"process:implement"}
 {"issue_id":"oas-cos","label":"component:adapter"}
 {"issue_id":"oas-cos","label":"group:infrastructure"}
 {"issue_id":"oas-cos","label":"process:implement"}
@@ -32,16 +24,10 @@
 {"issue_id":"oas-d4a","label":"feature:session-reading"}
 {"issue_id":"oas-d4a","label":"knowledge:architecture"}
 {"issue_id":"oas-d4a","label":"process:plan"}
-{"issue_id":"oas-dns","label":"component:cli"}
-{"issue_id":"oas-dns","label":"process:test"}
-{"issue_id":"oas-dns","label":"quality:unit-tests"}
 {"issue_id":"oas-e7b","label":"process:verify"}
 {"issue_id":"oas-e7b","label":"quality:verification"}
 {"issue_id":"oas-hwo","label":"process:test"}
 {"issue_id":"oas-hwo","label":"quality:integration-tests"}
-{"issue_id":"oas-lfu","label":"component:formatters"}
-{"issue_id":"oas-lfu","label":"process:test"}
-{"issue_id":"oas-lfu","label":"quality:unit-tests"}
 {"issue_id":"oas-lok","label":"component:adapter"}
 {"issue_id":"oas-lok","label":"group:infrastructure"}
 {"issue_id":"oas-lok","label":"process:implement"}

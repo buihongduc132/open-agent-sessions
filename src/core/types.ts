@@ -30,6 +30,8 @@ export interface SessionDetail extends SessionSummary {
   clone?: SessionCloneMetadata;
   messages?: SessionMessage[];
   warning?: string;
+  /** Set when this session was forked from another session (R-39 / R-18). */
+  parentSessionId?: string;
 }
 
 export interface SessionMessage {
@@ -88,6 +90,16 @@ export interface Adapter {
   listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
   searchSessions?(query: SearchQuery): SessionSummary[];
   getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail>;
+  /**
+   * Fork a session from this adapter to a destination agent/alias.
+   * Called on the destination adapter to create a new session linked to the source.
+   * DEFERRED (R-18): Write to native agent storage not yet implemented.
+   * @param sourceSessionId The session ID of the source session to fork from.
+   * @param destAgent The destination agent type (e.g. "opencode").
+   * @param destAlias The destination agent alias.
+   * @returns ForkResult with newSessionId, parentSessionId, destAgent, destAlias, forkedAt.
+   */
+  forkSession?(sourceSessionId: string, destAgent: string, destAlias: string): Promise<ForkResult>;
 }
 
 export type AdapterFactory = (entry: AgentEntry) => Adapter;
@@ -103,8 +115,40 @@ export interface AdapterHandle {
   alias: string;
   version: string;
   listSessions(): Promise<SessionSummary[]>;
+  /** Optional — only present when the adapter supports session detail retrieval. */
+  getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
+  /** Optional — only present when the adapter supports session forking (R-39). */
+  forkSession?(sourceSessionId: string, destAgent: string, destAlias: string): Promise<ForkResult>;
 }
 
 export interface AdapterRegistry {
   adapters: AdapterHandle[];
+}
+
+/**
+ * Reference to a specific session, identified by agent + alias + sessionId.
+ * Used by forkSession (R-39) and workspace SDK (R-38).
+ */
+export interface SessionRef {
+  /** Agent kind: "opencode" | "codex" | "claude" */
+  agent: AgentKind;
+  /** Alias for the agent entry in config, e.g. "main" or "/home/user/repos/backend:api" */
+  alias: string;
+  /** The UUID of the session */
+  sessionId: string;
+}
+
+/**
+ * Result returned by forkSession.
+ * DEFERRED (R-18): Write to native agent storage not yet implemented.
+ *   The fork is prepared in CSF (R-16) format but not yet persisted to agent-native storage.
+ */
+export interface ForkResult {
+  newSessionId: string;
+  /** The session ID of the source session this was forked from */
+  parentSessionId: string;
+  destAgent: string;
+  destAlias: string;
+  /** ISO-8601 timestamp of when the fork was created */
+  forkedAt: string;
 }

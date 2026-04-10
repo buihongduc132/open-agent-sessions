@@ -29,6 +29,24 @@ export function createAdapterRegistry(
   return { adapters };
 }
 
+// Alias for createAdapterRegistry
+export function createRegistry(
+  config: Config,
+  factories: Partial<AdapterFactories>
+): AdapterRegistry {
+  return createAdapterRegistry(config, factories);
+}
+
+// Build a single named adapter from an AgentEntry
+export function createAdapter(
+  entry: AgentEntry,
+  factories: Partial<AdapterFactories>
+): Adapter | null {
+  const factory = factories[entry.agent];
+  if (!factory) return null;
+  return factory(entry);
+}
+
 function ensureUniqueAliases(entries: AgentEntry[]): void {
   const seen = new Map<string, number>();
   entries.forEach((entry, index) => {

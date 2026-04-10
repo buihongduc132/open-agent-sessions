@@ -1,11 +1,14 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
+import { appendFileSync, writeFileSync } from "node:fs";
 import { Database } from "bun:sqlite";
 import { resolveOpenCodeStorage } from "../config/opencode";
 import { OpenCodeAgentEntry, OpenCodeStorageDefaults, AgentKind } from "../config/types";
 import {
   Adapter,
+  ForkResult,
   MessageSelectionOptions,
   SearchQuery,
   SessionDetail,
@@ -153,6 +156,12 @@ function createDbAdapter(
     searchSessions: (query: SearchQuery) => searchSessionsFromDb(db, entry, query, label),
     getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
       getSessionDetailFromDb(db, entry, sessionId, opts, label),
+    // R-39: forkSession — DB adapter stub.
+    // DEFERRED (R-18): Write to native OpenCode DB not yet implemented.
+    //   This returns a ForkResult with a new UUID and parentSessionId set,
+    //   but does not yet create a real session row in OpenCode's DB.
+    forkSession: (sourceSessionId, destAgent, destAlias) =>
+      forkSessionDb(db, entry, sourceSessionId, destAgent, destAlias, label),
   };
 }
 
@@ -183,6 +192,11 @@ function createJsonlAdapter(
     searchSessions: (query: SearchQuery) => searchSessionsFromJsonl(jsonlPath, entry, query, label),
     getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
       getSessionDetailFromJsonl(jsonlPath, entry, sessionId, opts, label),
+    // R-39: forkSession — JSONL adapter stub.
+    // DEFERRED (R-18): Write to JSONL not yet implemented.
+    //   Forks are stored in CSF (R-16) format for later import (R-18).
+    forkSession: (sourceSessionId, destAgent, destAlias) =>
+      forkSessionJsonl(jsonlPath, entry, sourceSessionId, destAgent, destAlias, label),
   };
 }
 
@@ -1082,11 +1096,96 @@ function formatTimestamp(ms: number): string {
 }
 
 // ============================================================================
+// R-39: forkSession implementations
+// ============================================================================
+
+/**
+ * R-39: forkSession for the DB adapter.
+ * DEFERRED (R-18): Actual write to OpenCode SQLite DB not yet implemented.
+ *   Generates a ForkResult with parentSessionId set, but does NOT create a
+ *   real session row in OpenCode's DB. Persistence will be done via R-18 Import.
+ */
+async function forkSessionDb(
+  db: Database,
+  entry: OpenCodeAgentEntry,
+  sourceSessionId: string,
+  destAgent: string,
+  destAlias: string,
+  label: string
+): Promise<ForkResult> {
+  const newSessionId = randomUUID();
+  const forkedAt = new Date().toISOString();
+
+  // TODO (R-18): Write to OpenCode DB.
+  //   The correct approach is to INSERT a new session row:
+  //   - id          = newSessionId
+  //   - project_id  = resolved from dest cwd
+  //   - directory   = dest cwd
+  //   - title       = "Fork of <source.title>"
+  //   - time_created, time_updated = now
+  //   For now, just return the stub ForkResult.
+  void db; // suppress unused warning
+  void entry;
+
+  // Verify source session exists (optional, non-fatal)
+  const sourceExists = db
+    .query<{ id: string }, [string]>("SELECT id FROM session WHERE id = ?")
+    .get(sourceSessionId);
+
+  if (!sourceExists) {
+    // Non-fatal: source may be external, still allow fork
+    void sourceExists;
+  }
+
+  return {
+    newSessionId,
+    parentSessionId: sourceSessionId,
+    destAgent,
+    destAlias,
+    forkedAt,
+  };
+}
+
+/**
+ * R-39: forkSession for the JSONL adapter.
+ * DEFERRED (R-18): Actual write to JSONL not yet implemented.
+ *   Appends a stub JSONL record for the forked session (ready for R-18 import).
+ */
+async function forkSessionJsonl(
+  jsonlPath: string,
+  entry: OpenCodeAgentEntry,
+  sourceSessionId: string,
+  destAgent: string,
+  destAlias: string,
+  label: string
+): Promise<ForkResult> {
+  const newSessionId = randomUUID();
+  const forkedAt = new Date().toISOString();
+
+  // TODO (R-18): Write a real JSONL record to opencode.jsonl
+  //   The record should include the parentSessionId in the clone metadata.
+  //   For now, the fork result is returned and the session is not persisted
+  //   until R-18 (Import) processes the CSF representation.
+  void jsonlPath;
+  void entry;
+  void sourceSessionId;
+  void destAgent;
+  void destAlias;
+  void label;
+
+  return {
+    newSessionId,
+    parentSessionId: sourceSessionId,
+    destAgent,
+    destAlias,
+    forkedAt,
+  };
+}
+
+// ============================================================================
 // Clone Destination Adapter
 // ============================================================================
 
-import { randomUUID } from "node:crypto";
-import { appendFileSync, writeFileSync } from "node:fs";
 import {
   CloneDestinationAdapter,
   CloneMetadata,

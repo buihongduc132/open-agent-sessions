@@ -5,7 +5,13 @@
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./sdk": "./src/sdk/index.ts",
+    "./adapters": "./src/adapters/index.ts",
+    "./adapters/opencode": "./src/adapters/opencode.ts",
+    "./adapters/codex": "./src/adapters/codex.ts",
+    "./adapters/claude": "./src/adapters/claude.ts",
+    "./types": "./src/types/index.ts"
   },
   "bin": {
     "oas": "./bin/oas"
