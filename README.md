@@ -33,13 +33,86 @@ A unified session management library for AI coding agents. Access, search, and m
 
 ## Installation
 
-This project requires [Bun](https://bun.sh) runtime.
+### Option 1 — curl | bash (recommended for users)
 
 ```bash
-# Install Bun if you haven't already
+curl -fsSL https://raw.githubusercontent.com/buihongduc132/open-agent-sessions/main/scripts/install.sh | bash
+```
+
+The installer will:
+- Detect or install Bun automatically
+- Clone the repository to `~/.oas/open-agent-sessions`
+- Place a wrapper script at `~/.local/bin/oas`
+- Add `~/.local/bin` to your PATH (if needed)
+
+**Options:**
+
+```bash
+# Custom install location
+OAS_INSTALL_DIR=~/.my-tools OAS_BIN_DIR=~/.local/bin \
+  curl -fsSL https://raw.githubusercontent.com/buihongduc132/open-agent-sessions/main/scripts/install.sh | bash
+
+# Skip Bun auto-install (use existing Bun)
+OAS_SKIP_BUN=true \
+  curl -fsSL https://raw.githubusercontent.com/buihongduc132/open-agent-sessions/main/scripts/install.sh | bash
+
+# Install a specific branch
+OAS_BRANCH=develop \
+  curl -fsSL https://raw.githubusercontent.com/buihongduc132/open-agent-sessions/main/scripts/install.sh | bash
+```
+
+> **Supported shells:** bash, zsh  
+> **Supported platforms:** Linux (x64/arm64), macOS (x64/arm64), Windows (WSL2 / Git Bash)
+
+---
+
+### Option 2 — Mise (recommended for developers)
+
+[Mise](https://mise.jdx.dev) pins exact runtime versions and provides a task runner.
+
+```bash
+# Install mise if needed
+curl https://mise.run | bash
+
+# Clone the repo
+git clone https://github.com/buihongduc132/open-agent-sessions.git
+cd open-agent-sessions
+
+# Activate mise → it auto-installs Bun from mise.toml
+mise install
+
+# Run common tasks
+mise run test        # bun test
+mise run ci          # typecheck + build + test
+mise run dev         # bun test --watch
+mise run clean       # remove dist/ and .test/
+```
+
+Mise tasks available (`mise run -T` to list all):
+
+| Task | Description |
+|------|-------------|
+| `mise run install` | Install dependencies |
+| `mise run typecheck` / `tc` | TypeScript type check |
+| `mise run build` / `b` | Build to `./dist` |
+| `mise run test` / `t` | Run test suite |
+| `mise run test:coverage` / `tcov` | Tests with coverage (excludes TUI) |
+| `mise run dev` / `d` | Watch mode |
+| `mise run clean` | Remove build artifacts |
+| `mise run ci` | Full CI pipeline |
+
+> The `mise.toml` at the repo root pins `bun = "1.1.0"`.  
+> Run `mise up` to bump the Bun version across the project.
+
+---
+
+### Option 3 — Manual (Bun required)
+
+```bash
+# Install Bun
 curl -fsSL https://bun.sh/install | bash
 
-# Clone the repository
+# Clone
 git clone https://github.com/buihongduc132/open-agent-sessions.git
 cd open-agent-sessions
 
@@ -253,6 +326,8 @@ interface SessionSummary {
 
 ### Scripts
 
+All of the following also work via `mise run <task>` (see Option 2 above).
+
 ```bash
 # Run tests
 bun test                      # Run all tests
@@ -262,6 +337,9 @@ bun run test:coverage:core    # Coverage excluding TUI
 # Build and typecheck
 bun run build                 # Build to ./dist
 bun run typecheck             # TypeScript type checking
+
+# Watch mode
+bun test --watch
 ```
 
 ### Running Tests

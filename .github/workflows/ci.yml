@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Matrix: Build + Typecheck + Test ───────────────────────────────────────
+  build-and-test:
+    name: ${{ matrix.os }} / Bun ${{ matrix.bun-version }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        bun-version:
+          - "1.0"
+          - "1.1"
+          - "latest"
+
+        # Reduce matrix noise: skip older Bun patch on non-Ubuntu
+        exclude:
+          - os: macos-latest
+            bun-version: "1.0"
+          - os: windows-latest
+            bun-version: "1.0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ matrix.bun-version }}
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        if: matrix.os != 'windows-latest'
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-bun${{ matrix.bun-version }}-v1-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun${{ matrix.bun-version }}-v1-
+
+      - name: Cache node_modules (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-bun${{ matrix.bun-version }}-v1-${{ hashFiles('bun.lock') }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: TypeScript type check
+        run: bun run typecheck
+
+      - name: Build (Linux / macOS)
+        if: matrix.os != 'windows-latest'
+        run: bun run build
+
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        run: bun run build
+
+      - name: Run tests
+        run: bun test
+
+  # ─── Quality Gates ───────────────────────────────────────────────────────────
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check: No secrets committed
+        run: |
+          echo "=== Scanning for credentials / secrets ==="
+          ! grep -r -i -E '(password|secret|api[_-]?key|token|credential|private[_-]?key)\s*[:=]\s*["\x27][a-zA-Z0-9+/]{8,}["\x27]' \
+            --include="*.ts" --include="*.js" --include="*.json" \
+            --include="*.yaml" --include="*.yml" \
+            --include="!.git/" \
+            . || {
+              echo "SECRETS DETECTED — aborting"
+              exit 1
+            }
+          echo "No secrets detected ✓"
+
+      - name: Check: No console.log / debug statements in source
+        run: |
+          echo "=== Scanning for debug statements ==="
+          ! grep -rn "console\.\(log\|debug\|info\)" \
+            --include="*.ts" \
+            src/ \
+            bin/ \
+            | grep -v "// debug" | grep -v "/* debug" || {
+              echo "Debug statements found — clean up before merge"
+              exit 1
+            }
+          echo "No debug statements found ✓"
+
+      - name: Check: package.json scripts are valid
+        run: |
+          echo "=== Validating npm scripts ==="
+          bun run test --help > /dev/null
+          bun run build --help > /dev/null
+          bun run typecheck --help > /dev/null 2>&1 || true
+          echo "Scripts are executable ✓"
+
+      - name: Check: bin/oas is executable
+        run: |
+          echo "=== Checking bin/oas shebang ==="
+          head -1 bin/oas | grep -q 'env bun' && echo "Shebang is correct ✓" || {
+            echo "bin/oas must start with #!/usr/bin/env bun"
+            exit 1
+          }
+
+  # ─── Install Script Smoke-Test (Linux only) ─────────────────────────────────
+  install-smoke-test:
+    name: Install Smoke Test (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Run install script
+        env:
+          OAS_INSTALL_DIR: /tmp/oas-smoke-test
+          OAS_BIN_DIR: /tmp/oas-smoke-test/bin
+          OAS_REPO_URL: ${{ github.workspace }}
+        run: bash scripts/install.sh
+
+      - name: Verify oas --help works without OAS_ROOT
+        run: |
+          output=$(/tmp/oas-smoke-test/bin/oas --help 2>&1) || true
+          echo "$output" | grep -q "Open Agent Sessions" && echo "CLI works ✓" || {
+            echo "CLI --help failed"
+            exit 1
+          }
+
+      - name: Verify idempotent install
+        env:
+          OAS_INSTALL_DIR: /tmp/oas-smoke-test
+          OAS_BIN_DIR: /tmp/oas-smoke-test/bin
+          OAS_REPO_URL: ${{ github.workspace }}
+        run: bash scripts/install.sh && echo "Idempotent install ✓"
