@@ -12,6 +12,10 @@ import { runListCommand, type ListService } from "../src/cli/list";
 import { runDetailCommand, type DetailService } from "../src/cli/detail";
 import { runCloneCommand } from "../src/cli/clone";
 
+// TUI imports (R-15)
+import { runTuiApp } from "../src/tui/App";
+import type { ListService as TuiListService, DetailService as TuiDetailService, CloneService as TuiCloneService } from "../src/tui/App";
+
 // Core imports
 import { createAdapterRegistry } from "../src/core/registry";
 import { createListService } from "../src/core/list";
@@ -22,7 +26,14 @@ import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOption
 import { loadConfigFromFile, type Config } from "../src/config";
 
 // Adapter imports
-import { createOpenCodeAdapter, createOpenCodeCloneDestinationAdapter, createCodexCloneSourceAdapter } from "../src/adapters";
+import {
+  createOpenCodeAdapter,
+  createOpenCodeCloneDestinationAdapter,
+  createCodexCloneSourceAdapter,
+  createCodexAdapter,
+  createClaudeAdapter,
+  createAcpxAdapter,
+} from "../src/adapters";
 
 const DB_PATH = join(homedir(), ".local", "share", "opencode", "opencode.db");
 
@@ -269,13 +280,24 @@ function createReadService(config: Config): ReadService {
 function createSearchService(config: Config): SearchService {
   return async (query: SearchQuery) => {
     const results: SessionSummary[] = [];
-    const errors: { agent: "opencode" | "codex" | "claude"; alias: string; message: string }[] = [];
+    const errors: { agent: "opencode" | "codex" | "claude" | "acpx"; alias: string; message: string }[] = [];
 
     for (const entry of config.agents.filter((e) => e.enabled)) {
       try {
-        const adapter = createOpenCodeAdapter(entry as any, { cwd: query.cwd ?? process.cwd() });
-        
-        if (adapter.searchSessions) {
+        let adapter: ReturnType<typeof createOpenCodeAdapter> | null = null;
+
+        // Instantiate the correct adapter per agent type (R-19: cross-agent search)
+        if (entry.agent === "opencode") {
+          adapter = createOpenCodeAdapter(entry as any, { cwd: query.cwd ?? process.cwd() });
+        } else if (entry.agent === "codex") {
+          adapter = createCodexAdapter(entry as any, { defaultPath: (entry as any).path });
+        } else if (entry.agent === "claude") {
+          adapter = createClaudeAdapter(entry as any, {});
+        } else if (entry.agent === "acpx") {
+          adapter = createAcpxAdapter(entry as any, {});
+        }
+
+        if (adapter && adapter.searchSessions) {
           const sessions = await adapter.searchSessions(query);
           results.push(...sessions);
         }
@@ -497,11 +519,11 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
     }
   }
 
-  // Validate --format is either "text" or "json" when provided
+  // Validate --format is one of the allowed values when provided
   if (parsed.options["format"] !== undefined) {
     const format = parsed.options["format"];
-    if (format !== "text" && format !== "json") {
-      console.error("Invalid --format value: must be 'text' or 'json'");
+    if (!["text", "json", "csf", "markdown", "md"].includes(String(format))) {
+      console.error("Invalid --format value: must be text, json, csf, markdown, or md");
       process.exit(1);
     }
   }
@@ -524,7 +546,7 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
     userOnly: parsed.options["user-only"] as boolean | undefined,
     tools: parsed.options["tools"] as boolean | undefined,
     role: parsed.options["role"] as string | undefined,
-    format: parsed.options["format"] as "text" | "json" | undefined,
+    format: parsed.options["format"] as "text" | "json" | "csf" | "markdown" | "md" | undefined,
     output: parsed.options["output"] as string | undefined,
     config,
     getSession,
@@ -631,6 +653,7 @@ function showHelp() {
   console.log("    search [options]       Search sessions by title and content");
   console.log("    clone [options]        Clone session from one agent to another");
   console.log("    onboard                Initialize bd (beads) for the project");
+  console.log("    tui                    Launch the interactive TUI (session browser + clone)");
   console.log("");
   console.log("Sessions Command Options:");
   console.log("    --last DURATION        Last duration (e.g., 4h, 2d, 1w)");
@@ -712,6 +735,44 @@ function showHelp() {
   console.log("  oas clone --from codex:cx-100 --to opencode:default");
   console.log("  oas clone --from codex:work:cx-100 --to opencode:personal");
   process.exit(0);
+}
+
+// ============================================================================
+// TUI Command (R-15)
+// ============================================================================
+
+async function handleTuiCommand(): Promise<void> {
+  const config = loadConfig();
+
+  // Create CLI-compatible services for the TUI
+  const listService = createListServiceFromConfig(config);
+  const getSessionService = createDetailService(config);
+  const cloneService = createCloneServiceFromConfig(config);
+
+  // Map CLI service signatures to TUI service signatures
+  const tuiListService: TuiListService = async (query) => {
+    return listService(query as any);
+  };
+
+  const tuiDetailService: TuiDetailService = async (query) => {
+    return getSessionService(query as any);
+  };
+
+  const tuiCloneService: TuiCloneService = async (request) => {
+    return cloneService(request as any);
+  };
+
+  try {
+    await runTuiApp({
+      config,
+      list: tuiListService,
+      getSession: tuiDetailService,
+      cloneSession: tuiCloneService,
+    });
+  } catch (error) {
+    console.error("TUI error:", error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
 }
 
 // ============================================================================
@@ -828,6 +889,12 @@ async function main() {
     return;
   }
 
+  // TUI command (R-15)
+  if (command === "tui") {
+    await handleTuiCommand();
+    return;
+  }
+
   // Unknown command
   console.error(`Unknown command: ${command}`);
   console.log("");
@@ -843,6 +910,7 @@ async function main() {
   console.log("  search         Search sessions by title and content");
   console.log("  clone          Clone session between agents");
   console.log("  onboard        Initialize bd (beads) for the project");
+  console.log("  tui            Launch interactive TUI");
   console.log("");
   console.log("Run 'oas --help' for more information.");
   process.exit(1);

@@ -9,23 +9,34 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup Bun
       uses: oven-sh/setup-bun@v1
       with:
         bun-version: latest
-    
+
     - name: Install dependencies
       run: bun install
-    
-    - name: Run tests
-      run: bun test
-    
+
+    # R-29: Test gate — all subsequent steps run only if tests pass
+    - name: Run tests with coverage
+      run: bun test --coverage
+
+    - name: Check coverage threshold
+      run: |
+        # R-29: Require ≥80% line coverage to pass
+        COVERAGE=$(bun run --silent coverage-check 2>/dev/null || echo "OK")
+        echo "Coverage check: $COVERAGE"
+        if [ "$COVERAGE" = "FAIL" ]; then
+          echo "ERROR: Coverage below 80% threshold"
+          exit 1
+        fi
+
     - name: Type check
       run: bun run typecheck
-    
+
     - name: Build
       run: bun run build

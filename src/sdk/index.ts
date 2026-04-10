@@ -55,6 +55,7 @@ export type {
   SessionSummary,
   SessionRef,
   SearchQuery,
+  ToolSearchQuery,
   TimeRangeOptions,
 } from "../core/types";
 
@@ -72,6 +73,7 @@ export {
   createCodexAdapter,
   createCodexCloneSourceAdapter,
   createClaudeAdapter,
+  createAcpxAdapter,
 } from "../adapters";
 
 // Normalization

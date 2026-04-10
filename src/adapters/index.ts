@@ -4,9 +4,9 @@
 export { createOpenCodeAdapter, createOpenCodeCloneDestinationAdapter } from "./opencode";
 export { createCodexAdapter, createCodexCloneSourceAdapter } from "./codex";
 export { createClaudeAdapter } from "./claude";
+export { createAcpxAdapter } from "./acpx"; // R-31
 
 // Re-export types for convenience so consumers can import from a single place
 export type {
-  SessionSummary,
-  SessionDetail,
-} from "../core/types";
+  AcpxAdapterOptions,
+} from "./acpx";

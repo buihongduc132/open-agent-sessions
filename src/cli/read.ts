@@ -5,6 +5,7 @@ import {
   MessageSelectionOptions,
   SessionReadOptions,
 } from "../core/types";
+import { toCsf, toMarkdown, toText } from "../core/export";
 import { CliResult } from "./types";
 import {
   formatSessionDetail,
@@ -31,13 +32,19 @@ Options:
   --user-only     Show only user messages (exclude assistant/tool messages)
   --tools         Include tool messages (default: hide)
   --role R        Filter by role (user, assistant, system)
-  --format F      Output format: text (default) or json
+  --format F      Output format: text (default), json, csf, markdown, md
   --output FILE   Write output to file (recommended for large outputs)
 
 Session ID formats:
   - session_id              Uses first enabled agent/alias from config
   - alias:session_id        Uses first agent with matching alias
   - agent:alias:session_id  Full format (explicit)
+
+Output formats:
+  text      Plain text (default)
+  json      Structured JSON
+  csf       Canonical Session Format (JSON) — cross-agent transfer
+  markdown  Human-readable Markdown (alias: md)
 
 Either --session or all of --agent, --alias, --id must be specified.
 Only one of --first, --last, --all, --range, --user-only may be specified.`;
@@ -63,7 +70,7 @@ export type ReadOptions = {
   userOnly?: boolean;
   tools?: boolean;
   role?: string;
-  format?: "text" | "json";
+  format?: "text" | "json" | "csf" | "markdown" | "md";
   output?: string;
   config?: Config;
   configPath?: string;
@@ -76,10 +83,11 @@ export type ReadOptions = {
 // ============================================================================
 
 export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
-  // Validate --format is either "text" or "json" when provided
+  // Validate --format is either "text", "json", "csf", "markdown", or "md" when provided
   if (options.format !== undefined) {
-    if (options.format !== "text" && options.format !== "json") {
-      return errorResult(`Invalid --format value: must be 'text' or 'json'.`);
+    const validFormats = ["text", "json", "csf", "markdown", "md"];
+    if (!validFormats.includes(options.format)) {
+      return errorResult(`Invalid --format value: must be one of: ${validFormats.join(", ")}.`);
     }
   }
 
@@ -136,13 +144,23 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
     return errorResult(withLabel(target, `Session not found: ${target.id}`));
   }
 
-  // Format output
+  // Format output (R-16: CSF, R-17: markdown/text)
   const formatterOptions: TextFormatterOptions = {
     showTools: options.tools,
   };
-  const stdout = options.format === "json"
-    ? formatSessionDetailJson(detail, formatterOptions)
-    : formatSessionDetail(detail, target, formatterOptions) + "\n";
+  let stdout: string;
+  if (options.format === "json") {
+    stdout = formatSessionDetailJson(detail, formatterOptions);
+  } else if (options.format === "csf") {
+    stdout = JSON.stringify(toCsf(detail), null, 2) + "\n";
+  } else if (options.format === "markdown" || options.format === "md") {
+    stdout = toMarkdown(detail) + "\n";
+  } else if (options.format === "text") {
+    stdout = toText(detail) + "\n";
+  } else {
+    // Default: text formatter (original behavior)
+    stdout = formatSessionDetail(detail, target, formatterOptions) + "\n";
+  }
   
   // Write to file if --output specified
   if (options.output) {

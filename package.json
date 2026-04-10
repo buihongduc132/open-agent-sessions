@@ -11,6 +11,7 @@
     "./adapters/opencode": "./src/adapters/opencode.ts",
     "./adapters/codex": "./src/adapters/codex.ts",
     "./adapters/claude": "./src/adapters/claude.ts",
+    "./adapters/acpx": "./src/adapters/acpx.ts",
     "./types": "./src/types/index.ts"
   },
   "bin": {

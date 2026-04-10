@@ -98,6 +98,7 @@ describe("CLI: help output verification", () => {
     expect(result.stdout).toContain("read");
     expect(result.stdout).toContain("search");
     expect(result.stdout).toContain("onboard");
+    expect(result.stdout).toContain("tui");
   });
 
   test("-h shows same help as --help", async () => {

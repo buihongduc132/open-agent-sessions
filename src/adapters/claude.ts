@@ -2,7 +2,14 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import { OtherAgentEntry } from "../config/types";
-import { Adapter, SessionSummary } from "../core/types";
+import {
+  Adapter,
+  SearchQuery,
+  SessionDetail,
+  SessionMessage,
+  SessionReadOptions,
+  SessionSummary,
+} from "../core/types";
 
 type ClaudeAdapterOptions = {
   defaultPath?: string;
@@ -40,6 +47,65 @@ export function createClaudeAdapter(
         }
         throw new Error(`${label} ${message}`);
       }
+    },
+    // R-22: searchSessions — full Claude adapter
+    searchSessions: (query: SearchQuery): SessionSummary[] => {
+      const label = `[${entry.agent}:${entry.alias}]`;
+      try {
+        const rootPath = resolveClaudePath(entry, options);
+        const files = collectJsonlFiles(rootPath);
+        const needle = query.text.toLowerCase();
+        const results: SessionSummary[] = [];
+
+        for (const filePath of files) {
+          try {
+            const session = parseClaudeSession(filePath, entry);
+            // Match title (session ID) or file content
+            const titleMatch = session.title.toLowerCase().includes(needle);
+            const contentMatch = contentContains(filePath, needle);
+            if (titleMatch || contentMatch) {
+              results.push(session);
+            }
+          } catch {
+            // Skip files that fail to parse
+          }
+        }
+
+        results.sort(
+          (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)
+        );
+        return results;
+      } catch (error) {
+        const message = errorMessage(error);
+        if (message.includes(label)) {
+          throw new Error(message);
+        }
+        throw new Error(`${label} ${message}`);
+      }
+    },
+    // R-22: getSessionDetail — full Claude adapter
+    getSessionDetail: async (
+      sessionId: string,
+      _options: SessionReadOptions
+    ): Promise<SessionDetail> => {
+      const label = `[${entry.agent}:${entry.alias}]`;
+      const rootPath = resolveClaudePath(entry, options);
+      const files = collectJsonlFiles(rootPath);
+
+      for (const filePath of files) {
+        const sessionIdFromFile = basename(filePath, ".jsonl");
+        if (sessionIdFromFile === sessionId) {
+          const messages = parseClaudeMessages(filePath, label);
+          // parseClaudeSession already computed the summary
+          const summary = parseClaudeSession(filePath, entry);
+          return {
+            ...summary,
+            messages,
+          };
+        }
+      }
+
+      throw new Error(`${label} session not found: ${sessionId}`);
     },
   };
 }
@@ -255,6 +321,98 @@ function errorMessage(error: unknown): string {
     return error;
   }
   return "Unknown error";
+}
+
+/**
+ * Search file content for a case-insensitive text match.
+ */
+function contentContains(filePath: string, needle: string): boolean {
+  try {
+    return readFileSync(filePath, "utf8").toLowerCase().includes(needle);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Parse all messages from a Claude JSONL transcript file.
+ */
+function parseClaudeMessages(filePath: string, label: string): SessionMessage[] {
+  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const messages: SessionMessage[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i].trim();
+    if (raw.length === 0) continue;
+
+    let record: ClaudeRecord;
+    try {
+      record = JSON.parse(raw) as ClaudeRecord;
+    } catch {
+      throw new Error(`Claude JSONL parse error in ${filePath} at line ${i + 1}`);
+    }
+
+    const recordType = record.type;
+    if (recordType !== "user" && recordType !== "assistant") continue;
+
+    const recordId = record.id;
+    const context =
+      typeof recordId === "string"
+        ? `${label} timestamp invalid in ${filePath}:${i + 1}`
+        : `${label} timestamp invalid (missing record id) in ${filePath}:${i + 1}`;
+    const created_at = normalizeTimestamp(record.timestamp, context);
+
+    const textParts = extractContentParts(record.content);
+    const parts: import("../core/types").SessionPart[] = textParts.map((text) => ({
+      type: "text",
+      text,
+    }));
+
+    messages.push({
+      id: typeof recordId === "string" ? recordId : `${filePath}:${i + 1}`,
+      role: recordType as "user" | "assistant",
+      created_at,
+      parts,
+    });
+  }
+
+  return messages;
+}
+
+/**
+ * Extract text parts from Claude message content.
+ */
+function extractContentParts(content: unknown): string[] {
+  const parts: string[] = [];
+
+  if (typeof content === "string") {
+    parts.push(content);
+    return parts;
+  }
+
+  if (Array.isArray(content)) {
+    for (const item of content) {
+      if (typeof item === "string") {
+        parts.push(item);
+      } else if (item && typeof item === "object") {
+        const record = item as Record<string, unknown>;
+        const text =
+          (typeof record.input_text === "string" ? record.input_text : null) ??
+          (typeof record.text === "string" ? record.text : null) ??
+          (typeof record.output_text === "string" ? record.output_text : null);
+        if (text) parts.push(text);
+      }
+    }
+  } else if (content && typeof content === "object") {
+    const record = content as Record<string, unknown>;
+    const text =
+      (typeof record.input_text === "string" ? record.input_text : null) ??
+      (typeof record.text === "string" ? record.text : null) ??
+      (typeof record.output_text === "string" ? record.output_text : null);
+    if (text) parts.push(text);
+  }
+
+  return parts;
 }
 
 const ISO_TIMESTAMP_PATTERN =

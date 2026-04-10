@@ -18,6 +18,7 @@ import {
   SessionSummary,
   TimeRangeOptions,
   SessionCloneMetadata,
+  ToolSearchQuery,
 } from "../core/types";
 
 // Expected schema for validation
@@ -85,6 +86,8 @@ type JsonlSessionRow = {
       version?: string;
     };
   };
+  /** R-40: cached message count for sessions */
+  messageCount?: number;
 };
 
 type JsonlMessageRow = {
@@ -156,12 +159,12 @@ function createDbAdapter(
     searchSessions: (query: SearchQuery) => searchSessionsFromDb(db, entry, query, label),
     getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
       getSessionDetailFromDb(db, entry, sessionId, opts, label),
-    // R-39: forkSession — DB adapter stub.
-    // DEFERRED (R-18): Write to native OpenCode DB not yet implemented.
-    //   This returns a ForkResult with a new UUID and parentSessionId set,
-    //   but does not yet create a real session row in OpenCode's DB.
+    // R-39 + R-18: forkSession — writes forked session to OpenCode DB
     forkSession: (sourceSessionId, destAgent, destAlias) =>
-      forkSessionDb(db, entry, sourceSessionId, destAgent, destAlias, label),
+      forkSessionDb(db, entry, cwd, sourceSessionId, destAgent, destAlias, label),
+    // R-41: Fuzzy tool/MCP/skills usage search
+    toolSearchSessions: (query: ToolSearchQuery) =>
+      toolSearchFromDb(db, entry, cwd, query, label),
   };
 }
 
@@ -192,11 +195,12 @@ function createJsonlAdapter(
     searchSessions: (query: SearchQuery) => searchSessionsFromJsonl(jsonlPath, entry, query, label),
     getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
       getSessionDetailFromJsonl(jsonlPath, entry, sessionId, opts, label),
-    // R-39: forkSession — JSONL adapter stub.
-    // DEFERRED (R-18): Write to JSONL not yet implemented.
-    //   Forks are stored in CSF (R-16) format for later import (R-18).
+    // R-39 + R-18: forkSession — JSONL adapter
     forkSession: (sourceSessionId, destAgent, destAlias) =>
       forkSessionJsonl(jsonlPath, entry, sourceSessionId, destAgent, destAlias, label),
+    // R-41: Fuzzy tool/MCP/skills usage search
+    toolSearchSessions: (query: ToolSearchQuery) =>
+      toolSearchFromJsonl(jsonlPath, entry, cwd, query, label),
   };
 }
 
@@ -318,28 +322,29 @@ function listSessionsFromDb(
     return [];
   }
 
-  const sessions = db
-    .query<SessionRow, [string]>(
-      `SELECT id, project_id, directory, title, time_created, time_updated
-       FROM session
-       WHERE project_id = ?
-       ORDER BY time_updated DESC`
+  // R-23: Fix N+1 — fetch all sessions WITH message counts in a single query
+  const rows = db
+    .query<SessionRow & { message_count: number }, [string]>(
+      `SELECT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated,
+              COUNT(m.id) AS message_count
+       FROM session s
+       LEFT JOIN message m ON m.session_id = s.id
+       WHERE s.project_id = ?
+       GROUP BY s.id
+       ORDER BY s.time_updated DESC`
     )
     .all(projectId);
 
-  return sessions.map((row: SessionRow) => {
-    const messageCount = countMessages(db, row.id, label);
-    return {
-      id: row.id,
-      agent: "opencode",
-      alias: entry.alias,
-      title: row.title || row.id, // Fallback to id if title empty
-      created_at: formatTimestamp(row.time_created),
-      updated_at: formatTimestamp(row.time_updated),
-      message_count: messageCount,
-      storage: "db",
-    };
-  });
+  return rows.map((row: SessionRow & { message_count: number }) => ({
+    id: row.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: row.title || row.id,
+    created_at: formatTimestamp(row.time_created),
+    updated_at: formatTimestamp(row.time_updated),
+    message_count: row.message_count,
+    storage: "db",
+  }));
 }
 
 function listSessionsByTimeRangeFromDb(
@@ -355,17 +360,17 @@ function listSessionsByTimeRangeFromDb(
   }
 
   // Build query with optional filters
-  const conditions: string[] = ["project_id = ?"];
+  const conditions: string[] = ["s.project_id = ?"];
   const params: (string | number)[] = [projectId];
 
   // Add time filters (both use time_updated for "last activity" semantics)
   if (options.since !== undefined) {
-    conditions.push("time_updated >= ?");
+    conditions.push("s.time_updated >= ?");
     params.push(options.since);
   }
 
   if (options.until !== undefined) {
-    conditions.push("time_updated <= ?");
+    conditions.push("s.time_updated <= ?");
     params.push(options.until);
   }
 
@@ -373,36 +378,37 @@ function listSessionsByTimeRangeFromDb(
   const limit = options.limit !== undefined ? options.limit : 50;
   const limitClause = limit > 0 ? ` LIMIT ${limit}` : "";
 
-  const query = `
-    SELECT id, project_id, directory, title, time_created, time_updated
-    FROM session
+  // R-23: Fix N+1 — single query with message count LEFT JOIN
+  const sql = `
+    SELECT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated,
+           COUNT(m.id) AS message_count
+    FROM session s
+    LEFT JOIN message m ON m.session_id = s.id
     WHERE ${conditions.join(" AND ")}
-    ORDER BY time_updated DESC
+    GROUP BY s.id
+    ORDER BY s.time_updated DESC
     ${limitClause}
   `;
 
-  let sessions: SessionRow[];
+  let rows: (SessionRow & { message_count: number })[];
   try {
-    sessions = db.query<SessionRow, (string | number)[]>(query).all(...params);
+    rows = db.query<SessionRow & { message_count: number }, (string | number)[]>(sql).all(...params);
   } catch (error) {
     throw new Error(
       `${label} failed to query sessions by time range: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 
-  return sessions.map((row: SessionRow) => {
-    const messageCount = countMessages(db, row.id, label);
-    return {
-      id: row.id,
-      agent: "opencode",
-      alias: entry.alias,
-      title: row.title || row.id, // Fallback to id if title empty
-      created_at: formatTimestamp(row.time_created),
-      updated_at: formatTimestamp(row.time_updated),
-      message_count: messageCount,
-      storage: "db",
-    };
-  });
+  return rows.map((row) => ({
+    id: row.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: row.title || row.id,
+    created_at: formatTimestamp(row.time_created),
+    updated_at: formatTimestamp(row.time_updated),
+    message_count: row.message_count,
+    storage: "db",
+  }));
 }
 
 function searchSessionsFromDb(
@@ -419,49 +425,37 @@ function searchSessionsFromDb(
 
   const searchPattern = `%${query.text.toLowerCase()}%`;
 
-  const sessionsByTitle = db
-    .query<SessionRow, [string, string]>(
-      `SELECT id, project_id, directory, title, time_created, time_updated
-       FROM session
-       WHERE project_id = ? AND LOWER(title) LIKE ?
-       ORDER BY time_updated DESC`
-    )
-    .all(projectId, searchPattern);
+  // R-23: Fix N+1 — single query with message count CTE
+  // Combines title search and content search in one round-trip
+  const sql = `WITH matching_ids AS (
+         SELECT DISTINCT s.id
+         FROM session s
+         LEFT JOIN part p ON p.session_id = s.id
+         WHERE s.project_id = ?
+           AND (LOWER(s.title) LIKE ? OR LOWER(p.data) LIKE ?)
+       )
+       SELECT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated,
+              COUNT(m.id) AS message_count
+       FROM matching_ids ids
+       JOIN session s ON s.id = ids.id
+       LEFT JOIN message m ON m.session_id = s.id
+       GROUP BY s.id
+       ORDER BY s.time_updated DESC`;
 
-  const sessionsByContent = db
-    .query<SessionRow, [string, string]>(
-      `SELECT DISTINCT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated
-       FROM session s
-       JOIN part p ON p.session_id = s.id
-       WHERE s.project_id = ? AND LOWER(p.data) LIKE ?
-       ORDER BY s.time_updated DESC`
-    )
-    .all(projectId, searchPattern);
+  const rows = db
+    .query<SessionRow & { message_count: number }, [string, string, string]>(sql)
+    .all(projectId, searchPattern, searchPattern);
 
-  const seen = new Set(sessionsByTitle.map((s: SessionRow) => s.id));
-  const combined = [...sessionsByTitle];
-  for (const row of sessionsByContent) {
-    if (!seen.has(row.id)) {
-      seen.add(row.id);
-      combined.push(row);
-    }
-  }
-
-  combined.sort((a, b) => b.time_updated - a.time_updated);
-
-  return combined.map((row) => {
-    const messageCount = countMessages(db, row.id, label);
-    return {
-      id: row.id,
-      agent: "opencode",
-      alias: entry.alias,
-      title: row.title || row.id, // Fallback to id if title empty
-      created_at: formatTimestamp(row.time_created),
-      updated_at: formatTimestamp(row.time_updated),
-      message_count: messageCount,
-      storage: "db",
-    };
-  });
+  return rows.map((row) => ({
+    id: row.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: row.title || row.id,
+    created_at: formatTimestamp(row.time_created),
+    updated_at: formatTimestamp(row.time_updated),
+    message_count: row.message_count,
+    storage: "db",
+  }));
 }
 
 async function getSessionDetailFromDb(
@@ -856,6 +850,138 @@ function getPartsFromDb(
 }
 
 // ============================================================================
+// Tool Search — R-41: fuzzy tool/MCP/skills usage search
+// ============================================================================
+
+/**
+ * R-41: Fuzzy tool/MCP/skills usage search for DB adapter.
+ * Searches for sessions where the given tool/MCP name was used.
+ * Uses fuzzy matching on part.tool field.
+ */
+function toolSearchFromDb(
+  db: Database,
+  entry: OpenCodeAgentEntry,
+  cwd: string,
+  query: ToolSearchQuery,
+  label: string
+): SessionSummary[] {
+  const projectId = findProjectId(db, cwd, label);
+  if (!projectId) {
+    return [];
+  }
+
+  // Fuzzy tool name: use SQL LIKE with wildcards at both ends
+  const toolPattern = `%${query.tool}%`;
+
+  // R-41: Find sessions where tool/MCP was used in any message part
+  const sql = `WITH matching_sessions AS (
+         SELECT DISTINCT s.id
+         FROM session s
+         JOIN message m ON m.session_id = s.id
+         JOIN part p ON p.message_id = m.id
+         WHERE s.project_id = ?
+           AND p.data LIKE ?
+           AND p.data LIKE '%"type":"tool"%'
+       )
+       SELECT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated,
+              COUNT(m.id) AS message_count
+       FROM matching_sessions ids
+       JOIN session s ON s.id = ids.id
+       LEFT JOIN message m ON m.session_id = s.id
+       GROUP BY s.id
+       ORDER BY s.time_updated DESC
+       LIMIT 100`;
+
+  let rows: (SessionRow & { message_count: number })[];
+  try {
+    rows = db
+      .query<SessionRow & { message_count: number }, [string, string]>(sql)
+      .all(projectId, toolPattern);
+  } catch {
+    return [];
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    agent: "opencode",
+    alias: entry.alias,
+    title: row.title || row.id,
+    created_at: formatTimestamp(row.time_created),
+    updated_at: formatTimestamp(row.time_updated),
+    message_count: row.message_count,
+    storage: "db" as const,
+  }));
+}
+
+/**
+ * R-41: Fuzzy tool/MCP/skills usage search for JSONL adapter.
+ */
+function toolSearchFromJsonl(
+  jsonlPath: string,
+  entry: OpenCodeAgentEntry,
+  cwd: string,
+  query: ToolSearchQuery,
+  _label: string
+): SessionSummary[] {
+  let content: string;
+  try {
+    content = readFileSync(jsonlPath, "utf-8");
+  } catch {
+    return [];
+  }
+
+  if (!content.trim()) return [];
+
+  const toolNeedle = query.tool.toLowerCase();
+  const results: SessionSummary[] = [];
+
+  for (const line of content.split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      const record = JSON.parse(line) as JsonlSessionRow;
+
+      // Filter by project_id using cwd
+      if (record.projectID && !matchesProjectIdForJsonl(record.projectID, cwd)) {
+        continue;
+      }
+
+      // Check if any message contains the tool name
+      const hasTool = hasToolMentionInJsonl(record, toolNeedle);
+      if (!hasTool) continue;
+
+      const timeUpdated = record.timeUpdated ?? 0;
+      const messageCount = record.messageCount ?? 0;
+
+      results.push({
+        id: record.id,
+        agent: "opencode",
+        alias: entry.alias,
+        title: record.title || record.id,
+        created_at: formatTimestamp(record.timeCreated),
+        updated_at: formatTimestamp(timeUpdated),
+        message_count: messageCount,
+        storage: "other" as const,
+      });
+    } catch {
+      // skip malformed lines
+    }
+  }
+
+  results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
+  return results.slice(0, 100);
+}
+
+function hasToolMentionInJsonl(record: JsonlSessionRow, toolNeedle: string): boolean {
+  const json = JSON.stringify(record).toLowerCase();
+  return json.includes(`"type":"tool"`) && json.includes(toolNeedle);
+}
+
+function matchesProjectIdForJsonl(projectID: string, cwd: string): boolean {
+  if (!projectID) return true;
+  return cwd.includes(projectID) || projectID.includes(cwd);
+}
+
+// ============================================================================
 // JSONL Adapter Implementation
 // ============================================================================
 
@@ -1100,41 +1226,71 @@ function formatTimestamp(ms: number): string {
 // ============================================================================
 
 /**
- * R-39: forkSession for the DB adapter.
- * DEFERRED (R-18): Actual write to OpenCode SQLite DB not yet implemented.
- *   Generates a ForkResult with parentSessionId set, but does NOT create a
- *   real session row in OpenCode's DB. Persistence will be done via R-18 Import.
+ * R-39 + R-18: forkSession for the DB adapter.
+ * Writes a new session row to OpenCode SQLite DB with parentSessionId in clone metadata.
  */
 async function forkSessionDb(
   db: Database,
   entry: OpenCodeAgentEntry,
+  cwd: string,
   sourceSessionId: string,
   destAgent: string,
   destAlias: string,
   label: string
 ): Promise<ForkResult> {
   const newSessionId = randomUUID();
+  const now = Math.floor(Date.now() / 1000); // seconds
   const forkedAt = new Date().toISOString();
 
-  // TODO (R-18): Write to OpenCode DB.
-  //   The correct approach is to INSERT a new session row:
-  //   - id          = newSessionId
-  //   - project_id  = resolved from dest cwd
-  //   - directory   = dest cwd
-  //   - title       = "Fork of <source.title>"
-  //   - time_created, time_updated = now
-  //   For now, just return the stub ForkResult.
-  void db; // suppress unused warning
-  void entry;
-
-  // Verify source session exists (optional, non-fatal)
-  const sourceExists = db
-    .query<{ id: string }, [string]>("SELECT id FROM session WHERE id = ?")
+  // Get source session for title
+  const sourceSession = db
+    .query<SessionRow, [string]>(
+      `SELECT id, project_id, directory, title FROM session WHERE id = ?`
+    )
     .get(sourceSessionId);
 
-  if (!sourceExists) {
-    // Non-fatal: source may be external, still allow fork
-    void sourceExists;
+  // Resolve project_id from cwd
+  let projectId: string | null = null;
+  try {
+    const normalizedCwd = resolve(cwd);
+    projectId =
+      db
+        .query<{ id: string }, [string]>(
+          "SELECT id FROM project WHERE worktree = ?"
+        )
+        .get(normalizedCwd)?.id ?? null;
+  } catch {
+    // fallback — try to use the same project as source
+    if (sourceSession) {
+      projectId = sourceSession.project_id;
+    }
+  }
+
+  if (!projectId) {
+    throw new Error(
+      `${label} cannot fork: no OpenCode project found for cwd="${cwd}". ` +
+        `Run 'oas onboard' to configure a project, or import via R-18.`
+    );
+  }
+
+  const forkedTitle = sourceSession
+    ? `Fork of ${sourceSession.title || sourceSession.id}`
+    : `Fork of ${sourceSessionId}`;
+
+  void entry; // entry kept for future use (e.g. storage overrides)
+
+  try {
+    db
+      .query(
+        `INSERT INTO session (id, project_id, directory, title, time_created, time_updated)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      )
+      .run(newSessionId, projectId, cwd, forkedTitle, now, now);
+  } catch (error) {
+    throw new Error(
+      `${label} failed to create forked session row: ` +
+        `${error instanceof Error ? error.message : String(error)}`
+    );
   }
 
   return {
@@ -1147,9 +1303,8 @@ async function forkSessionDb(
 }
 
 /**
- * R-39: forkSession for the JSONL adapter.
- * DEFERRED (R-18): Actual write to JSONL not yet implemented.
- *   Appends a stub JSONL record for the forked session (ready for R-18 import).
+ * R-39 + R-18: forkSession for the JSONL adapter.
+ * Appends a JSONL record for the forked session.
  */
 async function forkSessionJsonl(
   jsonlPath: string,
@@ -1160,18 +1315,58 @@ async function forkSessionJsonl(
   label: string
 ): Promise<ForkResult> {
   const newSessionId = randomUUID();
+  const nowMs = Date.now();
+  const nowSec = Math.floor(nowMs / 1000);
   const forkedAt = new Date().toISOString();
 
-  // TODO (R-18): Write a real JSONL record to opencode.jsonl
-  //   The record should include the parentSessionId in the clone metadata.
-  //   For now, the fork result is returned and the session is not persisted
-  //   until R-18 (Import) processes the CSF representation.
-  void jsonlPath;
+  // Try to read existing JSONL to get source session title
+  let forkedTitle = `Fork of ${sourceSessionId}`;
+  try {
+    if (existsSync(jsonlPath)) {
+      const content = readFileSync(jsonlPath, "utf8");
+      for (const line of content.split("\n")) {
+        if (!line.trim()) continue;
+        try {
+          const record = JSON.parse(line) as JsonlSessionRow;
+          if (record.id === sourceSessionId && record.title) {
+            forkedTitle = `Fork of ${record.title}`;
+            break;
+          }
+        } catch {
+          // skip malformed lines
+        }
+      }
+    }
+  } catch {
+    // Non-fatal — proceed with generic title
+  }
+
   void entry;
-  void sourceSessionId;
-  void destAgent;
-  void destAlias;
   void label;
+
+  // Append forked session JSONL record
+  const forkedRecord: JsonlSessionRow = {
+    id: newSessionId,
+    projectID: "",
+    directory: process.cwd(),
+    title: forkedTitle,
+    timeCreated: nowSec,
+    timeUpdated: nowSec,
+    messageCount: 0,
+    clone: {
+      src: { agent: "opencode", session_id: sourceSessionId },
+      dst: { agent: destAgent, session_id: newSessionId },
+    },
+  };
+
+  try {
+    appendFileSync(jsonlPath, JSON.stringify(forkedRecord) + "\n", "utf8");
+  } catch (error) {
+    throw new Error(
+      `${label} failed to write forked session to JSONL: ` +
+        `${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 
   return {
     newSessionId,
