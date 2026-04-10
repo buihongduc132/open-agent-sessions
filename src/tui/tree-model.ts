@@ -33,8 +33,8 @@ export interface TreeNode {
 }
 
 export interface TreeRenderOptions {
-  /** Keys that are collapsed (children hidden) */
-  collapsed: Set<string>;
+  /** Keys that are collapsed (children hidden). Defaults to empty set. */
+  collapsed?: Set<string>;
   /** Currently selected key (for highlighting) */
   selectedKey?: string;
   /** Max depth to render (0 = unlimited) */
@@ -204,7 +204,7 @@ function renderNode(
 ): void {
   const connector = isLast ? LAST : BRANCH;
   const childPrefix = prefix + (isLast ? INDENT_STR : PIPE);
-  const isCollapsed = options.collapsed.has(node.key);
+  const isCollapsed = (options.collapsed ?? new Set()).has(node.key);
   const isSelected = node.key === options.selectedKey;
   const childCount = node.children.length;
 

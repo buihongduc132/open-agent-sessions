@@ -357,13 +357,13 @@ function inferCategory(toolName: string): string | undefined {
   // Re-use the categorise from subagents.ts
   // (imported at top — using inline version for tree-model compatibility)
   const TOOL_CATEGORY: Record<string, string> = {
-    Bash: "Shell/CLI", bash: "Shell/CLI",
+    Bash: "Shell/CLI",
     Read: "FileSystem", Write: "FileSystem", Edit: "FileSystem",
-    Glob: "FileSystem", Grep: "FileSystem",
+    Glob: "FileSystem",
     git_add: "GitOperator", git_commit: "GitOperator",
     git_push: "GitOperator", git_status: "GitOperator",
     WebFetch: "WebSearch", Browser: "WebSearch",
-    SearchCode: "CodeSearch", Grep: "CodeSearch",
+    SearchCode: "CodeSearch",
   };
   return TOOL_CATEGORY[toolName];
 }
