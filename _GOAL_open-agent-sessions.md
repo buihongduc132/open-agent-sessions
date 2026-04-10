@@ -4,9 +4,9 @@
 **Created:** 2026-04-07
 **Status:** complete
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-13 06:23 UTC — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); Verification loop executed: all 39 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-22 ✓ (toolSearchSessions in opencode adapter, 11 test cases), R-41 ✓ (normalizeTimestamp in normalize.ts, re-exported in core/sdk barrels), R-40 ✓ (detailCache Map + clearDetailCache + invalidateDetailCache in registry.ts); DRY check query: 0 incomplete Core/SDK/Adapter rows
+**Last verified against Dolt:** 2026-05-09 — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); Verification loop executed: all 39 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-22 ✓ (toolSearchSessions in opencode adapter, 11 test cases), R-40 ✓ (detailCache Map + clearDetailCache + invalidateDetailCache in registry.ts), R-41 ✓ (Fuzzy Tool/MCP/Skills Search); DRY check query: 0 incomplete Core/SDK/Adapter rows
 
-**Last re-verified:** 2026-05-09 (session start — 38/38 complete, 0 incomplete; R-22 listSessions+searchSessions+getSessionDetail ✓, R-40 detailCache ✓, R-41 11 test cases ✓, DRY 9/9 checks PASSED)
+**Last re-verified:** 2026-05-09 — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 deferred (R-20)); DRY invariant: 0 incomplete Core/SDK/Adapter rows; spot-checked R-22, R-40, R-41 ✓; Dolt commit: rh9cf36ig30vr5eilmkv71r9b5ntjmaa
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -104,7 +104,7 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-04-13 06:23 UTC):** ✅ PASSED — VERIFIED this session
+**DRY Verification (2026-05-09):** ✅ PASSED — VERIFIED this session
 - `normalize.ts` is the only normalization module — confirmed
 - `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed
 - `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed
