@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** complete
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-05-09 — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); DRY invariant confirmed; spot-checked R-30, R-41, R-42 ✓; Dolt branch: main, commit: mt9j5oclqd9cltj5lfu5qlujril460g3
+**Last verified against Dolt:** 2026-05-14 — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); DRY invariant confirmed ✓; code inspection verified: normalize.ts only source (R-42 ✓), factory pattern enforced (0 direct new Adapter() calls ✓), barrel exports synchronized ✓, SDK surface complete ✓, CLI 8/8 commands wired ✓, CI/CD pipeline (.github/workflows/test.yml ✓), test coverage per adapter (21 test files ✓); Dolt branch: main, commit: mt9j5oclqd9cltj5lfu5qlujril460g3
 
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
