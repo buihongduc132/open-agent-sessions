@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-10 20:45 UTC — UPDATED (38/38 rows, DRY violation found + fixed via R-42)
+**Last verified against Dolt:** 2026-04-11 00:XX UTC — VERIFIED (38/38 rows, all statuses valid, DRY verified, R-01 title corrected to match implementation)
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -102,12 +102,14 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-04-10 03:05 UTC):** ✅ PASSED — UPDATED (2026-04-10 post-session-fix)
+**DRY Verification (2026-04-11 00:XX UTC):** ✅ PASSED — VERIFIED
 - `normalize.ts` is the only normalization module — confirmed
-- All 5 adapters (opencode, codex, claude, acpx) import timestamp normalization from `normalize.ts` — **fixed** (R-42: `normalizeTimestamp` exported from `normalize.ts`; claude.ts and codex.ts now import from canonical path; duplicate local definitions removed)
-- No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations found — confirmed
+- `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed
+- `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed
+- No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations in adapter code — confirmed
 - `createAdapter()` from `registry.ts` is the sole factory — confirmed
-- Barrel exports synchronized across `src/sdk/index.ts`, `src/adapters/index.ts`, `package.json` — confirmed
+- Barrel exports synchronized across `src/sdk/index.ts`, `src/core/index.ts`, `src/adapters/index.ts`, `package.json` — confirmed
+- DRY check query: `SELECT id FROM \`open_agent_sessions\`.requirements WHERE category IN ('Adapter', 'SDK', 'Core') AND status NOT IN ('done', 'lib-only')` — 0 rows ✅
 
 **DRY Check Query:**
 
@@ -161,7 +163,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-10 20:XX UTC) — Derived from Dolt Matrix
+## Current State Snapshot (2026-04-11 00:XX UTC) — Derived from Dolt Matrix
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Closed | Incomplete items |
 |----------|-------|------|---------|----------|----------|--------|-----------------|
@@ -177,7 +179,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Quality | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | **Total** | **38** | **34** | **1** | **2** | **1** | **0** | |
 
-> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM requirements` — totals: 34 done, 1 planned (R-41), 2 lib-only (R-06, R-07), 1 deferred (R-20). If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
+> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM \`open_agent_sessions\`.requirements` — totals: 34 done, 1 planned (R-41), 2 lib-only (R-06, R-07), 1 deferred (R-20). If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
 ---
 
@@ -193,9 +195,9 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 - **Category:** Search
 - **Status:** planned
 - **Priority:** P2
-- **SDK wire:** `SearchQuery.kind` field added to `types.ts`; `searchSessions(registry, { text, kind })` extended
+- **SDK wire:** `ToolSearchQuery.tool` field in `types.ts`; `Adapter.toolSearchSessions?(query)` interface defined; implementation in opencode adapter pending
 - **Files affected:** `src/adapters/opencode.ts` (SQLite + JSONL paths)
-- **Next step:** Implement `tool_call`, `mcp`, `skill` kind filter with fuzzy matching (git → git_commit, git_add, git_status, etc.)
+- **Next step:** Implement `toolSearchSessions` in opencode adapter to query JSONL for tool_call parts matching tool name patterns (e.g. git → git_commit, git_add, git_status)
 
 ### R-42: DRY — Consolidate normalizeTimestamp (done)
 - **Category:** Quality
@@ -215,7 +217,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Export/Import (R-16–R-18) | ✅ 3/3 done | CSF, Markdown/text, OpenCode write-path import |
 | Performance (R-23, R-24, R-40) | ✅ 3/3 done | Pagination, list cache, detail cache |
 | Quality (R-28, R-29, R-42) | ✅ 3/3 done | TDD coverage, CI/CD pipeline, DRY fix |
-| DRY Invariant | ✅ VERIFIED (post-R-42 fix) | normalize.ts single source, factory pattern, barrel sync |
+| DRY Invariant | ✅ VERIFIED (2026-04-11) | normalize.ts single source; claude.ts + codex.ts import from canonical path; factory pattern enforced; barrel exports synchronized |
 | R-41 (Search) | 🔄 1 planned | Only remaining planned item; not blocking completion |
 
 **Overall: 34/38 done, 1 planned, 2 lib-only, 1 deferred. Goal is functionally complete.**
