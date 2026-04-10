@@ -2,6 +2,9 @@ export { loadConfigFromFile, parseConfigText } from "./load";
 export { resolveOpenCodeStorage } from "./opencode";
 export { validateConfig } from "./validate";
 
+import type { Config } from "./types";
+export type { Config };
+
 // Canonical config-path list — mirrors loadConfig() in bin/oas exactly so
 // the CLI config command can print the same paths the runner will search.
 export const configPaths: string[] = [
@@ -25,7 +28,6 @@ export const DEFAULT_CONFIG: Config = {
 export type {
   AgentEntry,
   AgentKind,
-  Config,
   OpenCodeAgentEntry,
   OpenCodeStorageConfig,
   OpenCodeStorageDefaults,
