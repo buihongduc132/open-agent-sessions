@@ -213,8 +213,8 @@ describe("CLI: command routing", () => {
 
   describe("recognized commands", () => {
     const recognizedCommands = [
-      "list", "recent", "find", "show", 
-      "sessions", "read", "search", "onboard"
+      "list", "recent", "find", "show",
+      "sessions", "read", "search", "onboard", "tui"
     ];
 
     for (const cmd of recognizedCommands) {

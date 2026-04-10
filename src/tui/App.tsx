@@ -24,6 +24,21 @@ import {
   type KeyInput as DetailKeyInput,
   type TuiDetailState,
 } from "./detail-model";
+import {
+  buildForest,
+  renderForest,
+  type TreeNode,
+  type TreeRenderLine,
+} from "./tree-model";
+import {
+  buildTimeline,
+  moveDown,
+  moveUp,
+  renderTimeline,
+  toggleTools,
+  toggleReasoning,
+  type TimelineState,
+} from "./timeline-model";
 
 export type ListService = (query?: SessionListQuery) => Promise<SessionListResult>;
 export type DetailService = (query: {
@@ -34,6 +49,8 @@ export type DetailService = (query: {
 export type CloneService = (request: CloneRequest) => Promise<CloneResult>;
 
 export type ExitReason = "quit" | "ctrl-c";
+
+export type TuiView = "list" | "detail" | "tree" | "timeline";
 
 export type TuiAppProps = {
   config: Config;
@@ -69,7 +86,11 @@ export function TuiAppView({
     createListState(config.agents)
   );
   const [detailState, setDetailState] = useState<TuiDetailState | null>(null);
-  const [view, setView] = useState<"list" | "detail">("list");
+  const [view, setView] = useState<TuiView>("list");
+  const [treeForests, setTreeForests] = useState<TreeNode[]>([]);
+  const [treeCollapsed, setTreeCollapsed] = useState<Set<string>>(new Set());
+  const [treeSelectionIndex, setTreeSelectionIndex] = useState(0);
+  const [timelineState, setTimelineState] = useState<TimelineState | null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
 
   const listViewportHeight = useMemo(() => {
@@ -85,6 +106,12 @@ export function TuiAppView({
     const footer = 1;
     return Math.max(1, effectiveHeight - header - footer);
   }, [effectiveHeight]);
+
+  // Build fork tree when switching to tree view
+  const treeViewportHeight = useMemo(
+    () => Math.max(1, effectiveHeight - 3),
+    [effectiveHeight]
+  );
 
   useEffect(() => {
     setListState((prev) => setListViewportHeight(prev, listViewportHeight));
@@ -113,6 +140,22 @@ export function TuiAppView({
       cancelled = true;
     };
   }, [list]);
+
+  // Build fork tree whenever we have sessions loaded
+  useEffect(() => {
+    if (view === "tree") {
+      const forests = buildForest(listState.filteredSessions);
+      setTreeForests(forests);
+      setTreeSelectionIndex(0);
+    }
+  }, [view, listState.filteredSessions]);
+
+  // Build timeline when switching to detail+timeline
+  useEffect(() => {
+    if (view === "timeline" && detailState) {
+        setTimelineState(buildTimeline(detailState.detail));
+    }
+  }, [view, detailState]);
 
   const handleExit = useCallback(
     (reason: ExitReason) => {
@@ -147,6 +190,8 @@ export function TuiAppView({
         }
         setDetailState(createDetailState(detail));
         setView("detail");
+        // Build timeline from the loaded detail
+        setTimelineState(buildTimeline(detail));
       } catch (error) {
         setListState((prev) => ({
           ...prev,
@@ -242,6 +287,105 @@ export function TuiAppView({
     [handleExit]
   );
 
+  // ── Tree key handler ─────────────────────────────────────────────────────────
+  const handleTreeKey = useCallback(
+    (key: { name: string; ctrl?: boolean }) => {
+      const allLines = renderForest(treeForests, {
+        collapsed: treeCollapsed,
+        selectedKey: undefined,
+      });
+
+      if (key.name === "j" || key.name === "down") {
+        setTreeSelectionIndex((i) => Math.min(i + 1, allLines.length - 1));
+        return;
+      }
+      if (key.name === "k" || key.name === "up") {
+        setTreeSelectionIndex((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (key.name === "g") {
+        setTreeSelectionIndex(0);
+        return;
+      }
+      if (key.name === "G") {
+        setTreeSelectionIndex(allLines.length - 1);
+        return;
+      }
+      if (key.name === "enter" || key.name === "right") {
+        // Open detail for the selected tree node
+        const selected = allLines[treeSelectionIndex];
+        if (selected) {
+          const [agent, alias] = selected.text.split(" ")[1]?.split(":") ?? [];
+          void openDetail({
+            id: selected.key.split(":").pop() ?? selected.key,
+            agent: (agent ?? "opencode") as SessionSummary["agent"],
+            alias: alias ?? "default",
+            title: "",
+          } as SessionSummary);
+        }
+        return;
+      }
+      if (key.name === "left") {
+        // Toggle collapse on the selected node
+        const selected = allLines[treeSelectionIndex];
+        if (selected && selected.hasChildren) {
+          setTreeCollapsed((prev) => {
+            const next = new Set(prev);
+            if (next.has(selected.key)) {
+              next.delete(selected.key);
+            } else {
+              next.add(selected.key);
+            }
+            return next;
+          });
+        }
+        return;
+      }
+      if (key.name === "t") {
+        setView("timeline");
+        return;
+      }
+      if (key.name === "escape" || key.name === "q") {
+        setView("list");
+        return;
+      }
+    },
+    [treeForests, treeCollapsed, treeSelectionIndex, openDetail]
+  );
+
+  // ── Timeline key handler ──────────────────────────────────────────────────────
+  const handleTimelineKey = useCallback(
+    (key: { name: string; ctrl?: boolean }) => {
+      if (!timelineState) return;
+
+      if (key.name === "j" || key.name === "down") {
+        setTimelineState((prev) => prev ? moveDown(prev, treeViewportHeight) : prev);
+        return;
+      }
+      if (key.name === "k" || key.name === "up") {
+        setTimelineState((prev) => prev ? moveUp(prev) : prev);
+        return;
+      }
+      if (key.name === "m") {
+        setTimelineState((prev) => prev ? toggleTools(prev) : prev);
+        return;
+      }
+      if (key.name === "r") {
+        setTimelineState((prev) => prev ? toggleReasoning(prev) : prev);
+        return;
+      }
+      if (key.name === "escape" || key.name === "t") {
+        setView("detail");
+        return;
+      }
+      if (key.name === "q") {
+        setView("list");
+        return;
+      }
+    },
+    [timelineState, treeViewportHeight]
+  );
+
   useKeyboard(
     useCallback(
       (key) => {
@@ -254,13 +398,21 @@ export function TuiAppView({
           }
           return;
         }
-        if (view === "detail" && detailState) {
+        if (view === "detail" || view === "timeline") {
+          if (view === "timeline") {
+            handleTimelineKey(key);
+            return;
+          }
           handleDetailKey(key);
+          return;
+        }
+        if (view === "tree") {
+          handleTreeKey(key);
           return;
         }
         handleListKey(key);
       },
-      [detailState, fatalError, handleDetailKey, handleExit, handleListKey, view]
+      [detailState, fatalError, handleDetailKey, handleExit, handleListKey, handleTreeKey, handleTimelineKey, view]
     )
   );
 
@@ -275,27 +427,52 @@ export function TuiAppView({
 
   return (
     <box style={{ flexDirection: "column", width: "100%", height: "100%" }}>
-      <Header title={view === "detail" ? "Session Detail" : "Sessions"} />
-      {view === "list" && listState.mode === "filter" ? (
-        <FilterInput value={listState.filterInput} />
-      ) : null}
-      {view === "list" && listState.mode === "clone" && listState.clonePrompt ? (
-        <ClonePrompt
-          destinations={listState.clonePrompt.destinations}
-          selectedIndex={listState.clonePrompt.selectedIndex}
+      <Header
+        title={
+          view === "tree"
+            ? "Fork Tree"
+            : view === "timeline"
+            ? "Timeline"
+            : view === "detail"
+            ? "Session Detail"
+            : "Sessions"
+        }
+        agents={config.agents}
+      />
+      {view === "tree" ? (
+        <TreeView
+          forests={treeForests}
+          collapsed={treeCollapsed}
+          selectionIndex={treeSelectionIndex}
+          height={treeViewportHeight}
         />
-      ) : null}
-      {view === "detail" && detailState ? (
+      ) : view === "timeline" && timelineState ? (
+        <TimelineView state={timelineState} height={detailViewportHeight} />
+      ) : view === "detail" && detailState ? (
         <DetailView state={detailState} height={detailViewportHeight} />
       ) : (
         <ListView state={listState} height={listViewportHeight} />
       )}
-      {view === "detail" && detailState ? (
-        <Footer text="Esc: back  ? : help  q/Ctrl+C: exit" />
+      {view === "tree" ? (
+        <Footer text="j/k: move  Enter/→: open  ←: collapse  t: timeline  Tab: list  q: quit" />
+      ) : view === "timeline" ? (
+        <Footer
+          text={
+            timelineState
+              ? `Models: ${timelineState.subAgentSummary.models.join(", ") || "—"} | ` +
+                `Tools: ${timelineState.subAgentSummary.toolCallCount} | ` +
+                `m: tools ${timelineState.filter.showTools ? "on" : "off"} ` +
+                `r: reasoning ${timelineState.filter.showReasoning ? "on" : "off"} | ` +
+                "t: detail  Tab: list  q: quit"
+              : ""
+          }
+        />
+      ) : view === "detail" && detailState ? (
+        <Footer text="Esc: back  t: tree  Tab: timeline  ? : help  q/Ctrl+C: exit" />
       ) : listState.mode === "clone" ? (
         <Footer text="j/k: select  Enter: confirm  Esc: cancel  Ctrl+C: exit" />
       ) : (
-        <Footer text={formatFooter(listState)} />
+        <Footer text={formatFooter(listState) + "  Tab→tree  t→timeline  q/Ctrl+C: exit"} />
       )}
       {view === "detail" && detailState ? (
         <HelpOverlay visible={detailState.mode === "help"} view="detail" />
@@ -332,10 +509,23 @@ export async function runTuiApp(options: {
   });
 }
 
-function Header({ title }: { title: string }): ReactNode {
+function Header({ title, agents }: { title: string; agents?: Config["agents"] }): ReactNode {
   return (
     <box style={{ height: 1, paddingLeft: 1, paddingRight: 1 }}>
       <text fg="#9fd3ff">{title}</text>
+      {agents && (
+        <>
+          {"  "}
+          {agents
+            .filter((a) => a.enabled)
+            .map((a, i) => (
+              <text key={a.alias} fg={agentColor(a.agent)}>
+                [{a.agent}:{a.alias}]
+                {i < agents.filter((x) => x.enabled).length - 1 ? " " : ""}
+              </text>
+            ))}
+        </>
+      )}
     </box>
   );
 }
@@ -344,6 +534,86 @@ function Footer({ text }: { text: string }): ReactNode {
   return (
     <box style={{ height: 1, paddingLeft: 1, paddingRight: 1 }}>
       <text fg="#aaaaaa">{text}</text>
+    </box>
+  );
+}
+
+function TreeView({
+  forests,
+  collapsed,
+  selectionIndex,
+  height,
+}: {
+  forests: TreeNode[];
+  collapsed: Set<string>;
+  selectionIndex: number;
+  height: number;
+}): ReactNode {
+  const allLines = renderForest(forests, { collapsed });
+  const visible = allLines.slice(selectionIndex, selectionIndex + height);
+
+  if (allLines.length === 0) {
+    return (
+      <box style={{ flexDirection: "column", flexGrow: 1, paddingLeft: 1 }}>
+        <text fg="#999999">No sessions to display. Run `oas list` first.</text>
+      </box>
+    );
+  }
+
+  return (
+    <box style={{ flexDirection: "column", flexGrow: 1, paddingLeft: 1 }}>
+      {visible.map((line, i) => {
+        const isSelected = allLines.indexOf(line) === selectionIndex;
+        return (
+          <text
+            key={`${line.key}-${i}`}
+            fg={isSelected ? "#ffffff" : "#cccccc"}
+          >
+            {isSelected ? "> " : "  "}
+            {line.text}
+          </text>
+        );
+      })}
+    </box>
+  );
+}
+
+function TimelineView({
+  state,
+  height,
+}: {
+  state: TimelineState;
+  height: number;
+}): ReactNode {
+  const lines = renderTimeline(state, height);
+  const sub = state.subAgentSummary;
+
+  return (
+    <box style={{ flexDirection: "column", flexGrow: 1, paddingLeft: 1 }}>
+      {/* Sub-agent summary header */}
+      <box style={{ paddingBottom: 0, flexDirection: "column" }}>
+        <text fg="#4aa3ff">Sub-agents</text>
+        <text fg="#999999">
+          Models:{" "}
+          {sub.models.length > 0 ? sub.models.join(", ") : "—"}
+          {"  |  "}
+          Tools: {sub.toolCallCount} calls across {sub.tools.length} types
+          {"  |  "}
+          Reasoning: {sub.reasoningUsed ? "yes" : "no"}
+        </text>
+        {sub.tools.length > 0 && (
+          <text fg="#888888">
+            Top tools:{" "}
+            {sub.tools.slice(0, 5).map((t) => `${t.name}(${t.callCount})`).join(", ")}
+          </text>
+        )}
+      </box>
+      <text fg="#555555">{"─".repeat(60)}</text>
+      {lines.map((line, i) => (
+        <text key={`${line.index}-${line.subIndex}-${i}`} fg="#cccccc">
+          {line.text}
+        </text>
+      ))}
     </box>
   );
 }
@@ -480,6 +750,15 @@ function FilterInput({ value }: { value: string }): ReactNode {
   );
 }
 
+const AGENT_COLORS: Record<string, string> = {
+  opencode: "#4dd9ff",
+  codex: "#ffcc00",
+  claude: "#cc99ff",
+  acpx: "#99ff99",
+};
+function agentColor(agent: string): string {
+  return AGENT_COLORS[agent] ?? "#cccccc";
+}
 function withLabel(session: SessionSummary, message: string): string {
   const label = `[${session.agent}:${session.alias}]`;
   if (message.includes(label)) {

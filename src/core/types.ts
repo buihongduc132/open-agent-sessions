@@ -54,6 +54,14 @@ export interface SearchQuery {
   text: string;
 }
 
+/** R-41: Query for fuzzy tool/MCP/skills usage search */
+export interface ToolSearchQuery {
+  /** Text to fuzzy-match against tool/MCP call names and arguments */
+  tool: string;
+  /** Optional cwd override for adapter-specific scope resolution */
+  cwd?: string;
+}
+
 export type SessionReadMode = "last_message" | "all_no_tools" | "all_with_tools";
 
 export type MessageSelectionMode = "first" | "last" | "all" | "range" | "user-only";
@@ -89,6 +97,8 @@ export interface Adapter {
   listSessions(): SessionSummary[];
   listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
   searchSessions?(query: SearchQuery): SessionSummary[];
+  /** R-41: Fuzzy tool/MCP/skills usage search */
+  toolSearchSessions?(query: ToolSearchQuery): SessionSummary[];
   getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail>;
   /**
    * Fork a session from this adapter to a destination agent/alias.

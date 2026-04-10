@@ -10,7 +10,7 @@ const AGENT_ORDER: Record<AgentKind, number> = {
 
 export type FilterValue<T extends string> = "all" | T;
 
-export type TuiMode = "list" | "help" | "filter" | "clone";
+export type TuiMode = "list" | "help" | "filter" | "clone" | "tree" | "timeline";
 
 export type TuiEffect =
   | { type: "exit"; reason: "quit" | "ctrl-c" }

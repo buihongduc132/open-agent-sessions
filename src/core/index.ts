@@ -1,7 +1,13 @@
-export { createAdapterRegistry } from "./registry";
+export { createAdapterRegistry, clearDetailCache, invalidateDetailCache } from "./registry";
 export { createListService, listSessions } from "./list";
 export { cloneSession, createCloneService } from "./clone";
-export { normalizeSessionSummary } from "./normalize";
+export { normalizeSessionSummary, normalizeTimestamp } from "./normalize";
+export { inferSubAgents, formatSubAgentSummary, formatStatusLine, buildForkChain } from "./subagents";
+export type {
+  SessionSubAgentSummary,
+  ToolUsage,
+  ForkChainNode,
+} from "./subagents";
 export type {
   Adapter,
   AdapterFactories,

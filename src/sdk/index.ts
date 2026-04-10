@@ -10,7 +10,13 @@
 //   - Adapters: createOpenCodeAdapter, createCodexAdapter, createClaudeAdapter
 //   - Normalization: normalizeSessionSummary
 
-export { createAdapterRegistry, createRegistry, createAdapter } from "../core/registry";
+export {
+  createAdapterRegistry,
+  createRegistry,
+  createAdapter,
+  clearDetailCache,
+  invalidateDetailCache,
+} from "../core/registry";
 
 // Workspace session factory
 export {
@@ -55,6 +61,7 @@ export type {
   SessionSummary,
   SessionRef,
   SearchQuery,
+  ToolSearchQuery,
   TimeRangeOptions,
 } from "../core/types";
 
@@ -72,10 +79,11 @@ export {
   createCodexAdapter,
   createCodexCloneSourceAdapter,
   createClaudeAdapter,
+  createAcpxAdapter,
 } from "../adapters";
 
 // Normalization
-export { normalizeSessionSummary } from "../core/normalize";
+export { normalizeSessionSummary, normalizeTimestamp } from "../core/normalize";
 
 // Session fork (R-39) — SessionRef is re-exported from core/types above
 export { forkSession } from "./session";

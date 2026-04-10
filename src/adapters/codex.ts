@@ -2,7 +2,16 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { OtherAgentEntry } from "../config/types";
-import { Adapter, SessionSummary } from "../core/types";
+import {
+  Adapter,
+  SearchQuery,
+  SessionDetail,
+  SessionMessage,
+  SessionReadOptions,
+  SessionSummary,
+} from "../core/types";
+import { normalizeTimestamp } from "../core/normalize";
+import type { CloneSourceAdapter, CloneSession, CloneMessage } from "../core/clone";
 
 type CodexAdapterOptions = {
   defaultPath?: string;
@@ -38,6 +47,63 @@ export function createCodexAdapter(
         }
         throw new Error(`${label} ${message}`);
       }
+    },
+    // R-21: searchSessions — full Codex adapter
+    searchSessions: (query: SearchQuery): SessionSummary[] => {
+      const label = `[${entry.agent}:${entry.alias}]`;
+      try {
+        const rootPath = resolveCodexPath(entry, options);
+        const files = collectJsonlFiles(rootPath);
+        const needle = query.text.toLowerCase();
+        const results: SessionSummary[] = [];
+
+        for (const filePath of files) {
+          try {
+            const session = parseCodexSession(filePath, entry);
+            // Match title or first user message preview
+            const titleMatch = session.title.toLowerCase().includes(needle);
+            const contentMatch = contentContains(filePath, needle);
+            if (titleMatch || contentMatch) {
+              results.push(session);
+            }
+          } catch {
+            // Skip files that fail to parse — they won't match search anyway
+          }
+        }
+
+        results.sort(
+          (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)
+        );
+        return results;
+      } catch (error) {
+        const message = errorMessage(error);
+        if (message.includes(label)) {
+          throw new Error(message);
+        }
+        throw new Error(`${label} ${message}`);
+      }
+    },
+    // R-21: getSessionDetail — full Codex adapter
+    getSessionDetail: async (
+      sessionId: string,
+      _options: SessionReadOptions
+    ): Promise<SessionDetail> => {
+      const label = `[${entry.agent}:${entry.alias}]`;
+      const rootPath = resolveCodexPath(entry, options);
+      const files = collectJsonlFiles(rootPath);
+
+      for (const filePath of files) {
+        const summary = parseCodexSession(filePath, entry);
+        if (summary.id === sessionId) {
+          const messages = parseCodexMessages(filePath, sessionId, label);
+          return {
+            ...summary,
+            messages,
+          };
+        }
+      }
+
+      throw new Error(`${label} session not found: ${sessionId}`);
     },
   };
 }
@@ -217,20 +283,6 @@ function extractContentText(content: unknown): string | undefined {
   return undefined;
 }
 
-function normalizeTimestamp(value: unknown, context: string): string {
-  if (typeof value !== "string") {
-    throw new Error(context);
-  }
-  if (!ISO_TIMESTAMP_PATTERN.test(value)) {
-    throw new Error(context);
-  }
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    throw new Error(context);
-  }
-  return parsed.toISOString();
-}
-
 function maxIso(a: string, b: string): string {
   return Date.parse(a) >= Date.parse(b) ? a : b;
 }
@@ -297,14 +349,119 @@ function errorMessage(error: unknown): string {
   return "Unknown error";
 }
 
-const ISO_TIMESTAMP_PATTERN =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
+/**
+ * Search file content for a case-insensitive text match.
+ * Used by searchSessions to avoid fully parsing every file twice.
+ */
+function contentContains(filePath: string, needle: string): boolean {
+  try {
+    const content = readFileSync(filePath, "utf8");
+    return content.toLowerCase().includes(needle);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Parse all messages from a Codex JSONL session file.
+ * Returns SessionMessage[] for getSessionDetail.
+ */
+function parseCodexMessages(
+  filePath: string,
+  _sessionId: string,
+  label: string
+): SessionMessage[] {
+  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const messages: SessionMessage[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i].trim();
+    if (raw.length === 0) continue;
+
+    let record: CodexRecord;
+    try {
+      record = JSON.parse(raw) as CodexRecord;
+    } catch {
+      throw new Error(
+        `Codex JSONL parse error in ${filePath} at line ${i + 1}`
+      );
+    }
+
+    if (record.type !== "response_item") continue;
+
+    const payload = record.payload ?? {};
+    const role = payload.role;
+    if (role !== "user" && role !== "assistant") continue;
+
+    const timestampContext = `${label} timestamp invalid in ${filePath}:${i + 1}`;
+    const created_at = normalizeTimestamp(record.timestamp, timestampContext);
+
+    // Extract text parts from content
+    const content = payload.content;
+    const textParts = extractContentParts(content);
+
+    const parts: import("../core/types").SessionPart[] = textParts.map((text) => ({
+      type: "text",
+      text,
+    }));
+
+    // Extract model ID if present
+    const modelID =
+      typeof payload.modelID === "string"
+        ? payload.modelID
+        : undefined;
+
+    messages.push({
+      id: `${filePath}:${i + 1}`,
+      role: role as "user" | "assistant",
+      created_at,
+      parts,
+      modelID,
+    });
+  }
+
+  return messages;
+}
+
+/**
+ * Extract text content from Codex response_item content field.
+ */
+function extractContentParts(content: unknown): string[] {
+  const parts: string[] = [];
+
+  if (typeof content === "string") {
+    parts.push(content);
+    return parts;
+  }
+
+  if (Array.isArray(content)) {
+    for (const item of content) {
+      if (typeof item === "string") {
+        parts.push(item);
+      } else if (item && typeof item === "object") {
+        const record = item as Record<string, unknown>;
+        const text =
+          (typeof record.input_text === "string" ? record.input_text : null) ??
+          (typeof record.text === "string" ? record.text : null) ??
+          (typeof record.output_text === "string" ? record.output_text : null);
+        if (text) parts.push(text);
+      }
+    }
+  } else if (content && typeof content === "object") {
+    const record = content as Record<string, unknown>;
+    const text =
+      (typeof record.input_text === "string" ? record.input_text : null) ??
+      (typeof record.text === "string" ? record.text : null) ??
+      (typeof record.output_text === "string" ? record.output_text : null);
+    if (text) parts.push(text);
+  }
+
+  return parts;
+}
 
 // ============================================================================
 // Clone Source Adapter
 // ============================================================================
-
-import { CloneSourceAdapter, CloneSession, CloneMessage } from "../core/clone";
 
 export interface CodexCloneSourceOptions {
   defaultPath?: string;
