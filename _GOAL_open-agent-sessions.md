@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-11 02:15 UTC — Dolt initialized + COMPLETION VERIFIED (39/39 rows; Dolt requirements table was empty — initialized this session; R-41 implementation exists in opencode adapter (DB + JSONL paths) but no test coverage yet; 950 tests pass; 3 random sample verified: R-04 ✓, R-37 ✓, R-40 ✓; DRY verified: no duplicate normalizeTimestamp, no direct new Adapter() calls, barrel exports synchronized)
+**Last verified against Dolt:** 2026-04-11 03:30 UTC — ALL COMPLETE (39/39 rows; R-41 now done (test coverage added); R-07 lib-only, R-20 DEFERRED; DRY verified: no duplicate normalizeTimestamp, no direct new Adapter() calls, barrel exports synchronized; spot-checked: R-21 ✓, R-33 ✓, R-41 ✓)
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -29,9 +29,9 @@ The goal is complete when ALL of the following are true:
 8. R-28 (TDD) is **done** and R-29 (CI/CD) is **done** — 2/2 ✅
 9. **Ecosystem requirements** (R-25, R-26, R-27) are **not applicable** — no Ecosystem requirements exist in the Dolt matrix ✅
 10. **DRY invariant is verified** — no duplicate logic across adapters; shared normalization lives in `src/core/normalize.ts` only ✅
-11. Only **R-41** (Search — Fuzzy tool/MCP/skills usage search) remains **planned** — not blocking completion
+11. All requirements are **done**, **DEFERRED**, or **lib-only** — no incomplete items remain.
 
-**⚠️ R-41 (Search) is the only remaining planned item.** The goal is functionally complete pending R-41.
+**All requirements are complete. The goal is done.**
 
 **Matrix as source of trust:** The `requirements` table in Dolt is the authoritative state. All status updates, new requirements, and corrections MUST be written to Dolt first. The snapshot in this file is derived from Dolt — never the reverse.
 
@@ -102,7 +102,7 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-04-11 02:15 UTC):** ✅ PASSED — VERIFIED this session
+**DRY Verification (2026-04-11 03:30 UTC):** ✅ PASSED — VERIFIED this session
 - `normalize.ts` is the only normalization module — confirmed
 - `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed
 - `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed
@@ -163,7 +163,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-11 02:15 UTC) — Derived from Dolt Matrix
+## Current State Snapshot (2026-04-11 03:30 UTC) — Derived from Dolt Matrix
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Closed | Incomplete items |
 |----------|-------|------|---------|----------|----------|--------|-----------------|
@@ -174,26 +174,22 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Cross-Agent | 4 | 3 | 0 | 0 | 1 | 0 | R-20 (DEFERRED) |
 | Export | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | Performance | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| Search | 1 | 0 | 1 | 0 | 0 | 0 | R-41 |
+| Search | 1 | 1 | 0 | 0 | 0 | 0 | — |
 | Quality | 4 | 4 | 0 | 0 | 0 | 0 | — |
-| **Total** | **39** | **36** | **1** | **1** | **1** | **0** | R-41 (search) |
+| **Total** | **39** | **37** | **0** | **1** | **1** | **0** | — |
 
-> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM open_agent_sessions.requirements` — totals: 36 done, 1 planned (R-41), 1 lib-only (R-07 Zed), 1 deferred (R-20). If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
+> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM open_agent_sessions.requirements` — totals: 37 done, 1 lib-only (R-07 Zed), 1 deferred (R-20), 0 planned. If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
 ---
 
-## Incomplete Requirements
+## Requirements Summary
 
-### R-41: Fuzzy Tool/MCP/Skills Usage Search (planned)
+### R-41: Fuzzy Tool/MCP/Skills Usage Search ✅
 - **Category:** Search
-- **Status:** planned — implementation exists (opencode adapter: `toolSearchFromDb`, `toolSearchFromJsonl`; lines 861–977); no test coverage yet
-- **Priority:** P2
-- **SDK wire:** `ToolSearchQuery.tool` field in `types.ts`; `Adapter.toolSearchSessions?(query)` interface defined; both DB and JSONL adapters wired
-- **Files affected:** `src/adapters/opencode.ts` (lines 861–977; DB and JSONL implementations)
-- **Test coverage:** None yet — `toolSearch` grep in `test/opencode-adapter.test.ts` returns empty
-- **Next step:** Add test cases for `toolSearchFromDb` and `toolSearchFromJsonl` in `test/opencode-adapter.test.ts`
+- **Status:** done
+- **Verification (2026-04-11):** `toolSearchSessions` test cases present in `test/opencode-adapter.test.ts` — 11 matches covering DB, JSONL, Write, Postgres, and error paths
 
-### R-42: DRY — Consolidate normalizeTimestamp (done)
+### R-42: DRY — Consolidate normalizeTimestamp ✅
 - **Category:** Quality
 - **Status:** done ✅ — R-42 created and fixed in-session
 - **Fix:** Exported `normalizeTimestamp` from `src/core/normalize.ts`; updated `src/core/index.ts` and `src/sdk/index.ts` barrel exports; removed duplicate local definitions from `claude.ts` and `codex.ts` (1 × `normalizeTimestamp` + 1 × `ISO_TIMESTAMP_PATTERN` each)
@@ -211,10 +207,10 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Export/Import (R-16–R-18) | ✅ 3/3 done | CSF, Markdown/text, OpenCode write-path import |
 | Performance (R-23, R-24, R-40) | ✅ 3/3 done | Pagination, list cache, detail cache |
 | Quality (R-28, R-29, R-42) | ✅ 4/4 done | TDD coverage (950 tests), CI/CD pipeline, DRY fix, documentation |
-| DRY Invariant | ✅ VERIFIED (2026-04-11 02:15 UTC) | normalize.ts single source; no duplicate normalizeTimestamp; no direct new Adapter() calls; factory pattern enforced; barrel exports synchronized |
-| R-41 (Search) | 🔄 1 planned | Implementation exists (DB + JSONL in opencode adapter); needs test coverage |
+| DRY Invariant | ✅ VERIFIED (2026-04-11 03:30 UTC) | normalize.ts single source; no duplicate normalizeTimestamp; no direct new Adapter() calls; factory pattern enforced; barrel exports synchronized |
+| R-41 (Search) | ✅ done | Implementation + test coverage in opencode adapter |
 
-**Overall: 36/39 done, 1 planned (R-41), 1 lib-only (R-07 Zed), 1 deferred (R-20). Goal is functionally complete pending R-41.**
+**Overall: 37/39 done, 1 lib-only (R-07 Zed), 1 deferred (R-20). Goal is complete.**
 
 ---
 
