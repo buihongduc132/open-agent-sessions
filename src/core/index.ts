@@ -1,7 +1,7 @@
 export { createAdapterRegistry } from "./registry";
 export { createListService, listSessions } from "./list";
 export { cloneSession, createCloneService } from "./clone";
-export { normalizeSessionSummary } from "./normalize";
+export { normalizeSessionSummary, normalizeTimestamp } from "./normalize";
 export type {
   Adapter,
   AdapterFactories,

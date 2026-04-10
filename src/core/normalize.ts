@@ -62,7 +62,7 @@ export function normalizeSessionSummary(
   };
 }
 
-function normalizeTimestamp(value: unknown, context: string): string {
+export function normalizeTimestamp(value: unknown, context: string): string {
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) {
       throw new Error(`${context} must be a valid timestamp`);

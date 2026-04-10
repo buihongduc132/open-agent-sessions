@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-10 03:05 UTC — UPDATED (37/37 rows cross-checked, 0 discrepancies)
+**Last verified against Dolt:** 2026-04-10 20:XX UTC — UPDATED (38/38 rows, DRY violation found + fixed via R-42)
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -102,9 +102,9 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-04-10):** ✅ PASSED
+**DRY Verification (2026-04-10 03:05 UTC):** ✅ PASSED — UPDATED (2026-04-10 post-session-fix)
 - `normalize.ts` is the only normalization module — confirmed
-- All 5 adapters (opencode, codex, claude, acpx) import from `normalize.ts` — confirmed
+- All 5 adapters (opencode, codex, claude, acpx) import timestamp normalization from `normalize.ts` — **fixed** (R-42: `normalizeTimestamp` exported from `normalize.ts`; claude.ts and codex.ts now import from canonical path; duplicate local definitions removed)
 - No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations found — confirmed
 - `createAdapter()` from `registry.ts` is the sole factory — confirmed
 - Barrel exports synchronized across `src/sdk/index.ts`, `src/adapters/index.ts`, `package.json` — confirmed
@@ -161,7 +161,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-10 03:05 UTC) — Derived from Dolt Matrix
+## Current State Snapshot (2026-04-10 20:XX UTC) — Derived from Dolt Matrix
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Closed | Incomplete items |
 |----------|-------|------|---------|----------|----------|--------|-----------------|
@@ -174,10 +174,10 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Import | 1 | 1 | 0 | 0 | 0 | 0 | — |
 | Performance | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | Search | 1 | 0 | 1 | 0 | 0 | 0 | R-41 |
-| Quality | 2 | 2 | 0 | 0 | 0 | 0 | — |
-| **Total** | **37** | **33** | **1** | **2** | **1** | **0** | |
+| Quality | 3 | 3 | 0 | 0 | 0 | 0 | — |
+| **Total** | **38** | **34** | **1** | **2** | **1** | **0** | |
 
-> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM requirements` — totals: 33 done, 1 planned (R-41), 2 lib-only (R-06, R-07), 1 deferred (R-20). If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
+> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM requirements` — totals: 34 done, 1 planned (R-41), 2 lib-only (R-06, R-07), 1 deferred (R-20). If this snapshot disagrees with Dolt, Dolt wins — update this section to match.
 
 ---
 
@@ -197,6 +197,11 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 - **Files affected:** `src/adapters/opencode.ts` (SQLite + JSONL paths)
 - **Next step:** Implement `tool_call`, `mcp`, `skill` kind filter with fuzzy matching (git → git_commit, git_add, git_status, etc.)
 
+### R-42: DRY — Consolidate normalizeTimestamp (done)
+- **Category:** Quality
+- **Status:** done ✅ — R-42 created and fixed in-session
+- **Fix:** Exported `normalizeTimestamp` from `src/core/normalize.ts`; updated `src/core/index.ts` and `src/sdk/index.ts` barrel exports; removed duplicate local definitions from `claude.ts` and `codex.ts` (1 × `normalizeTimestamp` + 1 × `ISO_TIMESTAMP_PATTERN` each)
+
 ---
 
 ## Completion Summary
@@ -209,11 +214,11 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Cross-Agent (R-19, R-32, R-33) | ✅ 3/4 done, 1 deferred | R-20 deferred (upstream blocker) |
 | Export/Import (R-16–R-18) | ✅ 3/3 done | CSF, Markdown/text, OpenCode write-path import |
 | Performance (R-23, R-24, R-40) | ✅ 3/3 done | Pagination, list cache, detail cache |
-| Quality (R-28, R-29) | ✅ 2/2 done | TDD coverage, CI/CD pipeline |
-| DRY Invariant | ✅ VERIFIED | normalize.ts single source, factory pattern, barrel sync |
+| Quality (R-28, R-29, R-42) | ✅ 3/3 done | TDD coverage, CI/CD pipeline, DRY fix |
+| DRY Invariant | ✅ VERIFIED (post-R-42 fix) | normalize.ts single source, factory pattern, barrel sync |
 | R-41 (Search) | 🔄 1 planned | Only remaining planned item; not blocking completion |
 
-**Overall: 33/37 done, 1 planned, 2 lib-only, 1 deferred. Goal is functionally complete.**
+**Overall: 34/38 done, 1 planned, 2 lib-only, 1 deferred. Goal is functionally complete.**
 
 ---
 

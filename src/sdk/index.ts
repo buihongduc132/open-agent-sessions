@@ -77,7 +77,7 @@ export {
 } from "../adapters";
 
 // Normalization
-export { normalizeSessionSummary } from "../core/normalize";
+export { normalizeSessionSummary, normalizeTimestamp } from "../core/normalize";
 
 // Session fork (R-39) — SessionRef is re-exported from core/types above
 export { forkSession } from "./session";

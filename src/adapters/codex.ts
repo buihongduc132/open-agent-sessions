@@ -10,6 +10,7 @@ import {
   SessionReadOptions,
   SessionSummary,
 } from "../core/types";
+import { normalizeTimestamp } from "../core/normalize";
 import type { CloneSourceAdapter, CloneSession, CloneMessage } from "../core/clone";
 
 type CodexAdapterOptions = {
@@ -282,20 +283,6 @@ function extractContentText(content: unknown): string | undefined {
   return undefined;
 }
 
-function normalizeTimestamp(value: unknown, context: string): string {
-  if (typeof value !== "string") {
-    throw new Error(context);
-  }
-  if (!ISO_TIMESTAMP_PATTERN.test(value)) {
-    throw new Error(context);
-  }
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    throw new Error(context);
-  }
-  return parsed.toISOString();
-}
-
 function maxIso(a: string, b: string): string {
   return Date.parse(a) >= Date.parse(b) ? a : b;
 }
@@ -471,9 +458,6 @@ function extractContentParts(content: unknown): string[] {
 
   return parts;
 }
-
-const ISO_TIMESTAMP_PATTERN =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 
 // ============================================================================
 // Clone Source Adapter
