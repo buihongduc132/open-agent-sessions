@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-10 20:XX UTC — UPDATED (38/38 rows, DRY violation found + fixed via R-42)
+**Last verified against Dolt:** 2026-04-10 20:45 UTC — UPDATED (38/38 rows, DRY violation found + fixed via R-42)
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
