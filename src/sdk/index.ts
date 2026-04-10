@@ -19,9 +19,6 @@ export {
   resolveScope,
   findGitRoot,
   buildCanonicalAlias,
-  type WorkspaceConfig,
-  type WorkspaceSession,
-  type SessionRef,
 } from "./workspace";
 
 // Config
@@ -38,7 +35,7 @@ export type {
   ResolvedOpenCodeStorage,
 } from "../config/types";
 
-// Types — full SDK surface
+// Types — full SDK surface (core)
 export type {
   Adapter,
   AdapterFactory,
@@ -61,13 +58,14 @@ export type {
   TimeRangeOptions,
 } from "../core/types";
 
+// Types — workspace module
 export type {
   WorkspaceConfig,
   WorkspaceSession,
   SessionRef as WorkspaceSessionRef,
 } from "./workspace";
 
-// Adapters — barrel re-export
+// Adapters — barrel re-export (types already re-exported from core/types above)
 export {
   createOpenCodeAdapter,
   createOpenCodeCloneDestinationAdapter,
@@ -75,11 +73,10 @@ export {
   createCodexCloneSourceAdapter,
   createClaudeAdapter,
 } from "../adapters";
-export type { SessionSummary, SessionDetail } from "../adapters";
 
 // Normalization
 export { normalizeSessionSummary } from "../core/normalize";
 
-// Session fork (R-39)
+// Session fork (R-39) — SessionRef is re-exported from core/types above
 export { forkSession } from "./session";
-export type { ForkResult, SessionRef } from "./session";
+export type { ForkResult } from "./session";

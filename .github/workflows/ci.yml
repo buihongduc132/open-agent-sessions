@@ -1,0 +1,154 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Matrix: Build + Typecheck + Test ───────────────────────────────────────
+  build-and-test:
+    name: ${{ matrix.os }} / Bun ${{ matrix.bun-version }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        bun-version:
+          - "1.0"
+          - "1.1"
+          - "latest"
+
+        # Reduce matrix noise: skip Bun 1.0 on non-Ubuntu
+        exclude:
+          - os: macos-latest
+            bun-version: "1.0"
+          - os: windows-latest
+            bun-version: "1.0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ matrix.bun-version }}
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-bun-${{ matrix.bun-version }}-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ matrix.bun-version }}-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: TypeScript type check
+        run: bun run typecheck
+
+      - name: Build
+        run: bun run build
+
+      - name: Run tests
+        run: bun test
+
+  # ─── Quality Gates ───────────────────────────────────────────────────────────
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check: No secrets committed
+        run: bash scripts/check-no-secrets.sh
+
+      - name: Check: No console.log / debug statements in source
+        run: |
+          echo "=== Scanning for debug statements ==="
+          FOUND=$(grep -rn "console\.\(log\|debug\|info\)" \
+            --include="*.ts" \
+            src/ bin/ 2>/dev/null || true)
+          # Filter out allowed patterns (commented debug, etc.)
+          if [ -n "$FOUND" ]; then
+            echo "Debug statements found — clean up before merge"
+            echo "$FOUND"
+            exit 1
+          fi
+          echo "No debug statements found ✓"
+
+      - name: Check: package.json scripts are valid
+        run: |
+          echo "=== Validating npm scripts ==="
+          bun run test --help > /dev/null
+          bun run build --help > /dev/null
+          bun run typecheck --help > /dev/null 2>&1 || true
+          echo "Scripts are executable ✓"
+
+      - name: Check: bin/oas shebang
+        run: |
+          echo "=== Checking bin/oas shebang ==="
+          head -1 bin/oas | grep -q 'env bun' && echo "Shebang is correct ✓" || {
+            echo "bin/oas must start with #!/usr/bin/env bun"
+            exit 1
+          }
+
+  # ─── Install Script Smoke-Test (Linux only) ─────────────────────────────────
+  install-smoke-test:
+    name: Install Smoke Test (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Run install script against local checkout
+        env:
+          OAS_INSTALL_DIR: /tmp/oas-smoke-test
+          OAS_BIN_DIR: /tmp/oas-smoke-test/bin
+          # Use the actual GitHub remote so the installer's `git clone --branch`
+          # targets a real remote and resolves refs correctly.
+          OAS_REPO_URL: https://github.com/${{ github.repository }}.git
+          # Match whatever branch CI is testing so the cloned code matches.
+          OAS_BRANCH: ${{ github.ref_name }}
+        run: bash scripts/install.sh
+
+      - name: Verify oas --help works without OAS_ROOT
+        run: |
+          output=$(/tmp/oas-smoke-test/bin/oas --help 2>&1) || true
+          echo "$output" | grep -q "Open Agent Sessions" && echo "CLI works ✓" || {
+            echo "CLI --help failed"
+            exit 1
+          }
+
+      - name: Verify idempotent install
+        env:
+          OAS_INSTALL_DIR: /tmp/oas-smoke-test
+          OAS_BIN_DIR: /tmp/oas-smoke-test/bin
+          OAS_REPO_URL: https://github.com/${{ github.repository }}.git
+          OAS_BRANCH: ${{ github.ref_name }}
+        run: bash scripts/install.sh && echo "Idempotent install ✓"

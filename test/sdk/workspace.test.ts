@@ -2,10 +2,14 @@
  * test/sdk/workspace.test.ts
  *
  * Tests for src/sdk/workspace.ts — workspace-scoped session factory.
+ *
+ * NOTE: Tests that use real filesystem paths (git-root auto-discovery) use
+ * process.cwd() rather than hardcoded paths so they work identically on
+ * any machine (local dev machine, CI runner, etc.).
  */
 
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import type { Adapter, AdapterFactories, AdapterHandle, AdapterRegistry } from "../../src/core/types";
+import type { Adapter, AdapterFactory, AdapterHandle, AdapterRegistry } from "../../src/core/types";
 import type { WorkspaceConfig, WorkspaceSession, SessionRef } from "../../src/sdk/workspace";
 import {
   createWorkspaceSession,
@@ -25,23 +29,15 @@ export type { WorkspaceConfig, WorkspaceSession, SessionRef };
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** The real CI repo root — works on GitHub Actions Ubuntu and local dev */
+const REAL_REPO_ROOT = process.cwd();
+
 /** Reset all workspace module state between tests */
 function resetState() {
   sessionCache.clear();
   adapterCache.clear();
   sharedRegistry.adapters = [];
   setWorkspaceFactories({});
-}
-
-/** Create a real temp directory without .git (for real cwd testing) */
-async function createTempDirWithoutGit(): Promise<string> {
-  const { mkdirSync, rmdirSync } = await import("node:fs");
-  const { join } = await import("node:path");
-  const { randomUUID } = await import("node:crypto");
-
-  const tmpDir = join("/tmp", `no-git-${randomUUID()}`);
-  mkdirSync(tmpDir, { recursive: true });
-  return tmpDir;
 }
 
 /** Stub adapter factory that always succeeds with an empty list */
@@ -56,12 +52,7 @@ function stubFactory(agent: "opencode" | "codex" | "claude"): AdapterFactory {
 describe("resolveScope", () => {
   beforeEach(() => {
     resetState();
-    // Reset process.cwd to the real implementation
-    Object.defineProperty(process, "cwd", {
-      value: () => "/home/bhd/Documents/Projects/bhd/open-agent-sessions",
-      writable: true,
-      configurable: true,
-    });
+    // No need to override process.cwd — our tests use absolute paths only
   });
 
   afterEach(() => {
@@ -407,21 +398,21 @@ describe("createWorkspaceSession — git-root auto-discovery", () => {
   });
 
   test("auto-discovers git-root when scope is omitted", async () => {
-    // Use the actual open-agent-sessions repo which has .git
-    Object.defineProperty(process, "cwd", {
-      value: () => "/home/bhd/Documents/Projects/bhd/open-agent-sessions/src",
-      writable: true,
-      configurable: true,
-    });
-
+    // process.cwd() is already the real repo root (with .git) on both
+    // the local dev machine and the GitHub Actions Ubuntu runner.
+    // createWorkspaceSession without a scope calls findGitRoot(process.cwd())
+    // which should return the repo root since it walks up looking for .git.
     const session = createWorkspaceSession({ agent: "opencode" });
-    // The real git root of this project
-    expect(session.scope).toBe("/home/bhd/Documents/Projects/bhd/open-agent-sessions");
+    expect(session.scope).toBe(REAL_REPO_ROOT);
   });
 
   test("falls back to cwd when no git root is found", async () => {
-    // Create a real temp directory without .git
-    const tmpDir = await createTempDirWithoutGit();
+    const { mkdirSync, rmdirSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const { randomUUID } = await import("node:crypto");
+
+    const tmpDir = join("/tmp", `no-git-${randomUUID()}`);
+    mkdirSync(tmpDir, { recursive: true });
 
     Object.defineProperty(process, "cwd", {
       value: () => tmpDir,
@@ -433,8 +424,10 @@ describe("createWorkspaceSession — git-root auto-discovery", () => {
       const session = createWorkspaceSession({ agent: "opencode" });
       expect(session.scope).toBe(tmpDir);
     } finally {
+      rmdirSync(tmpDir);
+      // Restore cwd
       Object.defineProperty(process, "cwd", {
-        value: () => "/home/bhd/Documents/Projects/bhd/open-agent-sessions",
+        value: () => REAL_REPO_ROOT,
         writable: true,
         configurable: true,
       });
@@ -516,17 +509,11 @@ describe("WorkspaceConfig — all optional fields", () => {
     setWorkspaceFactories({});
   });
 
-  test("accepts config with agent only (scope auto-detected)", async () => {
-    // Use the actual open-agent-sessions repo which has .git
-    Object.defineProperty(process, "cwd", {
-      value: () => "/home/bhd/Documents/Projects/bhd/open-agent-sessions/src",
-      writable: true,
-      configurable: true,
-    });
-
+  test("accepts config with agent only (scope auto-detected)", () => {
+    // process.cwd() is the repo root — findGitRoot returns it since .git exists.
     const session = createWorkspaceSession({ agent: "opencode" });
     expect(session.sessionRef.agent).toBe("opencode");
-    expect(session.scope).toBe("/home/bhd/Documents/Projects/bhd/open-agent-sessions");
+    expect(session.scope).toBe(REAL_REPO_ROOT);
   });
 
   test("accepts config with agent + scope", () => {

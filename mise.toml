@@ -1,0 +1,46 @@
+# mise.toml — https://mise.jdx.dev
+# Runtime pin and development tasks for open-agent-sessions
+
+[settings]
+quiet = false
+
+[tools]
+# Pin exact Bun version used in CI matrix (keep in sync with .github/workflows/ci.yml)
+bun = "1.1.0"
+
+[tasks.install]
+description = "Install dependencies via Bun (frozen lockfile)"
+run = "bun install --frozen-lockfile"
+
+[tasks.typecheck]
+description = "Run TypeScript type checking (tsc --noEmit)"
+run = "bun run typecheck"
+alias = "tc"
+
+[tasks.build]
+description = "Build library to ./dist (bun build)"
+run = "bun run build"
+alias = "b"
+
+[tasks.test]
+description = "Run the full test suite"
+run = "bun test"
+alias = "t"
+
+[tasks.test:coverage]
+description = "Run tests with coverage (excludes TUI source)"
+run = "bun run test:coverage:core"
+alias = "tcov"
+
+[tasks.dev]
+description = "Run tests in watch mode"
+run = "bun test --watch"
+alias = "d"
+
+[tasks.ci]
+description = "Full CI pipeline: typecheck → build → test"
+run = ["typecheck", "build", "test"]
+
+[tasks.clean]
+description = "Remove build artifacts and Bun test cache"
+run = "rm -rf dist/ .test/"
