@@ -2,9 +2,9 @@
 
 **File:** `_GOAL_open-agent-sessions.md`
 **Created:** 2026-04-07
-**Status:** active
+**Status:** complete
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-11 03:58 UTC — ALL COMPLETE (38/38 rows; 35 done, 2 lib-only (R-06 Codex, R-07 Claude), 1 DEFERRED (R-20)); Verification loop executed: all 38 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-21 ✓ (codex.ts: full search/detail/list, imports normalizeTimestamp from core/normalize, uses factory), R-32 ✓ (acpx.ts: git-root scoping, registry.ts: ensureUniqueAliases + alias-scoped validation), R-40 ✓ (detailCache Map exported + wired in getSessionDetail, clearDetailCache + invalidateDetailCache re-exported via core/index.ts → sdk/index.ts); DRY check query: 0 incomplete Core/SDK/Adapter rows
+**Last verified against Dolt:** 2026-04-12 04:47 UTC — ALL COMPLETE (38/38 rows; 35 done, 2 lib-only (R-06 Codex, R-07 Claude), 1 DEFERRED (R-20)); Verification loop executed: all 38 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-40 ✓ (detailCache Map + clearDetailCache + invalidateDetailCache in registry.ts, re-exported via core/index.ts → sdk/index.ts), R-41 ✓ (toolSearchSessions in opencode adapter, 11 test cases in test/opencode-adapter.test.ts covering DB/JSONL/Write/Postgres/error paths), R-42 ✓ (normalizeTimestamp exported from src/core/normalize.ts, imported from ../core/normalize in claude.ts and codex.ts, no local definitions); DRY check query: 0 incomplete Core/SDK/Adapter rows
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
@@ -163,7 +163,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ---
 
-## Current State Snapshot (2026-04-11 03:58 UTC) — Derived from Dolt Matrix
+## Current State Snapshot (2026-04-12 04:47 UTC) — Derived from Dolt Matrix
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Closed | Incomplete items |
 |----------|-------|------|---------|----------|----------|--------|-----------------|
