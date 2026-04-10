@@ -5,6 +5,8 @@
 **Status:** complete
 **Phase:** Phase 5 — SDK-First Completion
 **Last verified against Dolt:** 2026-04-13 06:23 UTC — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); Verification loop executed: all 39 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-22 ✓ (toolSearchSessions in opencode adapter, 11 test cases), R-41 ✓ (normalizeTimestamp in normalize.ts, re-exported in core/sdk barrels), R-40 ✓ (detailCache Map + clearDetailCache + invalidateDetailCache in registry.ts); DRY check query: 0 incomplete Core/SDK/Adapter rows
+
+**Last re-verified:** 2026-05-09 (session start — 38/38 complete, 0 incomplete; R-22 listSessions+searchSessions+getSessionDetail ✓, R-40 detailCache ✓, R-41 11 test cases ✓, DRY 9/9 checks PASSED)
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
