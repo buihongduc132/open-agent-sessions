@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** active
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-04-15 (this session) — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); Verification loop executed: all 39 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-37 ✓ (workspace.ts: createWorkspaceSession, singleton cache, adapterCache), R-41 ✓ (opencode.ts: toolSearchSessions defined + exported via types), R-42 ✓ (normalizeTimestamp exported from normalize.ts, imported by claude.ts + codex.ts — no duplicate definitions); DRY check query: 0 incomplete Core/SDK/Adapter rows
+**Last verified against Dolt:** 2025-01-16 (this session) — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); Verification loop executed: all 39 rows checked, DRY invariant confirmed (normalize.ts single source, no duplicate normalizeTimestamp, no direct new Adapter() calls, factory pattern enforced, barrel exports synchronized across src/sdk/index.ts, src/core/index.ts, src/adapters/index.ts, and package.json); spot-checked: R-21 ✓ (opencode.ts: SQLite adapter with ExpectedSchema, lock retries), R-32 ✓ (registry.ts: ensureUniqueAliases, alias-scoped validation), R-40 ✓ (detailCache Map exported + wired in getSessionDetail, clearDetailCache + invalidateDetailCache re-exported via core/index.ts → sdk/index.ts); DRY check query: 0 incomplete Core/SDK/Adapter rows
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
 ---
