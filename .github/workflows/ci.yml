@@ -126,11 +126,15 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Run install script
+      - name: Run install script against local checkout
         env:
           OAS_INSTALL_DIR: /tmp/oas-smoke-test
           OAS_BIN_DIR: /tmp/oas-smoke-test/bin
-          OAS_REPO_URL: ${{ github.workspace }}
+          # Use the actual GitHub remote so the installer's `git clone --branch`
+          # targets a real remote and resolves refs correctly.
+          OAS_REPO_URL: https://github.com/${{ github.repository }}.git
+          # Match whatever branch CI is testing so the cloned code matches.
+          OAS_BRANCH: ${{ github.ref_name }}
         run: bash scripts/install.sh
 
       - name: Verify oas --help works without OAS_ROOT
@@ -145,5 +149,6 @@ jobs:
         env:
           OAS_INSTALL_DIR: /tmp/oas-smoke-test
           OAS_BIN_DIR: /tmp/oas-smoke-test/bin
-          OAS_REPO_URL: ${{ github.workspace }}
+          OAS_REPO_URL: https://github.com/${{ github.repository }}.git
+          OAS_BRANCH: ${{ github.ref_name }}
         run: bash scripts/install.sh && echo "Idempotent install ✓"
