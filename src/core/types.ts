@@ -115,6 +115,10 @@ export interface AdapterHandle {
   alias: string;
   version: string;
   listSessions(): Promise<SessionSummary[]>;
+  /** Optional — only present when the adapter supports session detail retrieval. */
+  getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
+  /** Optional — only present when the adapter supports session forking (R-39). */
+  forkSession?(sourceSessionId: string, destAgent: string, destAlias: string): Promise<ForkResult>;
 }
 
 export interface AdapterRegistry {
