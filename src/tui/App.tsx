@@ -41,6 +41,7 @@ import {
   type TimelineState,
 } from "./timeline-model";
 
+
 export type ListService = (query?: SessionListQuery) => Promise<SessionListResult>;
 export type DetailService = (query: {
   agent: SessionSummary["agent"];

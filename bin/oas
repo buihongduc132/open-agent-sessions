@@ -769,7 +769,7 @@ function showHelp() {
 // TUI Command (R-15)
 // ============================================================================
 
-async function handleTuiCommand(): Promise<void> {
+async function handleTuiCommand(parsed: ParsedArgs): Promise<void> {
   const config = loadConfig();
 
   // Create CLI-compatible services for the TUI
@@ -938,7 +938,8 @@ async function main() {
 
   // TUI command (R-15)
   if (command === "tui") {
-    await handleTuiCommand();
+    const parsed = parseArgs(restArgs);
+    await handleTuiCommand(parsed);
     return;
   }
 
