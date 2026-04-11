@@ -168,16 +168,16 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Core | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | SDK | 6 | 6 | 0 | 0 | 0 | 0 | — |
 | CLI | 8 | 8 | 0 | 0 | 0 | 0 | — |
-| Adapter | 7 | 5 | 0 | 2 | 0 | 0 | — (R-06 Codex list-only, R-07 Zed — both lib-only) |
+| Adapter | 7 | 6 | 0 | 1 | 0 | 0 | — (R-07 Zed lib-only) |
 | Cross-Agent | 4 | 3 | 0 | 0 | 1 | 0 | R-20 (DEFERRED) |
 | Export | 2 | 2 | 0 | 0 | 0 | 0 | — |
 | Import | 1 | 1 | 0 | 0 | 0 | 0 | — |
 | Performance | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | Search | 1 | 1 | 0 | 0 | 0 | 0 | — |
 | Quality | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| **Total** | **38** | **35** | **0** | **2** | **1** | **0** | — |
+| **Total** | **39** | **37** | **0** | **1** | **1** | **0** | — |
 
-> **This snapshot is derived from Dolt.** Dolt query counts: 35 done, 2 lib-only (R-06 Codex list-only + R-07 Zed), 1 deferred (R-20), 0 planned. Dolt is authoritative; update this snapshot when it disagrees with Dolt.
+> **This snapshot is derived from Dolt.** Dolt query counts: 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20), 0 planned. Dolt is authoritative; update this snapshot when it disagrees with Dolt.
 
 ---
 
