@@ -1,10 +1,14 @@
+# Open Agent Sessions Configuration
+# This config enables cross-agent session management for this project
+
 agents:
   - agent: opencode
     alias: default
     enabled: true
     storage:
       mode: auto
+
   - agent: codex
     alias: sessions
     enabled: true
-    path: /home/bhd/.codex/sessions
+    path: ~/.config/codex/sessions

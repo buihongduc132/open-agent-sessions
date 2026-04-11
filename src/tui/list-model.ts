@@ -26,6 +26,7 @@ export type KeyInput = {
 
 export type TuiListState = {
   mode: TuiMode;
+  loading: boolean;               // true until first successful load
   filter: {
     query: string;
     agent: FilterValue<AgentKind>;
@@ -55,6 +56,7 @@ export function createListState(entries: AgentEntry[]): TuiListState {
   const { agentOptions, aliasOptions, opencodeDestinations } = buildToggleOptions(entries);
   return {
     mode: "list",
+    loading: true,
     filter: {
       query: "",
       agent: "all",
@@ -82,6 +84,7 @@ export function applyListData(
 ): TuiListState {
   const next = {
     ...state,
+    loading: false,
     allSessions: result.sessions.slice(),
     errors: result.errors.slice(),
   };
@@ -131,9 +134,12 @@ export function applyKey(
 }
 
 export function getEmptyState(state: TuiListState): {
-  kind: "none" | "empty" | "nomatch";
+  kind: "none" | "empty" | "nomatch" | "loading";
   message?: string;
 } {
+  if (state.loading) {
+    return { kind: "loading", message: undefined };
+  }
   if (state.allSessions.length === 0) {
     return { kind: "empty", message: "No sessions found." };
   }
@@ -243,6 +249,14 @@ function handleListInput(
     return {
       state: { ...next, mode: next_view as TuiMode },
       effects: [{ type: "switch-view", view: next_view }],
+    };
+  }
+
+  // t: jump directly to timeline (shortcut, same as cycling via Tab)
+  if (name === "t") {
+    return {
+      state: { ...next, mode: "timeline" as TuiMode },
+      effects: [{ type: "switch-view", view: "timeline" }],
     };
   }
 

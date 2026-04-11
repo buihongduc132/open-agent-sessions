@@ -51,7 +51,8 @@ export function applyDetailKey(
   }
 
   if (key.name === "q") {
-    return { state, effect: { type: "exit", reason: "quit" } };
+    // q goes back (like Escape) — only Ctrl+C exits the TUI from detail view
+    return { state, effect: { type: "back" } };
   }
 
   if (state.mode === "help") {

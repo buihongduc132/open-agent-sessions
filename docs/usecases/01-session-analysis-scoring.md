@@ -81,3 +81,15 @@ This use case demonstrates a comprehensive session analysis workflow for recover
 - Cherry-picking requires careful dependency analysis
 - Documentation of session relationships is critical for future review
 - Clean branch separation prevents contamination from unrelated work
+
+## User Request 6: CLI/TUI Testing and Detail Drill-Down
+
+```
+use both cli to test these functionalities AND ensure to be able to answer these question.
+BOTH approach:
+- what are most recent 20 session in here ;
+- what are the last message of codex + opencode IN their group ;
+- TUI: drill down to the MOST detail page of 1 session PER group
+THEN back ALL THE way to the main;
+- TUI: do the drill down from ALL THE main pane view (list , tree , ...)
+```

@@ -1,10 +1,6 @@
 # Goal: `open-agent-sessions` — SDK-First Completion
 
 **File:** `_GOAL_open-agent-sessions.md`
-**Created:** 2026-04-07
-**Status:** complete
-**Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-06-23 (current session) — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); DRY invariant confirmed ✓; code inspection verified: normalize.ts only source (R-42 ✓), factory pattern enforced (0 direct new Adapter() calls ✓), barrel exports synchronized ✓, SDK surface complete ✓, CLI 8/8 commands wired ✓, CI/CD pipeline (.github/workflows/test.yml ✓), test coverage per adapter ✓; R-40 detail cache QuickLRU bounded at 50 entries (LRU eviction) ✓; Dolt branch: main, verified: current session (Loop Step 3 executed); DRY check query (0 rows ✓), bun test 995 pass/0 fail ✓, 3 requirements verified at random (R-16 ✓, R-40 ✓, R-42 ✓)
 
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
@@ -207,45 +203,11 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 - **Status:** done ✅ — R-42 created and fixed in-session
 - **Fix:** Exported `normalizeTimestamp` from `src/core/normalize.ts`; updated `src/core/index.ts` and `src/sdk/index.ts` barrel exports; removed duplicate local definitions from `claude.ts` and `codex.ts` (1 × `normalizeTimestamp` + 1 × `ISO_TIMESTAMP_PATTERN` each); DRY invariant now enforced.
 
----
+### Must test with the TUI
+Delegate @verifier to list out 5 complex path that the user would use. 
+THEN verify if it ACTUAL works in the TUI. 
 
-## Completion Summary
-
-| Criterion | Status | Details |
-|-----------|--------|---------|
-| SDK (R-34–R-39) | ✅ 6/6 done | All SDK surface, types, adapters, workspace, fork API |
-| CLI (R-08–R-15) | ✅ 8/8 done | All CLI commands including TUI wiring |
-| Core (R-01–R-07) | ✅ 6/7 done, 1 lib-only | Adapter interface, registry, normalization, 4 adapters; Zed lib-only |
-| Adapter (R-21, R-22, R-31) | ✅ 3/3 done | opencode (SQLite + JSONL), acpx |
-| Cross-Agent (R-19, R-32, R-33) | ✅ 3/4 done, 1 deferred | R-20 deferred (upstream blocker) |
-| Export (R-16, R-17, R-18) | ✅ 3/3 done | CSF, Markdown/text export; OpenCode write-path import |
-| Performance (R-23, R-24, R-40) | ✅ 3/3 done | Pagination, list cache, detail cache (QuickLRU bounded at 50 — R-40 fixed 2026-06-22) |
-| Search (R-41) | ✅ 1/1 done | Fuzzy tool/MCP/skills usage search |
-| Quality (R-28, R-29, R-30, R-42) | ✅ 4/4 done | TDD coverage, CI/CD pipeline, documentation, DRY fix |
-| DRY Invariant | ✅ VERIFIED (2026-06-22) | normalize.ts single source; no duplicate normalizeTimestamp; no direct new Adapter() calls; factory pattern enforced; barrel exports synchronized; detailCache bounded at 50 via QuickLRU (R-40 fix) |
-
-**Overall: 37/39 done, 1 lib-only (R-07 Zed), 1 deferred (R-20). Goal is complete.**
-
----
-
-## Files Produced by This Goal
-
-- `.beads/dolt/open_agent_sessions/requirements` — Dolt requirements table (39 rows at current commit; database: `open_agent_sessions`)
-- `src/sdk/index.ts` — SDK entry point (done — R-34)
-- `src/adapters/index.ts` — Adapter barrel (done — R-35)
-- `src/types/index.ts` — Type-only export (done — R-36)
-- `src/sdk/workspace.ts` — Workspace-scoped session factory (done — R-37)
-- `src/sdk/session.ts` — Session fork API (done — R-38)
-- `src/core/export.ts` — CSF + Markdown + text export (done — R-16, R-17)
-- `src/core/normalize.ts` — Single normalization source (done — DRY invariant, R-42)
-- `src/core/registry.ts` — Adapter factory registry (done — R-02) + detail cache (done — R-40) (`detailCache` = QuickLRU bounded at 50, `clearDetailCache`, `invalidateDetailCache`)
-- `.github/workflows/test.yml` — CI/CD pipeline (done — R-29)
-- `bin/oas` — CLI binary with all commands wired (done — R-08 to R-15; list, sessions, read, search, list-new, detail, clone, onboard, tui)
-- `flow/providers/mature/zed/SHAPE.md` — Zed storage shape (docs only; lib-only — R-07)
-- `flow/providers/mature/acpx/SHAPE.md` — acpx storage shape (docs only)
-- `flow/providers/_schemas/zed.md` — Zed TypeScript interfaces
-- `flow/providers/_schemas/acpx.md` — acpx TypeScript interfaces
-- `flow/providers/_schemas/sdk.md` — SDK export surface documentation (done — R-30)
+IF NOT then fix it. 
 
 ---
 

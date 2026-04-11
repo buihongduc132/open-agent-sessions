@@ -1,5 +1,6 @@
 import { createRoot, useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { createCliRenderer } from "@opentui/core";
+import { flushSync } from "@opentui/react/renderer";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Config } from "../config/types";
@@ -474,11 +475,11 @@ export function TuiAppView({
           }
         />
       ) : view === "detail" && detailState ? (
-        <Footer text="Esc: back  t: tree  Tab: timeline  ? : help  q/Ctrl+C: exit" />
+        <Footer text="Esc/q: back  t: tree  Tab: timeline  ? : help  Ctrl+C: exit" />
       ) : listState.mode === "clone" ? (
         <Footer text="j/k: select  Enter: confirm  Esc: cancel  Ctrl+C: exit" />
       ) : (
-        <Footer text={formatFooter(listState) + "  Tab→tree  t→timeline  q/Ctrl+C: exit"} />
+        <Footer text={formatFooter(listState) + "  t→timeline  Tab→tree  q/Ctrl+C: exit"} />
       )}
       {view === "detail" && detailState ? (
         <HelpOverlay visible={detailState.mode === "help"} view="detail" />
@@ -503,15 +504,18 @@ export async function runTuiApp(options: {
       renderer.destroy();
       resolve();
     };
-    root.render(
-      <TuiApp
-        config={options.config}
-        list={options.list}
-        getSession={options.getSession}
-        cloneSession={options.cloneSession}
-        onExit={handleExit}
-      />
-    );
+    // Wrap render in flushSync so all useEffect-triggered re-renders commit synchronously
+    flushSync(() => {
+      root.render(
+        <TuiApp
+          config={options.config}
+          list={options.list}
+          getSession={options.getSession}
+          cloneSession={options.cloneSession}
+          onExit={handleExit}
+        />
+      );
+    });
   });
 }
 
@@ -628,7 +632,9 @@ function ListView({ state, height }: { state: TuiListState; height: number }): R
 
   return (
     <box style={{ flexDirection: "column", flexGrow: 1, paddingLeft: 1 }}>
-      {emptyState.kind !== "none" ? (
+      {emptyState.kind === "loading" ? (
+        <text fg="#4aa3ff">Loading sessions…</text>
+      ) : emptyState.kind !== "none" ? (
         <text fg="#999999">{emptyState.message}</text>
       ) : (
         rows.map((session, index) => {
@@ -716,7 +722,7 @@ function HelpOverlay({
         {isDetail ? null : <text fg="#cccccc">Enter: open detail</text>}
         {isDetail ? null : <text fg="#cccccc">c: clone (codex only)</text>}
         <text fg="#cccccc">{isDetail ? "Esc: back" : "Esc: close"}</text>
-        <text fg="#cccccc">q/Ctrl+C: exit</text>
+        <text fg="#cccccc">{isDetail ? "q: back" : "q: quit"}</text>
         <text fg="#888888">Press ? or Esc to close</text>
       </box>
     </box>
