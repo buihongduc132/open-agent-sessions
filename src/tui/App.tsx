@@ -16,6 +16,7 @@ import {
   setViewportHeight as setListViewportHeight,
   type KeyInput as ListKeyInput,
   type TuiListState,
+  type TuiMode,
 } from "./list-model";
 import {
   applyDetailKey,
@@ -263,7 +264,7 @@ export function TuiAppView({
           }
           if (effect.type === "switch-view") {
             setView(effect.view);
-            return { ...state, mode: effect.view };
+            return { ...state, mode: effect.view as TuiMode };
           }
         }
         return state;
