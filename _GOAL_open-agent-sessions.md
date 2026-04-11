@@ -28,7 +28,7 @@ The goal is complete when ALL of the following are true:
 10. **DRY invariant is verified** — no duplicate logic across adapters; shared normalization lives in `src/core/normalize.ts` only ✅
 11. All requirements are **done**, **DEFERRED**, or **lib-only** — no incomplete items remain.
 
-**All requirements are complete. The goal is done.**
+**All requirements are complete. The goal is done. ✅ (Verified 2026-06-26)**
 
 **Matrix as source of trust:** The `requirements` table in Dolt is the authoritative state. All status updates, new requirements, and corrections MUST be written to Dolt first. The snapshot in this file is derived from Dolt — never the reverse.
 
@@ -163,21 +163,20 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 
 ## Current State Snapshot ([CURRENT SESSION]) — Derived from Dolt Matrix (authoritative)
 
-| Category | Total | Done | Planned | Lib-only | Deferred | Closed | Incomplete items |
-|----------|-------|------|---------|----------|----------|---------|-----------------|
-| Core | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| SDK | 6 | 6 | 0 | 0 | 0 | 0 | — |
-| CLI | 8 | 8 | 0 | 0 | 0 | 0 | — |
-| Adapter | 7 | 6 | 0 | 1 | 0 | 0 | — (R-07 Zed lib-only) |
-| Cross-Agent | 4 | 3 | 0 | 0 | 1 | 0 | R-20 (DEFERRED) |
-| Export | 2 | 2 | 0 | 0 | 0 | 0 | — |
-| Import | 1 | 1 | 0 | 0 | 0 | 0 | — |
-| Performance | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| Search | 1 | 1 | 0 | 0 | 0 | 0 | — |
-| Quality | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| **Total** | **39** | **37** | **0** | **1** | **1** | **0** | — |
+| Category | Total | Done | Lib-only | Deferred | Closed | Incomplete items |
+|----------|-------|------|----------|----------|---------|-----------------|
+| Core | 7 | 6 | 1 | 0 | 0 | — (R-07 Zed lib-only) |
+| SDK | 6 | 6 | 0 | 0 | 0 | — |
+| CLI | 8 | 8 | 0 | 0 | 0 | — |
+| Adapter | 3 | 3 | 0 | 0 | 0 | — |
+| Cross-Agent | 4 | 3 | 0 | 1 | 0 | R-20 (DEFERRED) |
+| Export | 3 | 3 | 0 | 0 | 0 | — |
+| Performance | 3 | 3 | 0 | 0 | 0 | — |
+| Search | 1 | 1 | 0 | 0 | 0 | — |
+| Quality | 4 | 4 | 0 | 0 | 0 | — |
+| **Total** | **39** | **37** | **1** | **1** | **0** | — |
 
-> **This snapshot is derived from Dolt.** Dolt query counts: 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20), 0 planned. Dolt is authoritative; update this snapshot when it disagrees with Dolt.
+> **This snapshot is derived from Dolt (2026-06-26).** Dolt query counts: 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20), 0 planned/incomplete. Dolt is authoritative; this snapshot reflects its current state.
 
 ---
 
