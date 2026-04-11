@@ -184,8 +184,9 @@ describe("cli detail", () => {
   });
 
   test("unknown agent lists available agents", async () => {
+    // 3-part format is the canonical way to test "unknown agent" error
     const result = await runDetailCommand({
-      session: "unknown:cx-100",
+      session: "unknownagent:personal:cx-100",
       config: baseConfig,
       getSession: makeDetailService(null),
     });
@@ -194,6 +195,27 @@ describe("cli detail", () => {
     expect(result.stderr).toContain("Unknown agent");
     expect(result.stderr).toContain("opencode");
     expect(result.stderr).toContain("codex");
+  });
+
+  test("bare session ID uses first enabled agent/alias", async () => {
+    const result = await runDetailCommand({
+      session: "ses_abc123",
+      config: baseConfig,
+      getSession: makeDetailService({
+        id: "ses_abc123",
+        agent: "opencode",
+        alias: "personal",
+        title: "test",
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-01-01T00:00:00Z",
+        message_count: 0,
+        storage: "db",
+      } as SessionDetail),
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("agent: opencode");
+    expect(result.stdout).toContain("alias: personal");
   });
 
   test("unknown alias lists available aliases for agent", async () => {

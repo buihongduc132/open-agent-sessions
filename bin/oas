@@ -535,7 +535,7 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
   const getSession = createReadService(config);
 
   // Support positional session-id: `oas read <session-id>`
-  const sessionSpec = parsed.options["session"] as string | undefined || parsed.positional[0];
+  const sessionSpec = parsed.options["session"] as string | undefined ?? parsed.positional[0];
 
   const result = await runReadCommand({
     session: sessionSpec,
@@ -597,7 +597,9 @@ async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
   const getSession = createDetailService(config);
 
   // Support positional session spec: `oas detail <session-id>`
-  const sessionSpec = parsed.options["session"] as string | undefined || parsed.positional[0];
+  const sessionSpec =
+    parsed.options["session"] as string | undefined ||
+    (parsed.positional[0] ? `--session ${parsed.positional[0]}` : undefined);
 
   const result = await runDetailCommand({
     session: sessionSpec,
