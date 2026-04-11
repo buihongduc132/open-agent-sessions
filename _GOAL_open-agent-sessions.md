@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** complete
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-06-19 (current session: 2026-06-22) — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); DRY invariant confirmed ✓; code inspection verified: normalize.ts only source (R-42 ✓), factory pattern enforced (0 direct new Adapter() calls ✓), barrel exports synchronized ✓, SDK surface complete ✓, CLI 8/8 commands wired ✓, CI/CD pipeline (.github/workflows/test.yml ✓), test coverage per adapter ✓; Dolt branch: main, verified: current session (Loop Step 3 executed)
+**Last verified against Dolt:** 2026-06-22 (current session: 2026-06-22) — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); DRY invariant confirmed ✓; code inspection verified: normalize.ts only source (R-42 ✓), factory pattern enforced (0 direct new Adapter() calls ✓), barrel exports synchronized ✓, SDK surface complete ✓, CLI 8/8 commands wired ✓, CI/CD pipeline (.github/workflows/test.yml ✓), test coverage per adapter ✓; R-40 detail cache upgraded from unbounded Map → QuickLRU bounded at 50 entries (LRU eviction); Dolt branch: main, verified: current session (Loop Step 3 executed)
 
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
@@ -103,13 +103,14 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-06-17; re-verified current session):** ✅ PASSED — VERIFIED
+**DRY Verification (2026-06-22; re-verified current session):** ✅ PASSED — VERIFIED
 - `normalize.ts` is the only normalization module — confirmed (grep verified)
 - `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed (grep verified)
 - `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed (grep verified)
-- No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations in adapter code — confirmed (grep verified, 0 matches)
+- No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations in adapter code — confirmed (grep verified, 0 matches); `new Map()` in `workspace.ts:adapterCache` is a separate cache, not an adapter instantiation
 - `createAdapter()` from `registry.ts` is the sole factory — confirmed
 - Barrel exports synchronized: `src/sdk/index.ts` ✅, `src/core/index.ts` ✅, `src/adapters/index.ts` ✅, `package.json` ✅
+- `detailCache` is bounded at 50 via QuickLRU — `src/core/registry.ts:22` confirmed
 - DRY check query: `SELECT id FROM \`open_agent_sessions\`.requirements WHERE category IN ('Adapter', 'SDK', 'Core') AND status NOT IN ('done', 'lib-only')` — 0 rows ✅
 
 **DRY Check Query:**
@@ -196,6 +197,11 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 - **Status:** done
 - **Verification (2026-04-11):** Artifact files exist: README.md, CHANGELOG.md, SHAPE.md for all 7 providers (flow/providers/), `_schemas/sdk.md`, `_schemas/unified.md`; all verified present in filesystem.
 
+### R-40: Detail Cache — LRU Bounded at 50 Sessions ✅
+- **Category:** Performance
+- **Status:** done
+- **Fix (2026-06-22):** `detailCache` in `src/core/registry.ts` upgraded from unbounded `new Map<string, SessionDetail>()` to `new QuickLRU<string, SessionDetail>({ maxSize: 50 })`. QuickLRU (sindresorhus/quick-lru) provides O(1) LRU eviction when the cache reaches 50 entries. `clearDetailCache()` and `invalidateDetailCache(alias, sessionId)` continue to work via QuickLRU's native `clear()` and `delete()` methods. All 24 registry tests pass. bun test: 995 pass, 0 fail.
+
 ### R-42: DRY — Consolidate normalizeTimestamp ✅
 - **Category:** Quality
 - **Status:** done ✅ — R-42 created and fixed in-session
@@ -213,10 +219,10 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Adapter (R-21, R-22, R-31) | ✅ 3/3 done | opencode (SQLite + JSONL), acpx |
 | Cross-Agent (R-19, R-32, R-33) | ✅ 3/4 done, 1 deferred | R-20 deferred (upstream blocker) |
 | Export (R-16, R-17, R-18) | ✅ 3/3 done | CSF, Markdown/text export; OpenCode write-path import |
-| Performance (R-23, R-24, R-40) | ✅ 3/3 done | Pagination, list cache, detail cache |
+| Performance (R-23, R-24, R-40) | ✅ 3/3 done | Pagination, list cache, detail cache (QuickLRU bounded at 50 — R-40 fixed 2026-06-22) |
 | Search (R-41) | ✅ 1/1 done | Fuzzy tool/MCP/skills usage search |
 | Quality (R-28, R-29, R-30, R-42) | ✅ 4/4 done | TDD coverage, CI/CD pipeline, documentation, DRY fix |
-| DRY Invariant | ✅ VERIFIED (current session) | normalize.ts single source; no duplicate normalizeTimestamp; no direct new Adapter() calls; factory pattern enforced; barrel exports synchronized |
+| DRY Invariant | ✅ VERIFIED (2026-06-22) | normalize.ts single source; no duplicate normalizeTimestamp; no direct new Adapter() calls; factory pattern enforced; barrel exports synchronized; detailCache bounded at 50 via QuickLRU (R-40 fix) |
 
 **Overall: 37/39 done, 1 lib-only (R-07 Zed), 1 deferred (R-20). Goal is complete.**
 
@@ -232,7 +238,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 - `src/sdk/session.ts` — Session fork API (done — R-38)
 - `src/core/export.ts` — CSF + Markdown + text export (done — R-16, R-17)
 - `src/core/normalize.ts` — Single normalization source (done — DRY invariant, R-42)
-- `src/core/registry.ts` — Adapter factory registry (done — R-02) + detail cache (done — R-40) (`detailCache`, `clearDetailCache`, `invalidateDetailCache`)
+- `src/core/registry.ts` — Adapter factory registry (done — R-02) + detail cache (done — R-40) (`detailCache` = QuickLRU bounded at 50, `clearDetailCache`, `invalidateDetailCache`)
 - `.github/workflows/test.yml` — CI/CD pipeline (done — R-29)
 - `bin/oas` — CLI binary with all commands wired (done — R-08 to R-15; list, sessions, read, search, list-new, detail, clone, onboard, tui)
 - `flow/providers/mature/zed/SHAPE.md` — Zed storage shape (docs only; lib-only — R-07)
