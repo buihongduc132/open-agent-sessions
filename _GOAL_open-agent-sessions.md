@@ -18,7 +18,7 @@ The goal is complete when ALL of the following are true:
 
 1. All **SDK requirements** (R-34, R-35, R-36, R-37, R-38, R-39) are **done** — 6/6 ✅
 2. All **CLI requirements** (R-08 through R-15) are **done** — 8/8 ✅ (list, sessions, read, search, list-new, detail, clone, tui)
-3. All **Adapter requirements** (R-04, R-05, R-06, R-07, R-21, R-22, R-31) are **done** or **lib-only** — 6 done (R-04, R-05, R-06, R-21, R-22, R-31), 1 lib-only (R-07 Zed) ✅
+3. All **Adapter requirements** (R-04, R-05, R-06, R-07, R-21, R-22, R-31) are **done** or **lib-only** — 5 done (R-04, R-05, R-21, R-22, R-31), 2 lib-only (R-06 Codex list-only, R-07 Zed) ✅
 4. All **Cross-Agent requirements** (R-19, R-20, R-32, R-33) are **done** or **DEFERRED** — 3 done, 1 deferred ✅
 5. All **Export/Import requirements** (R-16, R-17, R-18) are **done** — 3/3 ✅
 6. All **Performance requirements** (R-23, R-24, R-40) are **done** — 3/3 ✅
@@ -99,7 +99,7 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-06-23; re-verified 2026-06-24):** ✅ PASSED — VERIFIED
+**DRY Verification (2026-06-23; re-verified 2026-06-24; re-verified [CURRENT SESSION]):** ✅ PASSED — VERIFIED
 - `normalize.ts` is the only normalization module — confirmed (grep verified)
 - `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed (grep verified)
 - `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed (grep verified)
@@ -164,20 +164,20 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 ## Current State Snapshot ([CURRENT SESSION]) — Derived from Dolt Matrix (authoritative)
 
 | Category | Total | Done | Planned | Lib-only | Deferred | Closed | Incomplete items |
-|----------|-------|------|---------|----------|----------|--------|-----------------|
-| Core | 7 | 6 | 0 | 1 | 0 | 0 | — (R-07 Zed lib-only) |
+|----------|-------|------|---------|----------|----------|---------|-----------------|
+| Core | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | SDK | 6 | 6 | 0 | 0 | 0 | 0 | — |
 | CLI | 8 | 8 | 0 | 0 | 0 | 0 | — |
-| Adapter | 3 | 3 | 0 | 0 | 0 | 0 | — |
+| Adapter | 7 | 5 | 0 | 2 | 0 | 0 | — (R-06 Codex list-only, R-07 Zed — both lib-only) |
 | Cross-Agent | 4 | 3 | 0 | 0 | 1 | 0 | R-20 (DEFERRED) |
-| Export | 3 | 3 | 0 | 0 | 0 | 0 | — |
-| Import | 0 | 0 | 0 | 0 | 0 | 0 | — (Import rows are in Export category in Dolt) |
+| Export | 2 | 2 | 0 | 0 | 0 | 0 | — |
+| Import | 1 | 1 | 0 | 0 | 0 | 0 | — |
 | Performance | 3 | 3 | 0 | 0 | 0 | 0 | — |
 | Search | 1 | 1 | 0 | 0 | 0 | 0 | — |
-| Quality | 4 | 4 | 0 | 0 | 0 | 0 | — |
-| **Total** | **39** | **37** | **0** | **1** | **1** | **0** | — |
+| Quality | 3 | 3 | 0 | 0 | 0 | 0 | — |
+| **Total** | **38** | **35** | **0** | **2** | **1** | **0** | — |
 
-> **This snapshot is derived from Dolt.** Query: `SELECT COUNT(*) FROM open_agent_sessions.requirements` — totals: 37 done, 1 lib-only (R-07 Zed), 1 deferred (R-20), 0 planned. Dolt is authoritative; update this snapshot when it disagrees with Dolt.
+> **This snapshot is derived from Dolt.** Dolt query counts: 35 done, 2 lib-only (R-06 Codex list-only + R-07 Zed), 1 deferred (R-20), 0 planned. Dolt is authoritative; update this snapshot when it disagrees with Dolt.
 
 ---
 
@@ -186,7 +186,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 ### R-41: Fuzzy Tool/MCP/Skills Usage Search ✅
 - **Category:** Search
 - **Status:** done
-- **Verification (2026-04-11):** `toolSearchSessions` test cases present in `test/opencode-adapter.test.ts` — 11 matches covering DB, JSONL, Write, Postgres, and error paths; `ToolSearchQuery` interface in `src/core/types.ts`; `toolSearchSessions` in both OpenCode DB and JSONL adapters
+- **Verification (2026-06-25):** `toolSearchSessions` implemented in both OpenCode DB adapter (`src/adapters/opencode.ts:861–914`) and JSONL adapter (`src/adapters/opencode.ts:923–972`); `ToolSearchQuery` interface at `src/core/types.ts:57–63`; wired on `Adapter` interface at `src/core/types.ts:100–101`; exported from SDK at `src/sdk/index.ts:64`; 8 test cases in `test/opencode-adapter.test.ts:2030–2247` covering DB and JSONL paths for tool name fuzzy-match, partial-match, empty results, non-tool guard, and multi-tool scenarios. `grep` verified: `normalizeTimestamp` imported from `../core/normalize` by `claude.ts` and `codex.ts`; no direct adapter instantiation; `createAdapter()` from `registry.ts` is sole factory.
 
 ### R-30: Documentation ✅
 - **Category:** Quality
