@@ -228,7 +228,7 @@ Delegate @verifier to list out 5 complex paths that the user would use. THEN ver
 - `test/cli-detail.test.ts`: Updated `"unknown agent"` test to use 3-part format (`unknownagent:personal:cx-100`) since `"unknown:cx-100"` is now valid `alias:session_id` format; added new test for bare session ID (`ses_abc123` → `opencode:personal`)
 
 **Test Suite:** 1003 tests, 0 failures, 7 skipped ✅
-**DRY invariant:** Verified PASSED ✅ 
+**DRY invariant:** Verified PASSED ✅ (2026-06-26 — full matrix query, grep, barrel export sync, QuickLRU bounded cache, createAdapter factory, normalizeTimestamp centralized) 
 
 ---
 
