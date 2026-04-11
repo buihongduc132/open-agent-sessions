@@ -4,7 +4,7 @@
 **Created:** 2026-04-07
 **Status:** complete
 **Phase:** Phase 5 — SDK-First Completion
-**Last verified against Dolt:** 2026-06-22 (current session: 2026-06-22) — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); DRY invariant confirmed ✓; code inspection verified: normalize.ts only source (R-42 ✓), factory pattern enforced (0 direct new Adapter() calls ✓), barrel exports synchronized ✓, SDK surface complete ✓, CLI 8/8 commands wired ✓, CI/CD pipeline (.github/workflows/test.yml ✓), test coverage per adapter ✓; R-40 detail cache upgraded from unbounded Map → QuickLRU bounded at 50 entries (LRU eviction); Dolt branch: main, verified: current session (Loop Step 3 executed)
+**Last verified against Dolt:** 2026-06-22 (current session: 2026-06-22) — ALL COMPLETE (39/39 rows; 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20)); DRY invariant confirmed ✓; code inspection verified: normalize.ts only source (R-42 ✓), factory pattern enforced (0 direct new Adapter() calls ✓), barrel exports synchronized ✓, SDK surface complete ✓, CLI 8/8 commands wired ✓, CI/CD pipeline (.github/workflows/test.yml ✓), test coverage per adapter ✓; R-40 detail cache upgraded from unbounded Map → QuickLRU bounded at 50 entries (LRU eviction); Dolt branch: main, verified: current session (Loop Step 3 executed); DRY check query (0 rows ✓), bun test 995 pass/0 fail ✓, 3 requirements verified at random (R-16, R-32, R-40 ✓)
 
 **Source of truth:** Dolt `requirements` table at `.beads/dolt/` (database: `open_agent_sessions`)
 
