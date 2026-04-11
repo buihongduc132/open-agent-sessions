@@ -1,5 +1,6 @@
 import { AgentEntry, AgentKind, Config } from "../config/types";
 import { normalizeSessionSummary } from "./normalize";
+import QuickLRU from "quick-lru";
 import {
   Adapter,
   AdapterFactories,
@@ -15,10 +16,10 @@ const AGENT_ORDER: Record<AgentKind, number> = {
   claude: 2,
 };
 
-// R-40: In-memory cache for session detail reads.
+// R-40: In-memory LRU cache for session detail reads.
 // Key = `${entry.alias}:${sessionId}` (alias is unique per registry).
-// No TTL, no eviction, no Redis. Separate from list cache (R-24).
-const detailCache = new Map<string, SessionDetail>();
+// Bounded at 50 entries — LRU eviction when full. Separate from list cache (R-24).
+const detailCache = new QuickLRU<string, SessionDetail>({ maxSize: 50 });
 
 /**
  * R-40: Clear the detail cache.

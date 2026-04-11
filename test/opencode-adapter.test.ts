@@ -2026,4 +2026,224 @@ describe("OpenCode Adapter", () => {
       });
     });
   });
+
+  // R-41: toolSearchSessions
+  describe("toolSearchSessions", () => {
+    describe("DB adapter", () => {
+      test("returns sessions where a tool name fuzzy-matches", () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-tool-1";
+
+        seedProject(projectId, cwd);
+        seedSession("ses-tool-1", projectId, "Build bash script", cwd, 1000, 2000);
+        seedSession("ses-tool-2", projectId, "Edit a file", cwd, 3000, 4000);
+
+        seedMessage("msg-t1-1", "ses-tool-1", "user", 1100);
+        seedMessage("msg-t1-2", "ses-tool-1", "assistant", 1200);
+        seedPart("prt-t1-1", "msg-t1-2", "ses-tool-1", "tool", { tool: "bash", state: {} }, 1250);
+
+        seedMessage("msg-t2-1", "ses-tool-2", "user", 3100);
+        seedMessage("msg-t2-2", "ses-tool-2", "assistant", 3200);
+        seedPart("prt-t2-1", "msg-t2-2", "ses-tool-2", "text", { text: "Here is the file content" }, 3250);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const results = adapter.toolSearchSessions!({ tool: "bash", cwd });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].id).toBe("ses-tool-1");
+        expect(results[0].storage).toBe("db");
+      });
+
+      test("fuzzy-matches partial tool names", () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-tool-2";
+
+        seedProject(projectId, cwd);
+        seedSession("ses-tool-3", projectId, "Read file content", cwd, 1000, 2000);
+
+        seedMessage("msg-t3-1", "ses-tool-3", "assistant", 1100);
+        seedPart("prt-t3-1", "msg-t3-1", "ses-tool-3", "tool", { tool: "file_read", state: {} }, 1150);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        // Partial match on "read"
+        const results = adapter.toolSearchSessions!({ tool: "read", cwd });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].id).toBe("ses-tool-3");
+      });
+
+      test("returns empty array when no sessions use the tool", () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-tool-3";
+
+        seedProject(projectId, cwd);
+        seedSession("ses-tool-4", projectId, "Generic session", cwd, 1000, 2000);
+
+        seedMessage("msg-t4-1", "ses-tool-4", "user", 1100);
+        seedPart("prt-t4-1", "msg-t4-1", "ses-tool-4", "text", { text: "Hello world" }, 1150);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const results = adapter.toolSearchSessions!({ tool: "bash", cwd });
+
+        expect(results).toHaveLength(0);
+      });
+
+      test("ignores non-tool parts when searching for tools", () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-tool-4";
+
+        seedProject(projectId, cwd);
+        seedSession("ses-tool-5", projectId, "Text-only session", cwd, 1000, 2000);
+
+        seedMessage("msg-t5-1", "ses-tool-5", "user", 1100);
+        seedPart("prt-t5-1", "msg-t5-1", "ses-tool-5", "text", { text: "bash is a shell" }, 1150);
+        seedPart("prt-t5-2", "msg-t5-1", "ses-tool-5", "reasoning", { text: "thinking about bash" }, 1200);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        // "bash" appears in text but not as a tool type
+        const results = adapter.toolSearchSessions!({ tool: "bash", cwd });
+
+        expect(results).toHaveLength(0);
+      });
+
+      test("finds sessions with any matching tool among multiple", () => {
+        const cwd = "/home/user/project";
+        const projectId = "proj-tool-5";
+
+        seedProject(projectId, cwd);
+        seedSession("ses-tool-6a", projectId, "Use multiple tools", cwd, 1000, 2000);
+        seedSession("ses-tool-6b", projectId, "Use MCP tools", cwd, 3000, 4000);
+
+        // ses-tool-6a: uses web_search and file_write
+        seedMessage("msg-t6a-1", "ses-tool-6a", "assistant", 1100);
+        seedPart("prt-t6a-1", "msg-t6a-1", "ses-tool-6a", "tool", { tool: "web_search", state: {} }, 1150);
+        seedPart("prt-t6a-2", "msg-t6a-1", "ses-tool-6a", "tool", { tool: "file_write", state: {} }, 1200);
+
+        // ses-tool-6b: uses postgres_query only
+        seedMessage("msg-t6b-1", "ses-tool-6b", "assistant", 3100);
+        seedPart("prt-t6b-1", "msg-t6b-1", "ses-tool-6b", "tool", { tool: "postgres_query", state: {} }, 3150);
+
+        const entry = makeEntry("main", { mode: "db", db_path: dbPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const resultsWrite = adapter.toolSearchSessions!({ tool: "file_write", cwd });
+        expect(resultsWrite).toHaveLength(1);
+        expect(resultsWrite[0].id).toBe("ses-tool-6a");
+
+        const resultsPostgres = adapter.toolSearchSessions!({ tool: "postgres", cwd });
+        expect(resultsPostgres).toHaveLength(1);
+        expect(resultsPostgres[0].id).toBe("ses-tool-6b");
+      });
+    });
+
+    describe("JSONL adapter", () => {
+      test("returns sessions where a tool name fuzzy-matches", () => {
+        const cwd = "/home/user/project";
+        // projectID must be a substring of cwd for matchesProjectIdForJsonl to pass
+        const projectId = "project";
+
+        // Write JSONL with richer data including tool mention in message
+        const contentWithTool = [
+          JSON.stringify({
+            id: "ses-jsonl-tool-1",
+            projectID: projectId,
+            directory: cwd,
+            title: "Run bash commands",
+            timeCreated: 1000,
+            timeUpdated: 2000,
+            messageCount: 2,
+            messages: [
+              { id: "jmsg-1", role: "user", parts: [{ type: "text", text: "Run a command" }] },
+              { id: "jmsg-2", role: "assistant", parts: [{ type: "tool", tool: "bash", state: {} }] },
+            ],
+          }),
+          JSON.stringify({
+            id: "ses-jsonl-tool-2",
+            projectID: projectId,
+            directory: cwd,
+            title: "Text session",
+            timeCreated: 3000,
+            timeUpdated: 4000,
+            messageCount: 2,
+            messages: [
+              { id: "jmsg-3", role: "user", parts: [{ type: "text", text: "Hello" }] },
+              { id: "jmsg-4", role: "assistant", parts: [{ type: "text", text: "Hello!" }] },
+            ],
+          }),
+        ].join("\n");
+        writeFileSync(jsonlPath, contentWithTool, "utf-8");
+
+        const entry = makeEntry("main", { mode: "jsonl", jsonl_path: jsonlPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const results = adapter.toolSearchSessions!({ tool: "bash", cwd });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].id).toBe("ses-jsonl-tool-1");
+        expect(results[0].storage).toBe("other");
+      });
+
+      test("fuzzy-matches partial tool names in JSONL", () => {
+        const cwd = "/home/user/project";
+        const projectId = "project";
+
+        const content = JSON.stringify({
+          id: "ses-jsonl-tool-3",
+          projectID: projectId,
+          directory: cwd,
+          title: "Read a file",
+          timeCreated: 1000,
+          timeUpdated: 2000,
+          messageCount: 1,
+          messages: [
+            { id: "jmsg-5", role: "assistant", parts: [{ type: "tool", tool: "file_read", state: {} }] },
+          ],
+        });
+        writeFileSync(jsonlPath, content, "utf-8");
+
+        const entry = makeEntry("main", { mode: "jsonl", jsonl_path: jsonlPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        // Partial match on "read"
+        const results = adapter.toolSearchSessions!({ tool: "read", cwd });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].id).toBe("ses-jsonl-tool-3");
+      });
+
+      test("returns empty array when no sessions use the tool in JSONL", () => {
+        const cwd = "/home/user/project";
+        const projectId = "project";
+
+        const content = JSON.stringify({
+          id: "ses-jsonl-tool-4",
+          projectID: projectId,
+          directory: cwd,
+          title: "Text-only",
+          timeCreated: 1000,
+          timeUpdated: 2000,
+          messageCount: 1,
+          messages: [
+            { id: "jmsg-6", role: "assistant", parts: [{ type: "text", text: "Hello world" }] },
+          ],
+        });
+        writeFileSync(jsonlPath, content, "utf-8");
+
+        const entry = makeEntry("main", { mode: "jsonl", jsonl_path: jsonlPath });
+        const adapter = createOpenCodeAdapter(entry, { cwd });
+
+        const results = adapter.toolSearchSessions!({ tool: "bash", cwd });
+
+        expect(results).toHaveLength(0);
+      });
+    });
+  });
 });

@@ -11,6 +11,8 @@ import { runSearchCommand, type SearchService } from "../src/cli/search";
 import { runListCommand, type ListService } from "../src/cli/list";
 import { runDetailCommand, type DetailService } from "../src/cli/detail";
 import { runCloneCommand } from "../src/cli/clone";
+import { runConfigCommand } from "../src/cli/config";
+import { runExportCommand, type ExportService } from "../src/cli/export";
 
 // TUI imports (R-15)
 import { runTuiApp } from "../src/tui/App";
@@ -345,6 +347,24 @@ function createDetailService(config: Config): DetailService {
   };
 }
 
+function createExportService(config: Config): ExportService {
+  const registry = createAdapterRegistry(config, {
+    opencode: (entry) => createOpenCodeAdapter(entry as any, { cwd: process.cwd() }),
+  });
+
+  return async (query, options) => {
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
+    );
+
+    if (!adapter || !adapter.getSessionDetail) {
+      return null;
+    }
+
+    return adapter.getSessionDetail(query.id, options ?? {});
+  };
+}
+
 function createCloneServiceFromConfig(config: Config) {
   const cwd = process.cwd();
   
@@ -626,6 +646,24 @@ async function handleCloneCommand(parsed: ParsedArgs): Promise<void> {
   process.exit(result.exitCode);
 }
 
+async function handleExportCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const getSession = createExportService(config);
+
+  const result = await runExportCommand({
+    sessionRef: parsed.positional[0],
+    from: parsed.options["from"] as string | undefined,
+    format: parsed.options["format"] as "csf" | "markdown" | "text" | undefined,
+    output: parsed.options["output"] as string | undefined,
+    config,
+    getSession,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
 // ============================================================================
 // Help
 // ============================================================================
@@ -650,8 +688,9 @@ function showHelp() {
   console.log("    detail [options]       Show session detail view");
   console.log("    read <session-id>      Read session messages");
   console.log("    read [options]         Read session messages (alternative)");
-  console.log("    search [options]       Search sessions by title and content");
-  console.log("    clone [options]        Clone session from one agent to another");
+    console.log("    search [options]       Search sessions by title and content");
+    console.log("    clone [options]        Clone session from one agent to another");
+    console.log("    export [options]       Export session in CSF/Markdown/Text format");
   console.log("    onboard                Initialize bd (beads) for the project");
   console.log("    tui                    Launch the interactive TUI (session browser + clone)");
   console.log("");
@@ -680,6 +719,12 @@ function showHelp() {
   console.log("Clone Command Options:");
   console.log("    --from SPEC            Source session (agent:session_id or agent:alias:session_id)");
   console.log("    --to SPEC              Destination (agent:alias)");
+  console.log("");
+  console.log("Export Command Options:");
+  console.log("    <session-ref>          Positional session spec (agent:alias:session_id, alias:session_id, or session_id)");
+  console.log("    --from SPEC            Session reference (same formats as positional)");
+  console.log("    --format FORMAT        Output format: csf (default), markdown, text");
+  console.log("    --output FILE          Write output to file instead of stdout");
   console.log("");
   console.log("Read Command Options:");
   console.log("    <session-id>           Positional session spec (supports short forms)");
@@ -847,6 +892,15 @@ async function main() {
     return;
   }
 
+  // R-13: Config inspection command
+  if (command === "config") {
+    const parsed = parseArgs(restArgs);
+    const result = await runConfigCommand(parsed.args);
+    process.stdout.write(result.stdout);
+    process.stderr.write(result.stderr);
+    process.exit(result.exitCode);
+  }
+
   if (command === "list-new") {
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) {
@@ -874,6 +928,16 @@ async function main() {
       return;
     }
     await handleCloneCommand(parsed);
+    return;
+  }
+
+  if (command === "export") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleExportCommand(parsed);
     return;
   }
 
@@ -908,7 +972,9 @@ async function main() {
   console.log("  detail         Show session detail view");
   console.log("  read           Read session messages");
   console.log("  search         Search sessions by title and content");
+  console.log("  config         Inspect, validate, or list config file paths");
   console.log("  clone          Clone session between agents");
+  console.log("  export         Export session in CSF/Markdown/Text format");
   console.log("  onboard        Initialize bd (beads) for the project");
   console.log("  tui            Launch interactive TUI");
   console.log("");
