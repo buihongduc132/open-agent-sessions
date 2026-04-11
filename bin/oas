@@ -16,6 +16,7 @@ import { runExportCommand, type ExportService } from "../src/cli/export";
 
 // TUI imports (R-15)
 import { runTuiApp } from "../src/tui/App";
+import { createColorService } from "../src/tui/color-service";
 import type { ListService as TuiListService, DetailService as TuiDetailService, CloneService as TuiCloneService } from "../src/tui/App";
 
 // Core imports
@@ -769,13 +770,17 @@ function showHelp() {
 // TUI Command (R-15)
 // ============================================================================
 
-async function handleTuiCommand(): Promise<void> {
+async function handleTuiCommand(parsed: ParsedArgs): Promise<void> {
   const config = loadConfig();
 
   // Create CLI-compatible services for the TUI
   const listService = createListServiceFromConfig(config);
   const getSessionService = createDetailService(config);
   const cloneService = createCloneServiceFromConfig(config);
+
+  // Color mode: --color flag (auto/always/never) or NO_COLOR env var
+  const colorMode = (parsed.options["color"] as string | undefined) ?? "auto";
+  const colorService = createColorService({ mode: colorMode as any });
 
   // Map CLI service signatures to TUI service signatures
   const tuiListService: TuiListService = async (query) => {
@@ -796,6 +801,7 @@ async function handleTuiCommand(): Promise<void> {
       list: tuiListService,
       getSession: tuiDetailService,
       cloneSession: tuiCloneService,
+      color: colorService,
     });
   } catch (error) {
     console.error("TUI error:", error instanceof Error ? error.message : String(error));
@@ -938,7 +944,8 @@ async function main() {
 
   // TUI command (R-15)
   if (command === "tui") {
-    await handleTuiCommand();
+    const parsed = parseArgs(restArgs);
+    await handleTuiCommand(parsed);
     return;
   }
 
