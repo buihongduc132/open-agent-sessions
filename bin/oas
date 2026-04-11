@@ -194,10 +194,20 @@ function loadConfig(): Config {
 // Service Creation
 // ============================================================================
 
+/**
+ * Returns factory functions for all supported agent types.
+ * Codex/claude adapters use the `path` field from config, if present.
+ */
+function createAllAgentFactories(cwd: string) {
+  return {
+    opencode: (entry: AgentEntry) => createOpenCodeAdapter(entry as any, { cwd }),
+    codex: (entry: AgentEntry) => createCodexAdapter(entry as any, { defaultPath: (entry as any).path }),
+    claude: (entry: AgentEntry) => createClaudeAdapter(entry as any, {}),
+  };
+}
+
 function createSessionsService(config: Config): SessionsService {
-  const registry = createAdapterRegistry(config, {
-    opencode: (entry) => createOpenCodeAdapter(entry, { cwd: process.cwd() }),
-  });
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
 
   return async (query: { cwd: string; timeRange: TimeRangeOptions }) => {
     const results: SessionSummary[] = [];
@@ -245,37 +255,18 @@ function createSessionsService(config: Config): SessionsService {
 }
 
 function createReadService(config: Config): ReadService {
-  const registry = createAdapterRegistry(config, {
-    opencode: (entry) => createOpenCodeAdapter(entry, { cwd: process.cwd() }),
-  });
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
 
   return async (query: { agent: string; alias: string; id: string }, options: SessionReadOptions) => {
     const adapter = registry.adapters.find(
       (a) => a.agent === query.agent && a.alias === query.alias
     );
 
-    if (!adapter) {
+    if (!adapter || !adapter.getSessionDetail) {
       return null;
     }
 
-    // Access the underlying adapter's getSessionDetail method
-    // We need to get the adapter from the registry entry
-    const entry = config.agents.find(
-      (e) => e.agent === query.agent && e.alias === query.alias
-    );
-
-    if (!entry) {
-      return null;
-    }
-
-    // Create a fresh adapter for this query to access getSessionDetail
-    const freshAdapter = createOpenCodeAdapter(entry as any, { cwd: process.cwd() });
-    
-    if (!freshAdapter.getSessionDetail) {
-      throw new Error(`Adapter does not support session detail retrieval`);
-    }
-
-    return freshAdapter.getSessionDetail(query.id, options);
+    return adapter.getSessionDetail(query.id, options);
   };
 }
 
@@ -320,27 +311,21 @@ function createSearchService(config: Config): SearchService {
 }
 
 function createListServiceFromConfig(config: Config): ListService {
-  const registry = createAdapterRegistry(config, {
-    opencode: (entry) => createOpenCodeAdapter(entry, { cwd: process.cwd() }),
-  });
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
 
   return createListService(registry);
 }
 
 function createDetailService(config: Config): DetailService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
   return async (query) => {
-    const entry = config.agents.find(
-      (e) => e.agent === query.agent && e.alias === query.alias && e.enabled
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
     );
 
-    if (!entry) {
+    if (!adapter || !adapter.getSessionDetail) {
       return null;
-    }
-
-    const adapter = createOpenCodeAdapter(entry as any, { cwd: process.cwd() });
-    
-    if (!adapter.getSessionDetail) {
-      throw new Error(`Adapter does not support session detail retrieval`);
     }
 
     return adapter.getSessionDetail(query.id, {});
@@ -348,9 +333,7 @@ function createDetailService(config: Config): DetailService {
 }
 
 function createExportService(config: Config): ExportService {
-  const registry = createAdapterRegistry(config, {
-    opencode: (entry) => createOpenCodeAdapter(entry as any, { cwd: process.cwd() }),
-  });
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
 
   return async (query, options) => {
     const adapter = registry.adapters.find(

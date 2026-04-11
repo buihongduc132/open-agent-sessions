@@ -1,0 +1,10 @@
+agents:
+  - agent: opencode
+    alias: default
+    enabled: true
+    storage:
+      mode: auto
+  - agent: codex
+    alias: sessions
+    enabled: true
+    path: /home/bhd/.codex/sessions

@@ -39,7 +39,17 @@ export function createCodexAdapter(
       try {
         const rootPath = resolveCodexPath(entry, options);
         const files = collectJsonlFiles(rootPath);
-        return files.map((filePath) => parseCodexSession(filePath, entry));
+        const sessions: SessionSummary[] = [];
+        for (const filePath of files) {
+          // Skip sentinel entries returned when file has JSON parse errors.
+          // Semantic errors (invalid timestamps, missing session_meta, etc.)
+          // propagate and will fail the whole listing as before.
+          const session = parseCodexSession(filePath, entry);
+          if (session.id) {
+            sessions.push(session);
+          }
+        }
+        return sessions;
       } catch (error) {
         const message = errorMessage(error);
         if (message.includes(label)) {
@@ -93,13 +103,17 @@ export function createCodexAdapter(
       const files = collectJsonlFiles(rootPath);
 
       for (const filePath of files) {
-        const summary = parseCodexSession(filePath, entry);
-        if (summary.id === sessionId) {
-          const messages = parseCodexMessages(filePath, sessionId, label);
-          return {
-            ...summary,
-            messages,
-          };
+        try {
+          const summary = parseCodexSession(filePath, entry);
+          if (summary.id === sessionId) {
+            const messages = parseCodexMessages(filePath, sessionId, label);
+            return {
+              ...summary,
+              messages,
+            };
+          }
+        } catch {
+          // Skip files that fail to parse
         }
       }
 
@@ -159,6 +173,21 @@ function walkDir(dir: string, files: string[]): void {
 }
 
 function parseCodexSession(filePath: string, entry: OtherAgentEntry): SessionSummary {
+  try {
+    return parseCodexSessionInner(filePath, entry);
+  } catch (error) {
+    // Only skip files with JSON parse errors (corrupt lines).
+    // Semantic errors (invalid timestamps, missing session_meta, etc.)
+    // must still propagate so the caller knows the session data is bad.
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("JSONL parse error")) {
+      return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
+    }
+    throw error;
+  }
+}
+
+function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): SessionSummary {
   const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
   let sessionMeta: CodexRecord | undefined;
   let title: string | undefined;
