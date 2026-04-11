@@ -15,7 +15,8 @@ export type TuiMode = "list" | "help" | "filter" | "clone" | "tree" | "timeline"
 export type TuiEffect =
   | { type: "exit"; reason: "quit" | "ctrl-c" }
   | { type: "open-detail"; session: SessionSummary }
-  | { type: "clone"; source: SessionSummary; destination: string };
+  | { type: "clone"; source: SessionSummary; destination: string }
+  | { type: "switch-view"; view: "list" | "tree" | "timeline" | "detail" };
 
 export type KeyInput = {
   name: string;
@@ -228,6 +229,21 @@ function handleListInput(
 
   if (name === "?") {
     return { state: { ...next, mode: "help" }, effects: [] };
+  }
+
+  // Tab: cycle list → tree → timeline → list
+  if (name === "tab") {
+    const VIEW_CYCLE: Array<"list" | "tree" | "timeline"> = ["list", "tree", "timeline"];
+    // Get current mode (could be "list", "tree", "timeline" — not "help"/"filter"/"clone")
+    const current = VIEW_CYCLE.includes(state.mode as "list" | "tree" | "timeline")
+      ? (state.mode as "list" | "tree" | "timeline")
+      : "list";
+    const idx = VIEW_CYCLE.indexOf(current);
+    const next_view = VIEW_CYCLE[(idx + 1) % VIEW_CYCLE.length];
+    return {
+      state: { ...next, mode: next_view as TuiMode },
+      effects: [{ type: "switch-view", view: next_view }],
+    };
   }
 
   if (name === "/") {

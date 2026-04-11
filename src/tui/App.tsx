@@ -261,11 +261,15 @@ export function TuiAppView({
           if (effect.type === "clone") {
             void handleClone(effect.source, effect.destination);
           }
+          if (effect.type === "switch-view") {
+            setView(effect.view);
+            return { ...state, mode: effect.view };
+          }
         }
         return state;
       });
     },
-    [handleExit, openDetail, handleClone]
+    [handleExit, openDetail, handleClone, setView]
   );
 
   const handleDetailKey = useCallback(
@@ -398,21 +402,22 @@ export function TuiAppView({
           }
           return;
         }
-        if (view === "detail" || view === "timeline") {
-          if (view === "timeline") {
-            handleTimelineKey(key);
-            return;
-          }
-          handleDetailKey(key);
-          return;
-        }
         if (view === "tree") {
           handleTreeKey(key);
           return;
         }
+        if (view === "timeline") {
+          handleTimelineKey(key);
+          return;
+        }
+        if (view === "detail") {
+          handleDetailKey(key);
+          return;
+        }
+        // view === "list"
         handleListKey(key);
       },
-      [detailState, fatalError, handleDetailKey, handleExit, handleListKey, handleTreeKey, handleTimelineKey, view]
+      [fatalError, handleDetailKey, handleExit, handleListKey, handleTreeKey, handleTimelineKey, view, setView]
     )
   );
 
@@ -510,22 +515,18 @@ export async function runTuiApp(options: {
 }
 
 function Header({ title, agents }: { title: string; agents?: Config["agents"] }): ReactNode {
+  const agentLabel =
+    agents
+      ?.filter((a) => a.enabled)
+      .map((a) => `[${a.agent}:${a.alias}]`)
+      .join(" ") ?? "";
+
   return (
     <box style={{ height: 1, paddingLeft: 1, paddingRight: 1 }}>
       <text fg="#9fd3ff">{title}</text>
-      {agents && (
-        <>
-          {"  "}
-          {agents
-            .filter((a) => a.enabled)
-            .map((a, i) => (
-              <text key={a.alias} fg={agentColor(a.agent)}>
-                [{a.agent}:{a.alias}]
-                {i < agents.filter((x) => x.enabled).length - 1 ? " " : ""}
-              </text>
-            ))}
-        </>
-      )}
+      {agentLabel ? (
+        <text fg="#7ab8d4">  {agentLabel}</text>
+      ) : null}
     </box>
   );
 }
@@ -569,8 +570,7 @@ function TreeView({
             key={`${line.key}-${i}`}
             fg={isSelected ? "#ffffff" : "#cccccc"}
           >
-            {isSelected ? "> " : "  "}
-            {line.text}
+            {(isSelected ? "> " : "  ") + line.text}
           </text>
         );
       })}
