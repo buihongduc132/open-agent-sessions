@@ -99,7 +99,7 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-06-23; re-verified 2026-06-24; re-verified [CURRENT SESSION]):** ✅ PASSED — VERIFIED
+**DRY Verification (2026-06-23; re-verified 2026-06-24; re-verified 2026-06-25):** ✅ PASSED — VERIFIED
 - `normalize.ts` is the only normalization module — confirmed (grep verified)
 - `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed (grep verified)
 - `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed (grep verified)
