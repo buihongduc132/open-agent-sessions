@@ -147,22 +147,16 @@ describe("tui list model", () => {
 
     test("j key moves selection down", () => {
       const entries: AgentEntry[] = [makeAgentEntry("opencode", "default")];
-      const state = createListState(
-        entries,
-        makeSessionListResult([
-          makeSession("a", "A"),
-          makeSession("b", "B"),
-        ])
-      );
+      let state = createListState(entries);
       const key = { name: "j" };
 
       // Need to apply the data first
-      let currentState = applyListData(state, makeSessionListResult([
+      state = applyListData(state, makeSessionListResult([
         makeSession("a", "A"),
         makeSession("b", "B"),
       ]));
 
-      const result = applyKey(currentState, key);
+      const result = applyKey(state, key);
 
       expect(result.state.selectionIndex).toBe(1);
     });

@@ -1,5 +1,11 @@
 export type ColorMode = "auto" | "always" | "never";
 
+const VALID_COLOR_MODES: readonly ColorMode[] = ["auto", "always", "never"];
+
+export function isValidColorMode(mode: string): mode is ColorMode {
+  return VALID_COLOR_MODES.includes(mode as ColorMode);
+}
+
 export interface ColorOptions {
   mode?: ColorMode;
 }
@@ -11,25 +17,28 @@ export interface ColorService {
   setMode: (mode: ColorMode) => void;
 }
 
+const NO_COLOR = process.env.NO_COLOR !== undefined;
+const IS_TTY = process.stdout?.isTTY ?? false;
+
+const checkEnvironment = (): boolean => {
+  if (NO_COLOR) return false;
+  if (!IS_TTY) return false;
+  return true;
+};
+
+export function getEffectiveColor(): boolean {
+  return checkEnvironment();
+}
+
 export function createColorService(options: ColorOptions = {}): ColorService {
   const { mode: initialMode = "auto" } = options;
 
   let currentMode = initialMode;
 
-  // Check environment for effective color
   const checkEnabled = (): boolean => {
     if (currentMode === "always") return true;
     if (currentMode === "never") return false;
-    
-    // Auto mode: check NO_COLOR env var and TTY
-    if (process.env.NO_COLOR) return false;
-    
-    // Check TTY status
-    if (process.stdout && !process.stdout.isTTY) {
-      return false;
-    }
-    
-    return true;
+    return checkEnvironment();
   };
 
   return {
@@ -55,10 +64,4 @@ export function createColorService(options: ColorOptions = {}): ColorService {
       currentMode = mode;
     },
   };
-}
-
-export function getEffectiveColor(): boolean {
-  if (process.env.NO_COLOR) return false;
-  if (process.stdout && !process.stdout.isTTY) return false;
-  return true;
 }

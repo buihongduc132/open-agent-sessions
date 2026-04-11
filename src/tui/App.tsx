@@ -40,7 +40,7 @@ import {
   toggleReasoning,
   type TimelineState,
 } from "./timeline-model";
-import { getEffectiveColor, type ColorService } from "./color-service";
+
 
 export type ListService = (query?: SessionListQuery) => Promise<SessionListResult>;
 export type DetailService = (query: {
@@ -60,10 +60,9 @@ export type TuiAppProps = {
   getSession?: DetailService;
   cloneSession?: CloneService;
   onExit?: (reason: ExitReason) => void;
-  color?: ColorService;
 };
 
-export function TuiApp({ config, list, getSession, cloneSession, onExit, color }: TuiAppProps): ReactNode {
+export function TuiApp({ config, list, getSession, cloneSession, onExit }: TuiAppProps): ReactNode {
   return (
     <TuiAppView
       config={config}
@@ -71,7 +70,6 @@ export function TuiApp({ config, list, getSession, cloneSession, onExit, color }
       getSession={getSession}
       cloneSession={cloneSession}
       onExit={onExit}
-      color={color}
     />
   );
 }
@@ -82,12 +80,10 @@ export function TuiAppView({
   getSession,
   cloneSession,
   onExit,
-  color,
   viewportHeightOverride,
 }: TuiAppProps & { viewportHeightOverride?: number }): ReactNode {
   const { height } = useTerminalDimensions();
   const effectiveHeight = viewportHeightOverride ?? height;
-  const colorEnabled = color?.enabled ?? getEffectiveColor();
   const [listState, setListState] = useState<TuiListState>(() =>
     createListState(config.agents)
   );
