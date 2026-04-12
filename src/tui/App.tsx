@@ -3,6 +3,9 @@ import { createCliRenderer } from "@opentui/core";
 import { flushSync } from "@opentui/react/renderer";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+// Set OAS_DEBUG_PERF=1 in the environment to emit [PERF] timing lines to stderr.
+const DEBUG_PERF = process.env["OAS_DEBUG_PERF"] === "1";
 import { Config } from "../config/types";
 import { CloneRequest, CloneResult } from "../core/clone";
 import { SessionListQuery, SessionListResult } from "../core/list";
@@ -126,7 +129,7 @@ export function TuiAppView({
       try {
         const result = await list(query);
         const ms = Date.now() - t0;
-        console.log(`[PERF] list: ${ms}ms`);
+        if (DEBUG_PERF) console.log(`[PERF] list: ${ms}ms`);
         if (ms > 5000) {
           console.error(`[PERF SLOW] list took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
@@ -137,7 +140,7 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        console.error(`[PERF] list error after ${ms}ms:`, err);
+        if (DEBUG_PERF) console.error(`[PERF] list error after ${ms}ms:`, err);
         throw err;
       }
     },
@@ -151,7 +154,7 @@ export function TuiAppView({
       try {
         const result = await getSession(query);
         const ms = Date.now() - t0;
-        console.log(`[PERF] getSession: ${ms}ms`);
+        if (DEBUG_PERF) console.log(`[PERF] getSession: ${ms}ms`);
         if (ms > 5000) {
           console.error(`[PERF SLOW] getSession took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
@@ -162,7 +165,7 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        console.error(`[PERF] getSession error after ${ms}ms:`, err);
+        if (DEBUG_PERF) console.error(`[PERF] getSession error after ${ms}ms:`, err);
         throw err;
       }
     },

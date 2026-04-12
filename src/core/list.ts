@@ -11,7 +11,7 @@ const AGENT_ORDER: Record<AgentKind, number> = {
 // F4: In-memory LRU cache for session list results.
 // Key = serialized filter dimensions (agent + alias + q).
 // Bounded at 20 entries — one per unique query profile.
-// TTL: 30 seconds (handled by maxAge in QuickLRU via periodic eviction).
+// No TTL — invalidated by clearListCache() or detail invalidation.
 // Invalidated when forkSession creates a new session via clearListCache().
 const listCache = new QuickLRU<string, SessionListResult>({ maxSize: 20 });
 
@@ -139,7 +139,6 @@ export function createListService(
       (effectiveQuery.q !== undefined && effectiveQuery.q.trim().length > 0);
 
     if (!hasFilter && listCache.has(key)) {
-      console.log(`[PERF CACHE HIT] list ${key}`);
       return listCache.get(key)!;
     }
 
