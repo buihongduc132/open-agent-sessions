@@ -83,6 +83,12 @@ export interface TimeRangeOptions {
   since?: number; // Start timestamp (milliseconds since epoch)
   until?: number; // End timestamp (milliseconds since epoch)
   limit?: number; // Maximum number of results (default: 50, 0 = all)
+  /**
+   * Session ID to skip — used by cursor pagination to exclude the cursor
+   * session itself so it doesn't reappear on the next page.
+   * Adapters that implement listSessionsByTimeRange should honour this field.
+   */
+  skipSessionId?: string;
 }
 
 // Canonical session key is (agent, alias, session_id).

@@ -8,6 +8,7 @@ import { CloneRequest, CloneResult } from "../core/clone";
 import { SessionListQuery, SessionListResult } from "../core/list";
 import { SessionDetail, SessionSummary } from "../core/types";
 import {
+  DEFAULT_LIST_LIMIT,
   applyKey as applyListKey,
   applyListData,
   createListState,
@@ -94,6 +95,8 @@ export function TuiAppView({
   const [treeSelectionIndex, setTreeSelectionIndex] = useState(0);
   const [timelineState, setTimelineState] = useState<TimelineState | null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
+  const [perfLog, setPerfLog] = useState<Array<{ label: string; durationMs: number; timestamp: Date }>>([]);
+  const [showPerfOverlay, setShowPerfOverlay] = useState(false);
 
   const listViewportHeight = useMemo(() => {
     const header = 1;
@@ -115,6 +118,57 @@ export function TuiAppView({
     [effectiveHeight]
   );
 
+  // ── Performance instrumentation ───────────────────────────────────────────────
+
+  const timedList = useCallback(
+    async (query: SessionListQuery) => {
+      const t0 = Date.now();
+      try {
+        const result = await list(query);
+        const ms = Date.now() - t0;
+        console.log(`[PERF] list: ${ms}ms`);
+        if (ms > 5000) {
+          console.error(`[PERF SLOW] list took ${ms}ms (>5000ms threshold)`);
+          setPerfLog((prev) => [
+            ...prev.slice(-19),
+            { label: `list(${JSON.stringify(query)})`, durationMs: ms, timestamp: new Date() },
+          ]);
+        }
+        return result;
+      } catch (err) {
+        const ms = Date.now() - t0;
+        console.error(`[PERF] list error after ${ms}ms:`, err);
+        throw err;
+      }
+    },
+    [list]
+  );
+
+  const timedGetSession = useCallback(
+    async (query: { agent: SessionSummary["agent"]; alias: string; id: string }) => {
+      if (!getSession) return null;
+      const t0 = Date.now();
+      try {
+        const result = await getSession(query);
+        const ms = Date.now() - t0;
+        console.log(`[PERF] getSession: ${ms}ms`);
+        if (ms > 5000) {
+          console.error(`[PERF SLOW] getSession took ${ms}ms (>5000ms threshold)`);
+          setPerfLog((prev) => [
+            ...prev.slice(-19),
+            { label: `getSession(${query.id})`, durationMs: ms, timestamp: new Date() },
+          ]);
+        }
+        return result;
+      } catch (err) {
+        const ms = Date.now() - t0;
+        console.error(`[PERF] getSession error after ${ms}ms:`, err);
+        throw err;
+      }
+    },
+    [getSession]
+  );
+
   useEffect(() => {
     setListState((prev) => setListViewportHeight(prev, listViewportHeight));
   }, [listViewportHeight]);
@@ -129,7 +183,7 @@ export function TuiAppView({
 
   useEffect(() => {
     let cancelled = false;
-    list({})
+    timedList({ limit: DEFAULT_LIST_LIMIT })
       .then((result) => {
         if (cancelled) return;
         setListState((prev) => applyListData(prev, result));
@@ -141,7 +195,7 @@ export function TuiAppView({
     return () => {
       cancelled = true;
     };
-  }, [list]);
+  }, [timedList]);
 
   // Build fork tree whenever we have sessions loaded
   useEffect(() => {
@@ -178,7 +232,7 @@ export function TuiAppView({
       }
 
       try {
-        const detail = await getSession({
+        const detail = await timedGetSession({
           agent: session.agent,
           alias: session.alias,
           id: session.id,
@@ -201,7 +255,7 @@ export function TuiAppView({
         }));
       }
     },
-    [getSession]
+    [getSession, timedGetSession]
   );
 
   const handleClone = useCallback(
@@ -230,7 +284,7 @@ export function TuiAppView({
         const result = await cloneSession(request);
         
         // Refresh the list to show the new session
-        const listResult = await list({});
+        const listResult = await timedList({ limit: DEFAULT_LIST_LIMIT });
         setListState((prev) => {
           const next = applyListData({ ...prev, mode: "list" }, listResult);
           return {
@@ -246,11 +300,17 @@ export function TuiAppView({
         }));
       }
     },
-    [cloneSession, list]
+    [cloneSession, timedList]
   );
 
   const handleListKey = useCallback(
     (key: ListKeyInput) => {
+      // P (Shift+p): toggle performance log overlay in list view
+      if (key.name === "P") {
+        setShowPerfOverlay((prev) => !prev);
+        return;
+      }
+
       setListState((prev) => {
         const { state, effects } = applyListKey(prev, key);
         for (const effect of effects) {
@@ -331,8 +391,8 @@ export function TuiAppView({
         }
         return;
       }
-      if (key.name === "left") {
-        // Toggle collapse on the selected node
+      if (key.name === "left" || key.name === "h") {
+        // Toggle collapse on the selected node (left/h collapses)
         const selected = allLines[treeSelectionIndex];
         if (selected && selected.hasChildren) {
           setTreeCollapsed((prev) => {
@@ -364,6 +424,18 @@ export function TuiAppView({
     (key: { name: string; ctrl?: boolean }) => {
       if (!timelineState) return;
 
+      // P: toggle perf overlay
+      if (key.name === "P") {
+        setShowPerfOverlay((prev) => !prev);
+        return;
+      }
+
+      // Esc/P while perf overlay is open: close it
+      if (showPerfOverlay && (key.name === "escape" || key.name === "P")) {
+        setShowPerfOverlay(false);
+        return;
+      }
+
       if (key.name === "j" || key.name === "down") {
         setTimelineState((prev) => prev ? moveDown(prev, treeViewportHeight) : prev);
         return;
@@ -384,12 +456,16 @@ export function TuiAppView({
         setView("detail");
         return;
       }
+      if (key.name === "h") {
+        setView("detail");
+        return;
+      }
       if (key.name === "q") {
         setView("list");
         return;
       }
     },
-    [timelineState, treeViewportHeight]
+    [timelineState, treeViewportHeight, showPerfOverlay]
   );
 
   useKeyboard(
@@ -461,7 +537,7 @@ export function TuiAppView({
         <ListView state={listState} height={listViewportHeight} />
       )}
       {view === "tree" ? (
-        <Footer text="j/k: move  Enter/→: open  ←: collapse  t: timeline  Tab: list  q: quit" />
+        <Footer text="j/k: move  Enter/→/l: open  ←/h: collapse  t: timeline  Tab: list  q: quit" />
       ) : view === "timeline" ? (
         <Footer
           text={
@@ -470,21 +546,24 @@ export function TuiAppView({
                 `Tools: ${timelineState.subAgentSummary.toolCallCount} | ` +
                 `m: tools ${timelineState.filter.showTools ? "on" : "off"} ` +
                 `r: reasoning ${timelineState.filter.showReasoning ? "on" : "off"} | ` +
-                "t: detail  Tab: list  q: quit"
+                "Esc/t: detail  Tab: list  q: quit"
               : ""
           }
         />
       ) : view === "detail" && detailState ? (
-        <Footer text="Esc/q: back  t: tree  Tab: timeline  ? : help  Ctrl+C: exit" />
+        <Footer text="h/Esc/q: back  j/k: scroll  g/G: top/bottom  t: timeline  ?: help  P: perf" />
       ) : listState.mode === "clone" ? (
         <Footer text="j/k: select  Enter: confirm  Esc: cancel  Ctrl+C: exit" />
       ) : (
-        <Footer text={formatFooter(listState) + "  t→timeline  Tab→tree  q/Ctrl+C: exit"} />
+        <Footer text={formatFooter(listState) + "  h: agent  a: alias  /: filter  P: perf  t→timeline  Tab→tree  q/Ctrl+C: exit"} />
       )}
       {view === "detail" && detailState ? (
         <HelpOverlay visible={detailState.mode === "help"} view="detail" />
       ) : (
         <HelpOverlay visible={listState.mode === "help"} view="list" />
+      )}
+      {showPerfOverlay && view === "list" && (
+        <PerfOverlay logs={perfLog} onClose={() => setShowPerfOverlay(false)} />
       )}
     </box>
   );
@@ -540,6 +619,81 @@ function Footer({ text }: { text: string }): ReactNode {
   return (
     <box style={{ height: 1, paddingLeft: 1, paddingRight: 1 }}>
       <text fg="#aaaaaa">{text}</text>
+    </box>
+  );
+}
+
+function PerfOverlay({
+  logs,
+  onClose,
+}: {
+  logs: Array<{ label: string; durationMs: number; timestamp: Date }>;
+  onClose: () => void;
+}): ReactNode {
+  if (logs.length === 0) {
+    return (
+      <box
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#000000B3",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <box
+          border
+          style={{
+            flexDirection: "column",
+            padding: 1,
+            minWidth: 40,
+            backgroundColor: "#1b1f2a",
+            borderColor: "#ffcc00",
+          }}
+        >
+          <text fg="#ffcc00">Performance Log (empty)</text>
+          <text fg="#888888">No slow operations recorded yet.</text>
+          <text fg="#888888">Press P or Esc to close.</text>
+        </box>
+      </box>
+    );
+  }
+
+  return (
+    <box
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#000000B3",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <box
+        border
+        style={{
+          flexDirection: "column",
+          padding: 1,
+          minWidth: 60,
+          maxHeight: 20,
+          backgroundColor: "#1b1f2a",
+          borderColor: "#ffcc00",
+        }}
+      >
+        <text fg="#ffcc00">Performance Log — Slow Operations (&gt;5000ms)</text>
+        {logs.map((entry, i) => (
+          <text key={i} fg="#cccccc">
+            [{entry.timestamp.toISOString()}] {entry.durationMs}ms — {entry.label}
+          </text>
+        ))}
+        <text fg="#888888">Press P or Esc to close.</text>
+      </box>
     </box>
   );
 }
@@ -716,13 +870,18 @@ function HelpOverlay({
         <text fg="#4aa3ff">Shortcuts</text>
         <text fg="#cccccc">j/k or ↑/↓: move</text>
         <text fg="#cccccc">g/G: top/bottom</text>
+        {isDetail ? null : <text fg="#cccccc">h: agent drill-in</text>}
+        {isDetail ? null : <text fg="#cccccc">a: alias drill-in</text>}
+        {isDetail ? null : <text fg="#cccccc">H/L: back out agent/alias filter</text>}
         {isDetail ? null : <text fg="#cccccc">/: filter</text>}
-        {isDetail ? null : <text fg="#cccccc">a/l: toggle agent/alias</text>}
+        {isDetail ? null : <text fg="#cccccc">Enter/l: open detail</text>}
         {isDetail ? null : <text fg="#cccccc">0: clear toggles</text>}
-        {isDetail ? null : <text fg="#cccccc">Enter: open detail</text>}
         {isDetail ? null : <text fg="#cccccc">c: clone (codex only)</text>}
-        <text fg="#cccccc">{isDetail ? "Esc: back" : "Esc: close"}</text>
-        <text fg="#cccccc">{isDetail ? "q: back" : "q: quit"}</text>
+        {isDetail ? <text fg="#cccccc">h: back</text> : null}
+        <text fg="#cccccc">{isDetail ? "Esc/q: back" : "Esc: close"}</text>
+        {isDetail ? null : <text fg="#cccccc">t: timeline  Tab: cycle</text>}
+        {isDetail ? null : <text fg="#cccccc">P: perf log</text>}
+        <text fg="#cccccc">{isDetail ? "?: help  t: timeline" : "?: help  q: quit"}</text>
         <text fg="#888888">Press ? or Esc to close</text>
       </box>
     </box>

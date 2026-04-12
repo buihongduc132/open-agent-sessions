@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
+import { Database } from "bun:sqlite";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
@@ -9,6 +10,7 @@ import {
   SessionMessage,
   SessionReadOptions,
   SessionSummary,
+  TimeRangeOptions,
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
 import type { CloneSourceAdapter, CloneSession, CloneMessage } from "../core/clone";
@@ -38,6 +40,19 @@ export function createCodexAdapter(
       const label = `[${entry.agent}:${entry.alias}]`;
       try {
         const rootPath = resolveCodexPath(entry, options);
+
+        // F2: For SQLite backends, listSessionsByTimeRange uses an indexed query.
+        // Delegate to it to get O(log n) indexed access instead of O(n) JSONL scans.
+        if (rootPath.endsWith(".sqlite")) {
+          const results = listSessionsByTimeRangeFromSqlite(
+            rootPath,
+            entry,
+            { since: 0, limit: 0 }, // 0 limit = no ceiling
+            label
+          );
+          return results;
+        }
+
         const files = collectJsonlFiles(rootPath);
         const sessions: SessionSummary[] = [];
         for (const filePath of files) {
@@ -50,6 +65,71 @@ export function createCodexAdapter(
           }
         }
         return sessions;
+      } catch (error) {
+        const message = errorMessage(error);
+        if (message.includes(label)) {
+          throw new Error(message);
+        }
+        throw new Error(`${label} ${message}`);
+      }
+    },
+    // F2: Time-range based listing — avoids loading all sessions into memory.
+    // Two backends:
+    //   1. SQLite  — for ~/.codex/state_5.sqlite: single indexed query, O(log n)
+    //   2. JSONL   — for file/directory paths: file-based scan + sort + slice
+    listSessionsByTimeRange: (rangeOpts: TimeRangeOptions): SessionSummary[] => {
+      const label = `[${entry.agent}:${entry.alias}]`;
+      const since = rangeOpts.since ?? 0; // 0 = no lower bound
+      const limit = rangeOpts.limit ?? 50;
+      const skipId = rangeOpts.skipSessionId;
+
+      try {
+        const rootPath = resolveCodexPath(entry, options);
+
+        // ── F2: SQLite backend ───────────────────────────────────────────────
+        // Codex's native state_5.sqlite has an indexed updated_at column.
+        // Query it directly for O(log n) indexed access instead of O(n) file scans.
+        if (rootPath.endsWith(".sqlite")) {
+          return listSessionsByTimeRangeFromSqlite(
+            rootPath,
+            entry,
+            { since, limit, skipSessionId: skipId },
+            label
+          );
+        }
+
+        // ── JSONL backend ────────────────────────────────────────────────────
+        const files = collectJsonlFiles(rootPath);
+        const summaries: SessionSummary[] = [];
+
+        for (const filePath of files) {
+          try {
+            // parseCodexSession reads all lines but bails early on JSON parse errors.
+            // We parse every file to extract timestamps — unavoidable for time filtering.
+            const summary = parseCodexSessionForTimeRange(filePath, entry);
+            if (!summary.id) continue;
+
+            // Skip the cursor session so it doesn't reappear on the next page
+            if (skipId !== undefined && summary.id === skipId) continue;
+
+            // Filter: only sessions with last activity >= since
+            const updatedAtMs = Date.parse(summary.updated_at);
+            if (updatedAtMs < since) continue;
+
+            summaries.push(summary);
+          } catch {
+            // Skip files that fail to parse — they can't contribute valid sessions
+          }
+        }
+
+        // Sort by last activity DESC (most recent first), then by id ASC for ties
+        summaries.sort((a, b) => {
+          const timeDelta = Date.parse(b.updated_at) - Date.parse(a.updated_at);
+          if (timeDelta !== 0) return timeDelta;
+          return a.id.localeCompare(b.id);
+        });
+
+        return summaries.slice(0, limit);
       } catch (error) {
         const message = errorMessage(error);
         if (message.includes(label)) {
@@ -185,6 +265,116 @@ function parseCodexSession(filePath: string, entry: OtherAgentEntry): SessionSum
     }
     throw error;
   }
+}
+
+// F2: Lightweight session summary extractor for time-range listing.
+// Reads all lines to extract timestamps (for time filtering) and session_meta
+// (for id/title/created_at), but skips message content parsing for performance.
+// Handles multi-session files by pairing each session_meta with its own timestamps.
+function parseCodexSessionForTimeRange(filePath: string, entry: OtherAgentEntry): SessionSummary {
+  try {
+    return parseCodexSessionForTimeRangeInner(filePath, entry);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("JSONL parse error")) {
+      // Return empty sentinel — listSessionsByTimeRange will skip empty ids
+      return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
+    }
+    throw error;
+  }
+}
+
+function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentEntry): SessionSummary {
+  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+
+  // Codex files can contain multiple sessions. We collect ALL session_meta records
+  // and their associated timestamps, then pair them: each session_meta's id is
+  // matched with the latest timestamp from records AFTER that session_meta
+  // but BEFORE the next session_meta with a different id.
+  type SessionRecord = { id: string; timestamp: string; maxTimestamp: string };
+  const sessions: SessionRecord[] = [];
+
+  let currentId: string | undefined;
+  let currentCreatedAt: string | undefined;
+  let currentMaxTs: string | undefined;
+
+  for (const raw of lines) {
+    if (raw.trim().length === 0) continue;
+
+    let record: CodexRecord;
+    try {
+      record = JSON.parse(raw) as CodexRecord;
+    } catch {
+      throw new Error(`Codex JSONL parse error in ${filePath}`);
+    }
+
+    if (record.type === "session_meta") {
+      // Flush the previous session if complete
+      if (currentId !== undefined && currentCreatedAt !== undefined && currentMaxTs !== undefined) {
+        sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs });
+      }
+      // Start a new session
+      currentId = readString(record.payload?.id, `Codex session id missing in ${filePath}`);
+      currentCreatedAt = normalizeTimestamp(
+        record.payload?.timestamp,
+        `Codex created_at invalid for ${currentId} in ${filePath}`
+      );
+      currentMaxTs = currentCreatedAt; // initialize to created_at
+      continue;
+    }
+
+    if (currentId === undefined) continue; // no session_meta seen yet
+
+    // Accumulate timestamps for the current session
+    if (record.timestamp !== undefined && record.timestamp !== null) {
+      const ctx = `Codex timestamp invalid for ${currentId} in ${filePath}`;
+      const ts = normalizeTimestamp(record.timestamp, ctx);
+      currentMaxTs = currentMaxTs ? maxIso(currentMaxTs, ts) : ts;
+    }
+  }
+
+  // Flush the final session
+  if (currentId !== undefined && currentCreatedAt !== undefined && currentMaxTs !== undefined) {
+    sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs });
+  }
+
+  if (sessions.length === 0) {
+    throw new Error(`Codex session missing session_meta: ${filePath}`);
+  }
+
+  // For a single-session file, return that session
+  if (sessions.length === 1) {
+    const s = sessions[0];
+    return {
+      id: s.id,
+      agent: "codex",
+      alias: entry.alias,
+      title: s.id,
+      created_at: s.timestamp,
+      updated_at: s.maxTimestamp,
+      message_count: 0,
+      storage: "other",
+    };
+  }
+
+  // Multi-session file: return the session with the LATEST last-activity
+  // (most recently updated session in this file — matches Codex behavior)
+  let best: SessionRecord = sessions[0];
+  for (let i = 1; i < sessions.length; i++) {
+    if (Date.parse(sessions[i].maxTimestamp) > Date.parse(best.maxTimestamp)) {
+      best = sessions[i];
+    }
+  }
+  return {
+    id: best.id,
+    agent: "codex",
+    alias: entry.alias,
+    title: best.id,
+    created_at: best.timestamp,
+    updated_at: best.maxTimestamp,
+    message_count: 0,
+    storage: "other",
+  };
 }
 
 function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): SessionSummary {
@@ -486,6 +676,108 @@ function extractContentParts(content: unknown): string[] {
   }
 
   return parts;
+}
+
+// ============================================================================
+// F2: SQLite-backed time-range listing
+// ============================================================================
+
+interface SqliteThreadRow {
+  id: string;
+  title: string;
+  created_at: number;
+  updated_at: number;
+  model: string | null;
+  cwd: string;
+}
+
+/**
+ * F2: List Codex sessions from state_5.sqlite using an indexed time-range query.
+ *
+ * Schema (from ~/.codex/state_5.sqlite):
+ *   CREATE TABLE threads (
+ *     id              TEXT PRIMARY KEY,
+ *     updated_at      INTEGER NOT NULL,  -- Unix seconds (indexed: idx_threads_updated_at)
+ *     created_at      INTEGER NOT NULL,
+ *     title           TEXT NOT NULL,
+ *     model           TEXT,
+ *     cwd             TEXT NOT NULL,
+ *     ...
+ *   );
+ *
+ * Benefits over JSONL scanning:
+ *   - Indexed range scan: O(log n) instead of O(n) file reads
+ *   - No parsing: raw SQL extraction of title + timestamps
+ *   - Single round-trip: LIMIT applied at DB level, not in-process
+ */
+function listSessionsByTimeRangeFromSqlite(
+  dbPath: string,
+  entry: OtherAgentEntry,
+  options: { since: number; limit: number; skipSessionId?: string },
+  label: string
+): SessionSummary[] {
+  let db: Database;
+  try {
+    db = new Database(dbPath, { readonly: true });
+  } catch (error) {
+    throw new Error(
+      `${label} failed to open SQLite DB ${dbPath}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  try {
+    // Build the WHERE clause with indexed columns.
+    // idx_threads_updated_at covers (updated_at DESC, id DESC) — used for ORDER BY + range.
+    const conditions: string[] = ["updated_at >= ?"];
+    const params: (string | number)[] = [options.since / 1000]; // convert ms → Unix seconds
+
+    // Exclude the cursor session so it doesn't reappear on the next page (F2/F6)
+    if (options.skipSessionId !== undefined) {
+      conditions.push("id != ?");
+      params.push(options.skipSessionId);
+    }
+
+    const limitClause = options.limit > 0 ? ` LIMIT ${options.limit}` : ""; // 0 = no cap
+    const sql = `
+      SELECT id, title, created_at, updated_at, model, cwd
+      FROM threads
+      WHERE ${conditions.join(" AND ")}
+      ORDER BY updated_at DESC, id DESC
+      ${limitClause}
+    `;
+
+    let rows: SqliteThreadRow[];
+    try {
+      rows = db.query<SqliteThreadRow, (string | number)[]>(sql).all(...params);
+    } catch (error) {
+      throw new Error(
+        `${label} SQLite query failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    return rows.map((row) => ({
+      id: row.id,
+      agent: "codex",
+      alias: entry.alias,
+      title: row.title || row.id,
+      created_at: formatUnixSeconds(row.created_at),
+      updated_at: formatUnixSeconds(row.updated_at),
+      message_count: 0, // not stored in threads table; counts deferred to detail view
+      storage: "other",
+    }));
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * Convert Unix seconds (INTEGER from SQLite) to ISO-8601 string (milliseconds).
+ * Codex stores all timestamps as Unix seconds; we normalise to the same
+ * ISO-8601 format used by the JSONL path so session ordering is consistent.
+ */
+function formatUnixSeconds(unixSeconds: number): string {
+  // unixSeconds is in seconds, Date expects milliseconds
+  return new Date(unixSeconds * 1000).toISOString();
 }
 
 // ============================================================================

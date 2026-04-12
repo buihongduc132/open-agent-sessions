@@ -18,24 +18,29 @@ const AGENT_ORDER: Record<AgentKind, number> = {
 
 // R-40: In-memory LRU cache for session detail reads.
 // Key = `${entry.alias}:${sessionId}` (alias is unique per registry).
-// Bounded at 50 entries — LRU eviction when full. Separate from list cache (R-24).
+// Bounded at 50 entries — LRU eviction when full. Separate from list cache.
 const detailCache = new QuickLRU<string, SessionDetail>({ maxSize: 50 });
 
+import { clearListCache } from "./list";
+
 /**
- * R-40: Clear the detail cache.
+ * R-40: Clear the entire detail cache and list cache.
+ * Also clears the list cache since session details and the list are coupled:
+ * when a session is updated, its position/summary in the list may change.
  * Exported for use in tests; call this to reset cache state between tests.
  */
 export function clearDetailCache(): void {
   detailCache.clear();
+  clearListCache();
 }
 
 /**
  * R-40: Invalidate a single cached session detail entry.
- * Call this when a session is updated (e.g. after a fork or write operation)
- * so the next getSessionDetail call fetches fresh data.
+ * Clears the list cache so the session list reflects the updated session.
  */
 export function invalidateDetailCache(alias: string, sessionId: string): void {
   detailCache.delete(`${alias}:${sessionId}`);
+  clearListCache();
 }
 
 export function createAdapterRegistry(

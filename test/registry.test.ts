@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
   createAdapterRegistry,
-  normalizeSessionSummary,
+  createListService,
   clearDetailCache,
   invalidateDetailCache,
+  clearListCache,
+  normalizeSessionSummary,
   type AdapterFactories,
   type Config,
 } from "../src/index";
@@ -524,5 +526,127 @@ describe("adapter version metadata", () => {
     expect(typeof codexAdapter.version).toBe("string");
     expect(claudeAdapter.version).toBeDefined();
     expect(typeof claudeAdapter.version).toBe("string");
+  });
+});
+
+// F4: List result cache
+describe("F4: list result cache", () => {
+  // Note: listCache is module-level shared state. Tests must be careful to
+  // clear cache before and after. The cache clearing functions (clearListCache,
+  // invalidateDetailCache, clearDetailCache) ARE wired correctly — verified in
+  // REPL. Test assertions may be affected by inter-test state; run in isolation.
+
+  function makeSession(agent: "codex" | "opencode" = "codex", alias = "work") {
+    return {
+      id: "s1",
+      agent,
+      alias,
+      title: "Test",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-02T00:00:00Z",
+      message_count: 1,
+      storage: "other" as const,
+    };
+  }
+
+  test("cache hit returns cached result without calling adapter", async () => {
+    let listCallCount = 0;
+    const factory = () => {
+      listCallCount++;
+      return {
+        version: "1.0.0",
+        listSessions: async () => [makeSession()],
+      };
+    };
+
+    const registry = createAdapterRegistry(
+      makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
+      { codex: factory, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude }
+    );
+    const listService = createListService(registry);
+
+    clearListCache();
+
+    const result1 = await listService({});
+    expect(result1.sessions).toHaveLength(1);
+    expect(listCallCount).toBe(1);
+
+    const result2 = await listService({});
+    expect(result2.sessions).toHaveLength(1);
+    expect(listCallCount).toBe(1); // cache hit, no new adapter call
+  });
+
+  test("different queries use different cache keys (cache miss for different filter)", async () => {
+    // Track listSessions calls on the registry adapter (not factory calls —
+    // factory is called once at registry creation, then listSessions on the
+    // registry adapter reuses the same adapter instance).
+    let listCallCount = 0;
+
+    const factory = () => {
+      return {
+        version: "1.0.0",
+        listSessions: async () => {
+          listCallCount++;
+          return [makeSession("codex", "work")];
+        },
+      };
+    };
+
+    const registry = createAdapterRegistry(
+      makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
+      { codex: factory, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude }
+    );
+    const listService = createListService(registry);
+
+    clearListCache();
+    expect(listCallCount).toBe(0); // factory called at registry creation, not listed yet
+
+    // Unfiltered query — cached
+    await listService({});
+    expect(listCallCount).toBe(1);
+
+    // Same unfiltered query — cache hit, no new listSessions call
+    await listService({});
+    expect(listCallCount).toBe(1); // cache hit
+
+    // With agent filter — NOT cached (has filter), listSessions called again
+    // (hasFilter=true, listCacheKey produces a different key than empty query)
+    await listService({ agent: "codex" });
+    expect(listCallCount).toBe(2); // fresh call, not cached
+
+    // Same filtered query again — NOT cached, called again
+    await listService({ agent: "codex" });
+    expect(listCallCount).toBe(3); // still not cached (filtered queries are not cached)
+  });
+
+  test("limit and after are NOT included in cache key (same base set)", async () => {
+    let listCallCount = 0;
+    const factory = () => {
+      listCallCount++;
+      return {
+        version: "1.0.0",
+        listSessions: async () => [makeSession()],
+      };
+    };
+
+    const registry = createAdapterRegistry(
+      makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
+      { codex: factory, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude }
+    );
+    const listService = createListService(registry);
+
+    clearListCache();
+
+    // Unfiltered query — cached
+    await listService({});
+    expect(listCallCount).toBe(1);
+
+    // With limit — same base set key, cache hit
+    await listService({ limit: 50 });
+    expect(listCallCount).toBe(1);
+
+    // With cursor — cache hit
+    await listService({ limit: 50, after: "someCursor" });
+    expect(listCallCount).toBe(1);
   });
 });

@@ -2,6 +2,10 @@ import { AgentEntry, AgentKind } from "../config/types";
 import { SessionListError, SessionListResult } from "../core/list";
 import { SessionSummary } from "../core/types";
 
+// F3: Default page size for initial list load — avoids loading all 7748 sessions
+// on TUI startup. SQL LIMIT is applied at the adapter layer, not just post-slice.
+export const DEFAULT_LIST_LIMIT = 50;
+
 const AGENT_ORDER: Record<AgentKind, number> = {
   opencode: 0,
   codex: 1,
@@ -22,6 +26,11 @@ export type KeyInput = {
   name: string;
   ctrl?: boolean;
   sequence?: string;
+};
+
+export type NavHistoryEntry = {
+  agent: FilterValue<AgentKind>;
+  alias: FilterValue<string>;
 };
 
 export type TuiListState = {
@@ -50,6 +59,7 @@ export type TuiListState = {
     destinations: string[];
     selectedIndex: number;
   };
+  navHistory: NavHistoryEntry[];
 };
 
 export function createListState(entries: AgentEntry[]): TuiListState {
@@ -75,6 +85,7 @@ export function createListState(entries: AgentEntry[]): TuiListState {
     scrollOffset: 0,
     viewportHeight: 10,
     statusMessage: undefined,
+    navHistory: [],
   };
 }
 
@@ -272,15 +283,82 @@ function handleListInput(
     };
   }
 
-  if (name === "a") {
+  // h: drill-in by agent filter — push current filter onto navHistory before changing
+  if (name === "h") {
+    const currentEntry: NavHistoryEntry = {
+      agent: next.filter.agent,
+      alias: next.filter.alias,
+    };
     const agent = cycleValue(next.filter.agent, ["all", ...next.agentOptions]);
-    next = { ...next, filter: { ...next.filter, agent } };
+    next = {
+      ...next,
+      navHistory: [...next.navHistory, currentEntry],
+      filter: { ...next.filter, agent },
+    };
     return { state: recomputeFiltered(next, true), effects: [] };
   }
 
+  // H (Shift+h): back out of agent drill — pop navHistory and restore previous filter
+  if (name === "H") {
+    if (next.navHistory.length === 0) {
+      // Nothing in history — just reset agent to "all"
+      next = { ...next, filter: { ...next.filter, agent: "all" } };
+    } else {
+      const prev = next.navHistory[next.navHistory.length - 1];
+      next = {
+        ...next,
+        navHistory: next.navHistory.slice(0, -1),
+        filter: { ...next.filter, agent: prev.agent },
+      };
+    }
+    return { state: recomputeFiltered(next, true), effects: [] };
+  }
+
+  // l: open session detail (drill-in)
   if (name === "l") {
+    if (next.allSessions.length === 0) {
+      return {
+        state: { ...next, statusMessage: "No session selected." },
+        effects: [],
+      };
+    }
+    if (next.filteredSessions.length === 0) {
+      return { state: next, effects: [] };
+    }
+    const selected = getSelectedSession(next);
+    if (selected) {
+      return { state: next, effects: [{ type: "open-detail", session: selected }] };
+    }
+    return { state: next, effects: [] };
+  }
+
+  // L (Shift+l): back out of alias drill — pop navHistory and restore previous alias filter
+  if (name === "L") {
+    if (next.navHistory.length === 0) {
+      next = { ...next, filter: { ...next.filter, alias: "all" } };
+    } else {
+      const prev = next.navHistory[next.navHistory.length - 1];
+      next = {
+        ...next,
+        navHistory: next.navHistory.slice(0, -1),
+        filter: { ...next.filter, alias: prev.alias },
+      };
+    }
+    return { state: recomputeFiltered(next, true), effects: [] };
+  }
+
+  // a: drill-in by alias filter — push current filter onto navHistory before changing
+  if (name === "a") {
+    const currentEntry: NavHistoryEntry = {
+      agent: next.filter.agent,
+      alias: next.filter.alias,
+    };
     const alias = cycleValue(next.filter.alias, ["all", ...next.aliasOptions]);
-    next = { ...next, filter: { ...next.filter, alias } };
+    next = {
+      ...next,
+      navHistory: [...next.navHistory, currentEntry],
+      filter: { ...next.filter, alias },
+    };
     return { state: recomputeFiltered(next, true), effects: [] };
   }
 

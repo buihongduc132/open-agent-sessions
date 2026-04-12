@@ -181,4 +181,70 @@ describe("cli list", () => {
 
     expect(received).toEqual({ agent: undefined, alias: undefined, q: undefined });
   });
+
+  test("passes limit and after to list service", async () => {
+    let received: SessionListQuery | undefined;
+    const list: ListService = async (query) => {
+      received = query;
+      return { sessions: [], errors: [] };
+    };
+
+    await runListCommand({
+      limit: 20,
+      after: "some-cursor",
+      config: baseConfig,
+      list,
+    });
+
+    expect(received?.limit).toBe(20);
+    expect(received?.after).toBe("some-cursor");
+  });
+
+  test("pagination — prints sessions from first page", async () => {
+    const list = makeListService({
+      sessions: [
+        {
+          id: "s1",
+          agent: "opencode",
+          alias: "personal",
+          title: "First",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-02T00:00:00Z",
+          message_count: 1,
+          storage: "db",
+        },
+        {
+          id: "s2",
+          agent: "opencode",
+          alias: "personal",
+          title: "Second",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+          message_count: 2,
+          storage: "db",
+        },
+      ],
+      errors: [],
+      hasMore: true,
+      nextCursor: "next-cursor-token",
+    });
+
+    const result = await runListCommand({ config: baseConfig, list, limit: 2 });
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("First");
+    expect(result.stdout).toContain("Second");
+  });
+
+  test("pagination — empty second page returns empty-state message", async () => {
+    const list = makeListService({
+      sessions: [],
+      errors: [],
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const result = await runListCommand({ config: baseConfig, list, limit: 10, after: "cursor" });
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("No sessions");
+  });
 });

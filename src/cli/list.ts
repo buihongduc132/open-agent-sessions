@@ -3,7 +3,7 @@ import { SessionListQuery, SessionListResult } from "../core/list";
 import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
 
-const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>]";
+const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>] [--limit <n>] [--after <cursor>]";
 
 export type ListService = (query: SessionListQuery) => Promise<SessionListResult>;
 
@@ -11,6 +11,8 @@ export async function runListCommand(options: {
   agent?: string;
   alias?: string;
   q?: string;
+  limit?: number;
+  after?: string;
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -36,6 +38,8 @@ export async function runListCommand(options: {
     agent: agentResult.value,
     alias: aliasResult.value,
     q: normalizeQuery(options.q),
+    limit: options.limit,
+    after: options.after,
   };
 
   let result: SessionListResult;
