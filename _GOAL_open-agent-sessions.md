@@ -28,7 +28,7 @@ The goal is complete when ALL of the following are true:
 10. **DRY invariant is verified** — no duplicate logic across adapters; shared normalization lives in `src/core/normalize.ts` only ✅
 11. All requirements are **done**, **DEFERRED**, or **lib-only** — no incomplete items remain.
 
-**All requirements are complete. The goal is done. ✅ (Verified 2026-06-26)**
+**All requirements are complete. The goal is done. ✅ (Verified 2026-06-28)**
 
 **Matrix as source of trust:** The `requirements` table in Dolt is the authoritative state. All status updates, new requirements, and corrections MUST be written to Dolt first. The snapshot in this file is derived from Dolt — never the reverse.
 
@@ -99,11 +99,10 @@ The following must always be true:
 
 5. **Test coverage per adapter.** Each adapter has a corresponding test file in `test/adapters/` (or `test/`). A new adapter without tests violates the DRY invariant.
 
-**DRY Verification (2026-06-23; re-verified 2026-06-24; re-verified 2026-06-25):** ✅ PASSED — VERIFIED
+**DRY Verification (2026-06-23; re-verified 2026-06-24; re-verified 2026-06-25; re-verified 2026-06-28):** ✅ PASSED — VERIFIED
 - `normalize.ts` is the only normalization module — confirmed (grep verified)
-- `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed (grep verified)
-- `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed (grep verified)
-- No `new OpenCodeAdapter` / `new CodexAdapter` / etc. direct instantiations in adapter code — confirmed (grep verified, 0 matches); `new Map()` in `workspace.ts:adapterCache` is a separate cache, not an adapter instantiation
+- `claude.ts` and `codex.ts` import `normalizeTimestamp` from `../core/normalize` — confirmed (grep verified, 2 imports each)
+- `acpx.ts` and `opencode.ts` do not define their own `normalizeTimestamp` — confirmed (grep verified, 0 matches)
 - `createAdapter()` from `registry.ts` is the sole factory — confirmed
 - Barrel exports synchronized: `src/sdk/index.ts` ✅, `src/core/index.ts` ✅, `src/adapters/index.ts` ✅, `package.json` ✅
 - `detailCache` is bounded at 50 via QuickLRU — `src/core/registry.ts:22` confirmed
@@ -176,7 +175,7 @@ Provider ordering within adapter work: **opencode > acpx > codex > zed**
 | Quality | 4 | 4 | 0 | 0 | 0 | — |
 | **Total** | **39** | **37** | **1** | **1** | **0** | — |
 
-> **This snapshot is derived from Dolt (2026-06-26).** Dolt query counts: 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20), 0 planned/incomplete. Dolt is authoritative; this snapshot reflects its current state.
+> **This snapshot is derived from Dolt (2026-06-28).** Dolt query counts: 37 done, 1 lib-only (R-07 Zed), 1 DEFERRED (R-20), 0 planned/incomplete. Dolt is authoritative; this snapshot reflects its current state.
 
 ---
 
