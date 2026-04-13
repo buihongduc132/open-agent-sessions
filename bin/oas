@@ -772,9 +772,7 @@ function showHelp() {
 // ============================================================================
 
 async function handleTuiCommand(): Promise<void> {
-  console.error("DEBUG handleTuiCommand: START");
   const config = loadConfig();
-  console.error("DEBUG config agents:", JSON.stringify(config.agents.map(a => ({agent:a.agent, alias:a.alias, enabled:a.enabled}))));
 
   // Create CLI-compatible services for the TUI
   const listService = createListServiceFromConfig(config);
@@ -794,18 +792,12 @@ async function handleTuiCommand(): Promise<void> {
     return cloneService(request as any);
   };
 
-  try {
-    await runTuiApp({
-      config,
-      list: tuiListService,
-      getSession: tuiDetailService,
-      cloneSession: tuiCloneService,
-    });
-  } catch (error) {
-    console.error("TUI error:", error instanceof Error ? error.message : String(error));
-    console.error("Stack:", error instanceof Error ? error.stack : "");
-    process.exit(1);
-  }
+  await runTuiApp({
+    config,
+    list: tuiListService,
+    getSession: tuiDetailService,
+    cloneSession: tuiCloneService,
+  });
 }
 
 // ============================================================================

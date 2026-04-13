@@ -11,4 +11,4 @@ agents:
   - agent: codex
     alias: sessions
     enabled: true
-    path: ~/.config/codex/sessions
+    path: ~/.codex/state_5.sqlite

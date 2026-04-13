@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Set OAS_DEBUG_PERF=1 in the environment to emit [PERF] timing lines to stderr.
 const DEBUG_PERF = process.env["OAS_DEBUG_PERF"] === "1";
+const LIST_TIMEOUT_MS = 8000;
 import { Config } from "../config/types";
 import { CloneRequest, CloneResult } from "../core/clone";
 import { SessionListQuery, SessionListResult } from "../core/list";
@@ -127,7 +128,12 @@ export function TuiAppView({
     async (query: SessionListQuery) => {
       const t0 = Date.now();
       try {
-        const result = await list(query);
+        const result = await Promise.race([
+          list(query),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`List timed out after ${LIST_TIMEOUT_MS}ms`)), LIST_TIMEOUT_MS)
+          ),
+        ]);
         const ms = Date.now() - t0;
         if (DEBUG_PERF) console.log(`[PERF] list: ${ms}ms`);
         if (ms > 5000) {
@@ -339,6 +345,10 @@ export function TuiAppView({
 
   const handleDetailKey = useCallback(
     (key: DetailKeyInput) => {
+      if (key.name === "t") {
+        setView("timeline");
+        return;
+      }
       setDetailState((prev) => {
         if (!prev) return prev;
         const { state, effect } = applyDetailKey(prev, key);
@@ -384,11 +394,13 @@ export function TuiAppView({
         // Open detail for the selected tree node
         const selected = allLines[treeSelectionIndex];
         if (selected) {
-          const [agent, alias] = selected.text.split(" ")[1]?.split(":") ?? [];
+          const keyParts = selected.key.split(":");
+          const agent = keyParts[0] ?? "opencode";
+          const alias = keyParts[1] ?? "default";
           void openDetail({
-            id: selected.key.split(":").pop() ?? selected.key,
-            agent: (agent ?? "opencode") as SessionSummary["agent"],
-            alias: alias ?? "default",
+            id: keyParts[2] ?? selected.key,
+            agent: agent as SessionSummary["agent"],
+            alias,
             title: "",
           } as SessionSummary);
         }
@@ -411,7 +423,20 @@ export function TuiAppView({
         return;
       }
       if (key.name === "t") {
-        setView("timeline");
+        // Open the selected session detail first — must populate detailState and
+        // timelineState before switching to timeline view.
+        const selected = allLines[treeSelectionIndex];
+        if (selected) {
+          const keyParts = selected.key.split(":");
+          const agent = keyParts[0] ?? "opencode";
+          const alias = keyParts[1] ?? "default";
+          void openDetail({
+            id: keyParts[2] ?? selected.key,
+            agent: agent as SessionSummary["agent"],
+            alias,
+            title: "",
+          } as SessionSummary);
+        }
         return;
       }
       if (key.name === "escape" || key.name === "q") {
@@ -578,15 +603,11 @@ export async function runTuiApp(options: {
   getSession?: DetailService;
   cloneSession?: CloneService;
 }): Promise<void> {
-  const renderer = await createCliRenderer({ exitOnCtrlC: false });
+  const renderer = await createCliRenderer({ exitOnCtrlC: true, testing: false });
   const root = createRoot(renderer);
 
   await new Promise<void>((resolve) => {
-    const handleExit = () => {
-      renderer.destroy();
-      resolve();
-    };
-    // Wrap render in flushSync so all useEffect-triggered re-renders commit synchronously
+    renderer.on("destroy", resolve);
     flushSync(() => {
       root.render(
         <TuiApp
@@ -594,7 +615,7 @@ export async function runTuiApp(options: {
           list={options.list}
           getSession={options.getSession}
           cloneSession={options.cloneSession}
-          onExit={handleExit}
+          onExit={resolve}
         />
       );
     });
@@ -727,10 +748,12 @@ function TreeView({
     <box style={{ flexDirection: "column", flexGrow: 1, paddingLeft: 1 }}>
       {visible.map((line, i) => {
         const isSelected = allLines.indexOf(line) === selectionIndex;
+        const agent = line.key.split(":")[0] ?? "opencode";
+        const baseFg = isSelected ? "#ffffff" : agentColor(agent);
         return (
           <text
             key={`${line.key}-${i}`}
-            fg={isSelected ? "#ffffff" : "#cccccc"}
+            fg={baseFg}
           >
             {(isSelected ? "> " : "  ") + line.text}
           </text>

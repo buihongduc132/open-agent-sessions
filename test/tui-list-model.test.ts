@@ -277,13 +277,25 @@ describe("/ enters filter mode", () => {
   });
 });
 
-// ── t jumps to timeline ──────────────────────────────────────────────────────
+// ── t opens detail ─────────────────────────────────────────────────────────
+// Pressing t from list/tree mode now opens the detail of the selected session
+// first, so detailState is populated and timelineState is built before the user
+// can press t again in detail view to switch to timeline view.
+// This prevents the timeline freeze (Bug 4).
 
-describe("t jumps to timeline", () => {
-  test("t emits switch-view to timeline", () => {
+describe("t opens detail (timeline shortcut)", () => {
+  test("t emits open-detail effect for the selected session", () => {
     const state = makeState({ mode: "list" });
     const { effects } = applyKey(state, key("t"));
-    expect(effects).toContainEqual({ type: "switch-view", view: "timeline" });
+    expect(effects).toContainEqual(expect.objectContaining({ type: "open-detail" }));
+  });
+
+  test("t does NOT emit switch-view:timeline directly from list-model", () => {
+    const state = makeState({ mode: "list" });
+    const { effects } = applyKey(state, key("t"));
+    expect(
+      effects.some((e) => e.type === "switch-view" && (e as { view: string }).view === "timeline")
+    ).toBe(false);
   });
 });
 
