@@ -1,12 +1,18 @@
 import { createRoot, useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { createCliRenderer } from "@opentui/core";
+import { flushSync } from "@opentui/react/renderer";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+// Set OAS_DEBUG_PERF=1 in the environment to emit [PERF] timing lines to stderr.
+const DEBUG_PERF = process.env["OAS_DEBUG_PERF"] === "1";
+const LIST_TIMEOUT_MS = 8000;
 import { Config } from "../config/types";
 import { CloneRequest, CloneResult } from "../core/clone";
 import { SessionListQuery, SessionListResult } from "../core/list";
 import { SessionDetail, SessionSummary } from "../core/types";
 import {
+  DEFAULT_LIST_LIMIT,
   applyKey as applyListKey,
   applyListData,
   createListState,
@@ -93,6 +99,8 @@ export function TuiAppView({
   const [treeSelectionIndex, setTreeSelectionIndex] = useState(0);
   const [timelineState, setTimelineState] = useState<TimelineState | null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
+  const [perfLog, setPerfLog] = useState<Array<{ label: string; durationMs: number; timestamp: Date }>>([]);
+  const [showPerfOverlay, setShowPerfOverlay] = useState(false);
 
   const listViewportHeight = useMemo(() => {
     const header = 1;
@@ -114,6 +122,62 @@ export function TuiAppView({
     [effectiveHeight]
   );
 
+  // ── Performance instrumentation ───────────────────────────────────────────────
+
+  const timedList = useCallback(
+    async (query: SessionListQuery) => {
+      const t0 = Date.now();
+      try {
+        const result = await Promise.race([
+          list(query),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`List timed out after ${LIST_TIMEOUT_MS}ms`)), LIST_TIMEOUT_MS)
+          ),
+        ]);
+        const ms = Date.now() - t0;
+        if (DEBUG_PERF) console.log(`[PERF] list: ${ms}ms`);
+        if (ms > 5000) {
+          console.error(`[PERF SLOW] list took ${ms}ms (>5000ms threshold)`);
+          setPerfLog((prev) => [
+            ...prev.slice(-19),
+            { label: `list(${JSON.stringify(query)})`, durationMs: ms, timestamp: new Date() },
+          ]);
+        }
+        return result;
+      } catch (err) {
+        const ms = Date.now() - t0;
+        if (DEBUG_PERF) console.error(`[PERF] list error after ${ms}ms:`, err);
+        throw err;
+      }
+    },
+    [list]
+  );
+
+  const timedGetSession = useCallback(
+    async (query: { agent: SessionSummary["agent"]; alias: string; id: string }) => {
+      if (!getSession) return null;
+      const t0 = Date.now();
+      try {
+        const result = await getSession(query);
+        const ms = Date.now() - t0;
+        if (DEBUG_PERF) console.log(`[PERF] getSession: ${ms}ms`);
+        if (ms > 5000) {
+          console.error(`[PERF SLOW] getSession took ${ms}ms (>5000ms threshold)`);
+          setPerfLog((prev) => [
+            ...prev.slice(-19),
+            { label: `getSession(${query.id})`, durationMs: ms, timestamp: new Date() },
+          ]);
+        }
+        return result;
+      } catch (err) {
+        const ms = Date.now() - t0;
+        if (DEBUG_PERF) console.error(`[PERF] getSession error after ${ms}ms:`, err);
+        throw err;
+      }
+    },
+    [getSession]
+  );
+
   useEffect(() => {
     setListState((prev) => setListViewportHeight(prev, listViewportHeight));
   }, [listViewportHeight]);
@@ -128,7 +192,7 @@ export function TuiAppView({
 
   useEffect(() => {
     let cancelled = false;
-    list({})
+    timedList({ limit: DEFAULT_LIST_LIMIT })
       .then((result) => {
         if (cancelled) return;
         setListState((prev) => applyListData(prev, result));
@@ -140,7 +204,7 @@ export function TuiAppView({
     return () => {
       cancelled = true;
     };
-  }, [list]);
+  }, [timedList]);
 
   // Build fork tree whenever we have sessions loaded
   useEffect(() => {
@@ -177,7 +241,7 @@ export function TuiAppView({
       }
 
       try {
-        const detail = await getSession({
+        const detail = await timedGetSession({
           agent: session.agent,
           alias: session.alias,
           id: session.id,
@@ -200,7 +264,7 @@ export function TuiAppView({
         }));
       }
     },
-    [getSession]
+    [getSession, timedGetSession]
   );
 
   const handleClone = useCallback(
@@ -229,7 +293,7 @@ export function TuiAppView({
         const result = await cloneSession(request);
         
         // Refresh the list to show the new session
-        const listResult = await list({});
+        const listResult = await timedList({ limit: DEFAULT_LIST_LIMIT });
         setListState((prev) => {
           const next = applyListData({ ...prev, mode: "list" }, listResult);
           return {
@@ -245,11 +309,17 @@ export function TuiAppView({
         }));
       }
     },
-    [cloneSession, list]
+    [cloneSession, timedList]
   );
 
   const handleListKey = useCallback(
     (key: ListKeyInput) => {
+      // P (Shift+p): toggle performance log overlay in list view
+      if (key.name === "P") {
+        setShowPerfOverlay((prev) => !prev);
+        return;
+      }
+
       setListState((prev) => {
         const { state, effects } = applyListKey(prev, key);
         for (const effect of effects) {
@@ -275,6 +345,10 @@ export function TuiAppView({
 
   const handleDetailKey = useCallback(
     (key: DetailKeyInput) => {
+      if (key.name === "t") {
+        setView("timeline");
+        return;
+      }
       setDetailState((prev) => {
         if (!prev) return prev;
         const { state, effect } = applyDetailKey(prev, key);
@@ -320,18 +394,20 @@ export function TuiAppView({
         // Open detail for the selected tree node
         const selected = allLines[treeSelectionIndex];
         if (selected) {
-          const [agent, alias] = selected.text.split(" ")[1]?.split(":") ?? [];
+          const keyParts = selected.key.split(":");
+          const agent = keyParts[0] ?? "opencode";
+          const alias = keyParts[1] ?? "default";
           void openDetail({
-            id: selected.key.split(":").pop() ?? selected.key,
-            agent: (agent ?? "opencode") as SessionSummary["agent"],
-            alias: alias ?? "default",
+            id: keyParts[2] ?? selected.key,
+            agent: agent as SessionSummary["agent"],
+            alias,
             title: "",
           } as SessionSummary);
         }
         return;
       }
-      if (key.name === "left") {
-        // Toggle collapse on the selected node
+      if (key.name === "left" || key.name === "h") {
+        // Toggle collapse on the selected node (left/h collapses)
         const selected = allLines[treeSelectionIndex];
         if (selected && selected.hasChildren) {
           setTreeCollapsed((prev) => {
@@ -347,7 +423,20 @@ export function TuiAppView({
         return;
       }
       if (key.name === "t") {
-        setView("timeline");
+        // Open the selected session detail first — must populate detailState and
+        // timelineState before switching to timeline view.
+        const selected = allLines[treeSelectionIndex];
+        if (selected) {
+          const keyParts = selected.key.split(":");
+          const agent = keyParts[0] ?? "opencode";
+          const alias = keyParts[1] ?? "default";
+          void openDetail({
+            id: keyParts[2] ?? selected.key,
+            agent: agent as SessionSummary["agent"],
+            alias,
+            title: "",
+          } as SessionSummary);
+        }
         return;
       }
       if (key.name === "escape" || key.name === "q") {
@@ -362,6 +451,18 @@ export function TuiAppView({
   const handleTimelineKey = useCallback(
     (key: { name: string; ctrl?: boolean }) => {
       if (!timelineState) return;
+
+      // P: toggle perf overlay
+      if (key.name === "P") {
+        setShowPerfOverlay((prev) => !prev);
+        return;
+      }
+
+      // Esc/P while perf overlay is open: close it
+      if (showPerfOverlay && (key.name === "escape" || key.name === "P")) {
+        setShowPerfOverlay(false);
+        return;
+      }
 
       if (key.name === "j" || key.name === "down") {
         setTimelineState((prev) => prev ? moveDown(prev, treeViewportHeight) : prev);
@@ -383,12 +484,16 @@ export function TuiAppView({
         setView("detail");
         return;
       }
+      if (key.name === "h") {
+        setView("detail");
+        return;
+      }
       if (key.name === "q") {
         setView("list");
         return;
       }
     },
-    [timelineState, treeViewportHeight]
+    [timelineState, treeViewportHeight, showPerfOverlay]
   );
 
   useKeyboard(
@@ -460,7 +565,7 @@ export function TuiAppView({
         <ListView state={listState} height={listViewportHeight} />
       )}
       {view === "tree" ? (
-        <Footer text="j/k: move  Enter/→: open  ←: collapse  t: timeline  Tab: list  q: quit" />
+        <Footer text="j/k: move  Enter/→/l: open  ←/h: collapse  t: timeline  Tab: list  q: quit" />
       ) : view === "timeline" ? (
         <Footer
           text={
@@ -469,21 +574,24 @@ export function TuiAppView({
                 `Tools: ${timelineState.subAgentSummary.toolCallCount} | ` +
                 `m: tools ${timelineState.filter.showTools ? "on" : "off"} ` +
                 `r: reasoning ${timelineState.filter.showReasoning ? "on" : "off"} | ` +
-                "t: detail  Tab: list  q: quit"
+                "Esc/t: detail  Tab: list  q: quit"
               : ""
           }
         />
       ) : view === "detail" && detailState ? (
-        <Footer text="Esc: back  t: tree  Tab: timeline  ? : help  q/Ctrl+C: exit" />
+        <Footer text="h/Esc/q: back  j/k: scroll  g/G: top/bottom  t: timeline  ?: help  P: perf" />
       ) : listState.mode === "clone" ? (
         <Footer text="j/k: select  Enter: confirm  Esc: cancel  Ctrl+C: exit" />
       ) : (
-        <Footer text={formatFooter(listState) + "  Tab→tree  t→timeline  q/Ctrl+C: exit"} />
+        <Footer text={formatFooter(listState) + "  h: agent  a: alias  /: filter  P: perf  t→timeline  Tab→tree  q/Ctrl+C: exit"} />
       )}
       {view === "detail" && detailState ? (
         <HelpOverlay visible={detailState.mode === "help"} view="detail" />
       ) : (
         <HelpOverlay visible={listState.mode === "help"} view="list" />
+      )}
+      {showPerfOverlay && view === "list" && (
+        <PerfOverlay logs={perfLog} onClose={() => setShowPerfOverlay(false)} />
       )}
     </box>
   );
@@ -495,23 +603,22 @@ export async function runTuiApp(options: {
   getSession?: DetailService;
   cloneSession?: CloneService;
 }): Promise<void> {
-  const renderer = await createCliRenderer({ exitOnCtrlC: false });
+  const renderer = await createCliRenderer({ exitOnCtrlC: true, testing: false });
   const root = createRoot(renderer);
 
   await new Promise<void>((resolve) => {
-    const handleExit = () => {
-      renderer.destroy();
-      resolve();
-    };
-    root.render(
-      <TuiApp
-        config={options.config}
-        list={options.list}
-        getSession={options.getSession}
-        cloneSession={options.cloneSession}
-        onExit={handleExit}
-      />
-    );
+    renderer.on("destroy", resolve);
+    flushSync(() => {
+      root.render(
+        <TuiApp
+          config={options.config}
+          list={options.list}
+          getSession={options.getSession}
+          cloneSession={options.cloneSession}
+          onExit={() => resolve()}
+        />
+      );
+    });
   });
 }
 
@@ -536,6 +643,81 @@ function Footer({ text }: { text: string }): ReactNode {
   return (
     <box style={{ height: 1, paddingLeft: 1, paddingRight: 1 }}>
       <text fg="#aaaaaa">{text}</text>
+    </box>
+  );
+}
+
+function PerfOverlay({
+  logs,
+  onClose,
+}: {
+  logs: Array<{ label: string; durationMs: number; timestamp: Date }>;
+  onClose: () => void;
+}): ReactNode {
+  if (logs.length === 0) {
+    return (
+      <box
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#000000B3",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <box
+          border
+          style={{
+            flexDirection: "column",
+            padding: 1,
+            minWidth: 40,
+            backgroundColor: "#1b1f2a",
+            borderColor: "#ffcc00",
+          }}
+        >
+          <text fg="#ffcc00">Performance Log (empty)</text>
+          <text fg="#888888">No slow operations recorded yet.</text>
+          <text fg="#888888">Press P or Esc to close.</text>
+        </box>
+      </box>
+    );
+  }
+
+  return (
+    <box
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#000000B3",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <box
+        border
+        style={{
+          flexDirection: "column",
+          padding: 1,
+          minWidth: 60,
+          maxHeight: 20,
+          backgroundColor: "#1b1f2a",
+          borderColor: "#ffcc00",
+        }}
+      >
+        <text fg="#ffcc00">Performance Log — Slow Operations (&gt;5000ms)</text>
+        {logs.map((entry, i) => (
+          <text key={i} fg="#cccccc">
+            [{entry.timestamp.toISOString()}] {entry.durationMs}ms — {entry.label}
+          </text>
+        ))}
+        <text fg="#888888">Press P or Esc to close.</text>
+      </box>
     </box>
   );
 }
@@ -566,10 +748,12 @@ function TreeView({
     <box style={{ flexDirection: "column", flexGrow: 1, paddingLeft: 1 }}>
       {visible.map((line, i) => {
         const isSelected = allLines.indexOf(line) === selectionIndex;
+        const agent = line.key.split(":")[0] ?? "opencode";
+        const baseFg = isSelected ? "#ffffff" : agentColor(agent);
         return (
           <text
             key={`${line.key}-${i}`}
-            fg={isSelected ? "#ffffff" : "#cccccc"}
+            fg={baseFg}
           >
             {(isSelected ? "> " : "  ") + line.text}
           </text>
@@ -628,7 +812,9 @@ function ListView({ state, height }: { state: TuiListState; height: number }): R
 
   return (
     <box style={{ flexDirection: "column", flexGrow: 1, paddingLeft: 1 }}>
-      {emptyState.kind !== "none" ? (
+      {emptyState.kind === "loading" ? (
+        <text fg="#4aa3ff">Loading sessions…</text>
+      ) : emptyState.kind !== "none" ? (
         <text fg="#999999">{emptyState.message}</text>
       ) : (
         rows.map((session, index) => {
@@ -710,13 +896,18 @@ function HelpOverlay({
         <text fg="#4aa3ff">Shortcuts</text>
         <text fg="#cccccc">j/k or ↑/↓: move</text>
         <text fg="#cccccc">g/G: top/bottom</text>
+        {isDetail ? null : <text fg="#cccccc">h: agent drill-in</text>}
+        {isDetail ? null : <text fg="#cccccc">a: alias drill-in</text>}
+        {isDetail ? null : <text fg="#cccccc">H/L: back out agent/alias filter</text>}
         {isDetail ? null : <text fg="#cccccc">/: filter</text>}
-        {isDetail ? null : <text fg="#cccccc">a/l: toggle agent/alias</text>}
+        {isDetail ? null : <text fg="#cccccc">Enter/l: open detail</text>}
         {isDetail ? null : <text fg="#cccccc">0: clear toggles</text>}
-        {isDetail ? null : <text fg="#cccccc">Enter: open detail</text>}
         {isDetail ? null : <text fg="#cccccc">c: clone (codex only)</text>}
-        <text fg="#cccccc">{isDetail ? "Esc: back" : "Esc: close"}</text>
-        <text fg="#cccccc">q/Ctrl+C: exit</text>
+        {isDetail ? <text fg="#cccccc">h: back</text> : null}
+        <text fg="#cccccc">{isDetail ? "Esc/q: back" : "Esc: close"}</text>
+        {isDetail ? null : <text fg="#cccccc">t: timeline  Tab: cycle</text>}
+        {isDetail ? null : <text fg="#cccccc">P: perf log</text>}
+        <text fg="#cccccc">{isDetail ? "?: help  t: timeline" : "?: help  q: quit"}</text>
         <text fg="#888888">Press ? or Esc to close</text>
       </box>
     </box>

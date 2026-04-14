@@ -83,6 +83,12 @@ export interface TimeRangeOptions {
   since?: number; // Start timestamp (milliseconds since epoch)
   until?: number; // End timestamp (milliseconds since epoch)
   limit?: number; // Maximum number of results (default: 50, 0 = all)
+  /**
+   * Session ID to skip — used by cursor pagination to exclude the cursor
+   * session itself so it doesn't reappear on the next page.
+   * Adapters that implement listSessionsByTimeRange should honour this field.
+   */
+  skipSessionId?: string;
 }
 
 // Canonical session key is (agent, alias, session_id).
@@ -125,6 +131,8 @@ export interface AdapterHandle {
   alias: string;
   version: string;
   listSessions(): Promise<SessionSummary[]>;
+  /** Optional — only present when the adapter supports time-range-based listing. */
+  listSessionsByTimeRange?(options: TimeRangeOptions): Promise<SessionSummary[]>;
   /** Optional — only present when the adapter supports session detail retrieval. */
   getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
   /** Optional — only present when the adapter supports session forking (R-39). */

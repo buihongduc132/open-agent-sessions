@@ -111,35 +111,68 @@ function parseSessionSpec(spec: string, entries: AgentEntry[]): ParseResult<Deta
     return { ok: false, error: splitResult.error };
   }
   const parts = splitResult.value;
-  if (parts.length < 2 || parts.length > 3) {
-    return { ok: false, error: `Invalid --session value "${spec}". ${USAGE}` };
-  }
 
-  const agent = parts[0].trim() as AgentKind;
-  if (!isAgentKind(agent) || !listAgents(entries).includes(agent)) {
-    return { ok: false, error: unknownAgentError(agent, entries) };
+  // Support three formats:
+  // 1. session_id (1 part) - infer agent/alias from config
+  // 2. agent:session_id (2 parts) - infer alias from config
+  // 3. agent:alias:session_id (3 parts) - full format
+
+  if (parts.length === 1) {
+    // Format: session_id - use first enabled agent/alias
+    if (entries.length === 0) {
+      return { ok: false, error: `No enabled agents in config. ${USAGE}` };
+    }
+    const entry = entries[0];
+    return { ok: true, value: { agent: entry.agent, alias: entry.alias, id: parts[0].trim() } };
   }
 
   if (parts.length === 2) {
-    const sessionId = parts[1].trim();
-    const aliasResult = inferAlias(agent, entries);
-    if (!aliasResult.ok) {
-      return { ok: false, error: aliasResult.error };
+    // Check if first part is an agent name or an alias
+    const first = parts[0].trim();
+    if (isAgentKind(first)) {
+      if (listAgents(entries).includes(first)) {
+        // Format: agent:session_id
+        const agent = first as AgentKind;
+        const sessionId = parts[1].trim();
+        const aliasResult = inferAlias(agent, entries);
+        if (!aliasResult.ok) {
+          return { ok: false, error: aliasResult.error };
+        }
+        return { ok: true, value: { agent, alias: aliasResult.value, id: sessionId } };
+      }
+      // Valid agent type syntax but agent not in config
+      return { ok: false, error: unknownAgentError(first, entries) };
     }
-    return {
-      ok: true,
-      value: { agent, alias: aliasResult.value, id: sessionId },
-    };
+    // Format: alias:session_id
+    const alias = first;
+    const sessionId = parts[1].trim();
+    const matchingEntry = entries.find((e) => e.alias === alias);
+    if (!matchingEntry) {
+      const availableAliases = [...new Set(entries.map((e) => e.alias))].sort();
+      return {
+        ok: false,
+        error: `Unknown alias "${alias}". Available aliases: ${formatList(availableAliases)}`,
+      };
+    }
+    return { ok: true, value: { agent: matchingEntry.agent, alias, id: sessionId } };
   }
 
-  const alias = parts[1].trim();
-  const sessionId = parts[2].trim();
-  const aliasValidation = validateAlias(agent, alias, entries);
-  if (!aliasValidation.ok) {
-    return { ok: false, error: aliasValidation.error };
+  if (parts.length === 3) {
+    // Format: agent:alias:session_id - full format
+    const agent = parts[0].trim() as AgentKind;
+    if (!isAgentKind(agent) || !listAgents(entries).includes(agent)) {
+      return { ok: false, error: unknownAgentError(agent, entries) };
+    }
+    const alias = parts[1].trim();
+    const sessionId = parts[2].trim();
+    const aliasValidation = validateAlias(agent, alias, entries);
+    if (!aliasValidation.ok) {
+      return { ok: false, error: aliasValidation.error };
+    }
+    return { ok: true, value: { agent, alias, id: sessionId } };
   }
 
-  return { ok: true, value: { agent, alias, id: sessionId } };
+  return { ok: false, error: `Invalid --session value "${spec}". ${USAGE}` };
 }
 
 function parseExplicitTarget(

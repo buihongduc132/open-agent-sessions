@@ -374,6 +374,12 @@ function listSessionsByTimeRangeFromDb(
     params.push(options.until);
   }
 
+  // F1: exclude the cursor session so it doesn't reappear on the next page
+  if (options.skipSessionId !== undefined) {
+    conditions.push("s.id != ?");
+    params.push(options.skipSessionId);
+  }
+
   // Add limit (default 50, 0 = all)
   const limit = options.limit !== undefined ? options.limit : 50;
   const limitClause = limit > 0 ? ` LIMIT ${limit}` : "";

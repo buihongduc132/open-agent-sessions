@@ -20,13 +20,13 @@ export type TuiDetailState = {
   viewportHeight: number;
 };
 
-export function createDetailState(detail: SessionDetail): TuiDetailState {
+export function createDetailState(detail: SessionDetail, viewportHeight = 10): TuiDetailState {
   return {
     mode: "detail",
     detail,
     lines: buildDetailLines(detail),
     scrollOffset: 0,
-    viewportHeight: 10,
+    viewportHeight,
   };
 }
 
@@ -51,7 +51,8 @@ export function applyDetailKey(
   }
 
   if (key.name === "q") {
-    return { state, effect: { type: "exit", reason: "quit" } };
+    // q goes back (like Escape) — only Ctrl+C exits the TUI from detail view
+    return { state, effect: { type: "back" } };
   }
 
   if (state.mode === "help") {
@@ -68,6 +69,14 @@ export function applyDetailKey(
   if (key.name === "escape") {
     return { state, effect: { type: "back" } };
   }
+
+  // h: go back to list view (same as Escape/q)
+  if (key.name === "h") {
+    return { state, effect: { type: "back" } };
+  }
+
+  // l: reserved for future drill-in — no-op in detail view
+  // (l currently does nothing; it falls through to the final return null)
 
   if (key.name === "j" || key.name === "down") {
     return { state: scrollBy(state, 1), effect: null };

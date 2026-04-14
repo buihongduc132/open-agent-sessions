@@ -1,5 +1,5 @@
 export { createAdapterRegistry, clearDetailCache, invalidateDetailCache } from "./registry";
-export { createListService, listSessions } from "./list";
+export { createListService, clearListCache, listSessions } from "./list";
 export { cloneSession, createCloneService } from "./clone";
 export { normalizeSessionSummary, normalizeTimestamp } from "./normalize";
 export { inferSubAgents, formatSubAgentSummary, formatStatusLine, buildForkChain } from "./subagents";
