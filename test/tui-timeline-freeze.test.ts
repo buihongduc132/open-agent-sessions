@@ -30,16 +30,19 @@ import {
   type TuiListState,
   type KeyInput,
   type TuiEffect,
+  type TuiMode,
 } from "../src/tui/list-model";
-import { AgentEntry } from "../src/config/types";
+import { AgentEntry, OpenCodeAgentEntry } from "../src/config/types";
 import type { SessionSummary } from "../src/core/types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function makeAgentEntry(agent: string, alias: string, enabled = true): AgentEntry {
-  return { agent: agent as AgentEntry["agent"], alias, enabled };
+  if (agent === "opencode") {
+    return { agent: "opencode", alias, enabled, storage: { mode: "file" } } as unknown as OpenCodeAgentEntry;
+  }
+  return { agent: agent as AgentEntry["agent"], alias, enabled } as AgentEntry;
 }
-
 function makeSession(id: string, agent = "opencode", alias = "default"): SessionSummary {
   return {
     id,
@@ -49,6 +52,7 @@ function makeSession(id: string, agent = "opencode", alias = "default"): Session
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
     message_count: 1,
+    storage: "jsonl" as const,
   };
 }
 
@@ -271,10 +275,7 @@ describe("Bug 4.3 – App-level: pressing `t` must not result in freeze state", 
 
     // Case 3: view==="list", detailState={detail} → timelineState NOT built
     timelineState = null;
-    const view3 = "list";
-    if (view3 === "timeline" && detailState2) {
-      timelineState = { nodes: [] };
-    }
+    // (view==="list" means the timeline branch is never taken, so timelineState stays null)
     expect(timelineState).toBeNull();
   });
 });
@@ -293,19 +294,13 @@ describe("Bug 4.3 – App-level: pressing `t` must not result in freeze state", 
 describe("Bug 4.4 – Freeze state renders ListView instead of timeline", () => {
   test("freeze state falls through to ListView even though header says 'Timeline'", () => {
     // Simulate App.tsx render conditions (simplified)
-    const view = "timeline";
+    const view: TuiMode = "timeline";
     const detailState: object | null = null;
     const timelineState: object | null = null;
 
-    type View = "list" | "detail" | "tree" | "timeline";
     let rendered: string;
-
-    if (view === "tree") {
-      rendered = "TreeView";
-    } else if (view === "timeline" && timelineState) {
+    if (view === "timeline" && timelineState) {
       rendered = "TimelineView";
-    } else if (view === "detail" && detailState) {
-      rendered = "DetailView";
     } else {
       rendered = "ListView"; // ← this is what renders in freeze state
     }
@@ -316,15 +311,13 @@ describe("Bug 4.4 – Freeze state renders ListView instead of timeline", () => 
   });
 
   test("non-frozen timeline state renders TimelineView correctly", () => {
-    const view = "timeline";
+    const view: TuiMode = "timeline";
     const detailState = { detail: { messages: [], clone: {} } };
     const timelineState = { nodes: [], subAgentSummary: { models: [], toolCallCount: 0, tools: [], reasoningUsed: false } };
 
     let rendered: string;
     if (view === "timeline" && timelineState) {
       rendered = "TimelineView";
-    } else if (view === "detail" && detailState) {
-      rendered = "DetailView";
     } else {
       rendered = "ListView";
     }
@@ -359,7 +352,7 @@ describe("Bug 4.5 – Edge cases", () => {
     // Verify that applyListKey with mode="detail" emits open-detail for s1
     // (the list key handler still processes t even in detail mode; the App-level
     // keyboard router simply never calls handleListKey when view==="detail").
-    const state = makeListState({ mode: "detail" as const });
+const state = makeListState({ mode: "detail" as TuiMode });
     const { effects } = applyListKey(state, key("t"));
     expect(effects).toContainEqual(expect.objectContaining({ type: "open-detail" }));
   });

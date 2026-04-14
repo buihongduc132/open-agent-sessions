@@ -55,6 +55,7 @@ function session(overrides: {
   parentSessionId?: string;
   updated_at?: string;
   created_at?: string;
+  storage?: string;
 }): {
   id: string;
   agent: string;
@@ -63,14 +64,16 @@ function session(overrides: {
   parentSessionId?: string;
   updated_at: string;
   created_at: string;
+  storage: string;
 } {
   return {
-    id: `s-${Math.random().toString(36).slice(2, 6)}`,
-    agent: "opencode",
-    alias: "default",
-    updated_at: "2024-01-01T00:00:00Z",
-    created_at: "2024-01-01T00:00:00Z",
     ...overrides,
+    id: overrides.id ?? `s-${Math.random().toString(36).slice(2, 6)}`,
+    agent: overrides.agent ?? "opencode",
+    alias: overrides.alias ?? "default",
+    updated_at: overrides.updated_at ?? "2024-01-01T00:00:00Z",
+    created_at: overrides.created_at ?? "2024-01-01T00:00:00Z",
+    storage: overrides.storage ?? "jsonl",
   };
 }
 

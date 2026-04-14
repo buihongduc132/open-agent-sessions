@@ -28,14 +28,8 @@ import {
 
 function makeNode(overrides: Partial<TreeNode> & { agent: string; alias: string; key: string; sessionId: string; title: string; updatedAt: string }): TreeNode {
   return {
-    key: "",
-    sessionId: "",
-    title: "",
-    agent: "",
-    alias: "",
-    updatedAt: "",
-    children: [],
     ...overrides,
+    children: overrides.children ?? [],
   };
 }
 
