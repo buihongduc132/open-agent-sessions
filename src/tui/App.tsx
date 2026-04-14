@@ -615,7 +615,7 @@ export async function runTuiApp(options: {
           list={options.list}
           getSession={options.getSession}
           cloneSession={options.cloneSession}
-          onExit={resolve}
+          onExit={() => resolve()}
         />
       );
     });

@@ -13,7 +13,7 @@ function makeDetail(overrides: Partial<SessionDetail> = {}): SessionDetail {
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
     message_count: 1,
-    storage: "sqlite",
+    storage: "db" as const,
     ...overrides,
   };
 }

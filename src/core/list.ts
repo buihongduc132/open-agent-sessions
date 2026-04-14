@@ -213,7 +213,7 @@ async function listSessionsPaginated(
   for (const adapter of targetAdapters) {
     try {
       if (adapter.listSessionsByTimeRange) {
-        const result = adapter.listSessionsByTimeRange({ since, limit, skipSessionId });
+        const result = await adapter.listSessionsByTimeRange({ since, limit, skipSessionId });
         sessions.push(...result);
       } else {
         const result = await adapter.listSessions();

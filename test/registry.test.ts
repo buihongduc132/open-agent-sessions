@@ -561,7 +561,7 @@ describe("F4: list result cache", () => {
 
     const registry = createAdapterRegistry(
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
-      { codex: factory, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude }
+      { codex: factory as any, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude } as unknown as Partial<AdapterFactories>
     );
     const listService = createListService(registry);
 
@@ -594,7 +594,7 @@ describe("F4: list result cache", () => {
 
     const registry = createAdapterRegistry(
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
-      { codex: factory, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude }
+      { codex: factory as any, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude } as unknown as Partial<AdapterFactories>
     );
     const listService = createListService(registry);
 
@@ -631,7 +631,7 @@ describe("F4: list result cache", () => {
 
     const registry = createAdapterRegistry(
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
-      { codex: factory, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude }
+      { codex: factory as any, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude } as unknown as Partial<AdapterFactories>
     );
     const listService = createListService(registry);
 

@@ -202,7 +202,6 @@ describe("Bug 5 – list service timeout", () => {
   test(
     "when list() hangs forever, app must leave loading state within " +
       `${LIST_TIMEOUT_MS}ms`,
-    { timeout: RUNNER_TIMEOUT_MS },
     async () => {
       const hangingService: ListService = () => new Promise(() => {});
       const { runEffect } = buildEffectTest(hangingService, WAIT_MS);
@@ -214,7 +213,8 @@ describe("Bug 5 – list service timeout", () => {
         setFatalErrorCalls.length > 0;
 
       expect(leftLoading).toBe(true);
-    }
+    },
+    { timeout: RUNNER_TIMEOUT_MS }
   );
 
   /**
@@ -222,7 +222,7 @@ describe("Bug 5 – list service timeout", () => {
    * no fatal error is set.
    */
   test("list resolves normally → loading becomes false, no fatal error", async () => {
-    const resolved: SessionListResult = { sessions: [], total: 0 };
+    const resolved: SessionListResult = { sessions: [], errors: [], hasMore: false };
     const { runEffect } = buildEffectTest(() => Promise.resolve(resolved), 100);
 
     await new Promise((r) => setTimeout(r, 10)); // let microtasks drain
