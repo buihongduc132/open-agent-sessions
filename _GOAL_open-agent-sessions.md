@@ -156,7 +156,9 @@ When choosing which requirement to work on, apply this ordering:
 | P6 | Performance | Depends on full adapter set |
 | P7 | Ecosystem | Optional, long-horizon |
 
-Provider ordering within adapter work: **opencode > acpx > codex > zed**
+Provider ordering within adapter work: **opencode > codex > acpx > claude > zed > openclaw > omp**
+
+This reflects: (1) primary use in this project, (2) feature completeness of each adapter, (3) acpx's role as a meta-adapter that delegates to opencode/codex/claude. All documentation and SHAPE.md files MUST reflect this ordering.
 
 ---
 
