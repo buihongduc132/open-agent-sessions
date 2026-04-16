@@ -181,6 +181,13 @@ export function createCodexAdapter(
     ): Promise<SessionDetail> => {
       const label = `[${entry.agent}:${entry.alias}]`;
       const rootPath = resolveCodexPath(entry, options);
+
+      // ── SQLite backend: use DB to resolve JSONL path, then parse messages ──
+      if (rootPath.endsWith(".sqlite")) {
+        return getSessionDetailFromSqlite(rootPath, sessionId, entry, _options, label);
+      }
+
+      // ── JSONL backend: scan files directly ──
       const files = collectJsonlFiles(rootPath);
 
       for (const filePath of files) {
@@ -781,6 +788,109 @@ function listSessionsByTimeRangeFromSqlite(
   } finally {
     db.close();
   }
+}
+
+/**
+ * F2: SQLite-backed session detail.
+ *
+ * Codex's state_5.sqlite stores sessions in the `threads` table, but the actual
+ * messages are in JSONL files referenced by the `rollout_path` column.
+ * This function:
+ *   1. Looks up the thread row by session ID to get title/timestamps/rollout_path
+ *   2. Falls back to a JSONL search if rollout_path is unavailable or invalid
+ *   3. Parses the JSONL for full message content
+ */
+async function getSessionDetailFromSqlite(
+  dbPath: string,
+  sessionId: string,
+  entry: OtherAgentEntry,
+  _options: SessionReadOptions,
+  label: string
+): Promise<SessionDetail> {
+  let db: Database;
+  try {
+    db = new Database(dbPath, { readonly: true });
+  } catch (error) {
+    throw new Error(
+      `${label} failed to open SQLite DB ${dbPath}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  try {
+    const sql = `SELECT id, title, created_at, updated_at, rollout_path
+                FROM threads WHERE id = ?`;
+    const rows = db.query<{
+      id: string;
+      title: string;
+      created_at: number;
+      updated_at: number;
+      rollout_path: string;
+    }, [string]>(sql).all(sessionId);
+
+    if (rows.length === 0) {
+      throw new Error(`${label} session not found: ${sessionId}`);
+    }
+
+    const row = rows[0];
+    const summary: SessionSummary = {
+      id: row.id,
+      agent: "codex",
+      alias: entry.alias,
+      title: row.title || row.id,
+      created_at: formatUnixSeconds(row.created_at),
+      updated_at: formatUnixSeconds(row.updated_at),
+      message_count: 0,
+      storage: "other",
+    };
+
+    // Try to load messages from the rollout_path JSONL file
+    const rolloutPath = row.rollout_path?.trim();
+    if (rolloutPath && rolloutPath.length > 0) {
+      try {
+        const messages = parseCodexMessages(rolloutPath, sessionId, label);
+        return { ...summary, messages, message_count: messages.length };
+      } catch {
+        // Rollout path exists but unreadable/parseable — fall through
+      }
+    }
+
+    // Fallback: search JSONL files if rollout_path is missing or failed
+    const fallback = await getSessionDetailFromJsonlFallback(
+      sessionId, entry, label
+    );
+    return { ...summary, message_count: fallback.messages.length, messages: fallback.messages };
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * Fallback JSONL search for SQLite-backed getSessionDetail.
+ * Used when rollout_path is empty or the JSONL file can't be read.
+ * Searches ~/.codex/sessions/ recursively for a matching session ID.
+ */
+async function getSessionDetailFromJsonlFallback(
+  sessionId: string,
+  entry: OtherAgentEntry,
+  label: string
+): Promise<{ messages: SessionMessage[] }> {
+  const fallbackRoot = join(homedir(), ".codex", "sessions");
+  const files = collectJsonlFiles(fallbackRoot);
+
+  for (const filePath of files) {
+    try {
+      const summary = parseCodexSession(filePath, entry);
+      if (summary.id === sessionId) {
+        const messages = parseCodexMessages(filePath, sessionId, label);
+        return { messages };
+      }
+    } catch {
+      // Skip files that fail to parse
+    }
+  }
+
+  // No messages found — return empty array (summary was built from DB)
+  return { messages: [] };
 }
 
 /**
