@@ -57,6 +57,16 @@ describe("SimilarityConfig parsing", () => {
       expect(cfg.embeddingProvider).toBe("local");
       expect(cfg.topK).toBe(5);
     });
+
+    test("similarity config raw YAML null value (similarity: ~) yields defaults", () => {
+      // #given similarity key present but null (YAML null → JS null)
+      const raw = { similarity: null };
+      const cfg = parseSimilarityConfig(raw);
+      // #then defaults are applied, no throw
+      expect(cfg.enabled).toBe(false);
+      expect(cfg.embeddingProvider).toBe("local");
+      expect(cfg.topK).toBe(5);
+    });
   });
 
   describe("partial-merge", () => {
@@ -206,6 +216,14 @@ describe("SimilarityConfig parsing", () => {
     test("similarity config vector dimension must be valid — 2560 rejected", () => {
       const raw = { similarity: { vectorDimension: 2560 } };
       expect(() => parseSimilarityConfig(raw)).toThrow(ConfigValidationError);
+    });
+
+    test("similarity config vectorDimension string rejected (symmetry with topK)", () => {
+      // #given vectorDimension as string "384" (e.g. from YAML parsing)
+      const raw = { similarity: { vectorDimension: "384" } as unknown };
+      // #then ConfigValidationError is thrown (same as topK string rejection)
+      expect(() => parseSimilarityConfig(raw)).toThrow(ConfigValidationError);
+      expect(() => parseSimilarityConfig(raw)).toThrow(/vectorDimension/i);
     });
   });
 
@@ -497,6 +515,22 @@ describe("Adapter interface backward-compatibility", () => {
         version TEXT NOT NULL,
         time_created INTEGER NOT NULL,
         time_updated INTEGER NOT NULL
+      )
+    `);
+    db.run(`
+      CREATE TABLE message (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        time_created INTEGER NOT NULL,
+        data TEXT
+      )
+    `);
+    db.run(`
+      CREATE TABLE part (
+        id TEXT PRIMARY KEY,
+        message_id TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        data TEXT
       )
     `);
     db.close();
