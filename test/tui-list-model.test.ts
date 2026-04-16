@@ -5,8 +5,10 @@ import { AgentKind } from "../src/config/types";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function makeAgentEntry(agent: AgentKind, alias: string, enabled = true): AgentEntry {
-  return { agent, alias, enabled };
+function makeAgentEntry(agent: "opencode", alias: string, enabled?: boolean): import("../src/config/types").OpenCodeAgentEntry;
+function makeAgentEntry(agent: "codex" | "claude", alias: string, enabled?: boolean): import("../src/config/types").OtherAgentEntry;
+function makeAgentEntry(agent: AgentKind, alias: string, enabled = true): import("../src/config/types").AgentEntry {
+  return { agent, alias, enabled } as import("../src/config/types").AgentEntry;
 }
 
 function makeState(overrides: Partial<TuiListState> = {}): TuiListState {
@@ -20,14 +22,14 @@ function makeState(overrides: Partial<TuiListState> = {}): TuiListState {
     ...base,
     loading: false,
     allSessions: [
-      { id: "s1", agent: "opencode", alias: "default", title: "Session 1", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z", message_count: 1 },
-      { id: "s2", agent: "codex",    alias: "default", title: "Session 2", created_at: "2024-01-02T00:00:00Z", updated_at: "2024-01-02T00:00:00Z", message_count: 2 },
-      { id: "s3", agent: "claude",   alias: "default", title: "Session 3", created_at: "2024-01-03T00:00:00Z", updated_at: "2024-01-03T00:00:00Z", message_count: 3 },
+      { id: "s1", agent: "opencode", alias: "default", title: "Session 1", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z", message_count: 1, storage: "db" as const },
+      { id: "s2", agent: "codex",    alias: "default", title: "Session 2", created_at: "2024-01-02T00:00:00Z", updated_at: "2024-01-02T00:00:00Z", message_count: 2, storage: "db" as const },
+      { id: "s3", agent: "claude",   alias: "default", title: "Session 3", created_at: "2024-01-03T00:00:00Z", updated_at: "2024-01-03T00:00:00Z", message_count: 3, storage: "db" as const },
     ],
     filteredSessions: [
-      { id: "s1", agent: "opencode", alias: "default", title: "Session 1", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z", message_count: 1 },
-      { id: "s2", agent: "codex",    alias: "default", title: "Session 2", created_at: "2024-01-02T00:00:00Z", updated_at: "2024-01-02T00:00:00Z", message_count: 2 },
-      { id: "s3", agent: "claude",   alias: "default", title: "Session 3", created_at: "2024-01-03T00:00:00Z", updated_at: "2024-01-03T00:00:00Z", message_count: 3 },
+      { id: "s1", agent: "opencode", alias: "default", title: "Session 1", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z", message_count: 1, storage: "db" as const },
+      { id: "s2", agent: "codex",    alias: "default", title: "Session 2", created_at: "2024-01-02T00:00:00Z", updated_at: "2024-01-02T00:00:00Z", message_count: 2, storage: "db" as const },
+      { id: "s3", agent: "claude",   alias: "default", title: "Session 3", created_at: "2024-01-03T00:00:00Z", updated_at: "2024-01-03T00:00:00Z", message_count: 3, storage: "db" as const },
     ],
     selectionIndex: 0,
     selectedKey: "opencode:default:s1",

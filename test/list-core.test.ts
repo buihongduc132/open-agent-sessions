@@ -328,6 +328,7 @@ describe("core list sessions", () => {
             agent: "codex",
             alias: "work",
             version: "1.0.0",
+            listSessions: async () => [],
             listSessionsByTimeRange: (opts) => {
               receivedOptions = opts;
               const filtered = sessions.filter(

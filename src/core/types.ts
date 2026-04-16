@@ -131,6 +131,7 @@ export interface AdapterHandle {
   alias: string;
   version: string;
   listSessions(): Promise<SessionSummary[]>;
+  listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
   /** Optional — only present when the adapter supports session detail retrieval. */
   getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
   /** Optional — only present when the adapter supports session forking (R-39). */
