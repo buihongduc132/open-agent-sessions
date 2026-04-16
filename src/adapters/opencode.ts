@@ -20,6 +20,9 @@ import {
   SessionCloneMetadata,
   ToolSearchQuery,
 } from "../core/types";
+import { initializeSimilarity, type SimilarityConfig } from "../similarity/config";
+import { indexSessionEmbeddings } from "../similarity/storage";
+import { findSimilarSessions, type SimilarSessionResult } from "../similarity/search";
 
 // Expected schema for validation
 const EXPECTED_SCHEMA = {
@@ -151,6 +154,15 @@ function createDbAdapter(
   const db = openDatabaseWithRetry(dbPath, label, options.lockRetries ?? DEFAULT_LOCK_RETRIES);
   validateSchema(db, label);
 
+  // REQ-SIM-03: Track similarity initialization lazily on first use
+  let similarityInitialized = false;
+  const similarityCfg: SimilarityConfig = {
+    enabled: true,
+    embeddingProvider: "local",
+    topK: 5,
+    vectorDimension: 384,
+  };
+
   return {
     version: "1.0.0", // TODO: Replace with actual version from package.json or similar
     listSessions: () => listSessionsFromDb(db, entry, cwd, label),
@@ -165,6 +177,14 @@ function createDbAdapter(
     // R-41: Fuzzy tool/MCP/skills usage search
     toolSearchSessions: (query: ToolSearchQuery) =>
       toolSearchFromDb(db, entry, cwd, query, label),
+    // REQ-SIM-03: Find similar sessions using hybrid similarity search
+    findSimilarSessions: (sessionId: string, topK?: number) =>
+      findSimilarSessionsDb(db, entry, cwd, label, sessionId, topK, similarityCfg, () => {
+        if (!similarityInitialized) {
+          initializeSimilarity(db, similarityCfg);
+          similarityInitialized = true;
+        }
+      }),
   };
 }
 
@@ -195,6 +215,8 @@ function createJsonlAdapter(
     searchSessions: (query: SearchQuery) => searchSessionsFromJsonl(jsonlPath, entry, query, label),
     getSessionDetail: (sessionId: string, opts: SessionReadOptions) =>
       getSessionDetailFromJsonl(jsonlPath, entry, sessionId, opts, label),
+    // REQ-SIM-03: Similarity search not supported for JSONL adapter
+    findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [],
     // R-39 + R-18: forkSession — JSONL adapter
     forkSession: (sourceSessionId, destAgent, destAlias) =>
       forkSessionJsonl(jsonlPath, entry, sourceSessionId, destAgent, destAlias, label),
@@ -1225,6 +1247,105 @@ function normalizeRole(role?: string): "user" | "assistant" | "system" {
 
 function formatTimestamp(ms: number): string {
   return new Date(ms).toISOString();
+}
+
+// ============================================================================
+// REQ-SIM-03: findSimilarSessions implementation
+// ============================================================================
+
+/**
+ * REQ-SIM-03: Find sessions similar to the given session, ranked by hybrid
+ * similarity score (RRF fusion of sqlite-vec KNN + FTS5 keyword search).
+ *
+ * Flow:
+ *   1. Ensure similarity subsystem is initialized (lazy, idempotent)
+ *   2. Retrieve session detail + index it if not already
+ *   3. Collect all text from session messages as the search query
+ *   4. Call findSimilarSessions(db, query, { topK, sessionTitles })
+ *   5. Exclude the query session itself from results
+ */
+async function findSimilarSessionsDb(
+  db: Database,
+  entry: OpenCodeAgentEntry,
+  cwd: string,
+  label: string,
+  sessionId: string,
+  topK: number | undefined,
+  similarityCfg: SimilarityConfig,
+  ensureInitialized: () => void
+): Promise<SimilarSessionResult[]> {
+  // 1. Ensure similarity subsystem is initialized (lazy, idempotent).
+  // Uses a mutable closure flag so initialization happens at most once.
+  // Gracefully handles read-only DBs (e.g. tests with temp copy): if CREATE TABLE
+  // fails, similarity results will simply return empty.
+  try {
+    ensureInitialized();
+  } catch {
+    // Read-only DB or sqlite-vec/FTS5 unavailable — similarity unavailable
+  }
+
+  // 2. Get session detail (reuse existing function)
+  const detail: SessionDetail = await getSessionDetailFromDb(
+    db,
+    entry,
+    sessionId,
+    { mode: "all_no_tools" },
+    label
+  );
+
+  // 3. Index the session (incremental — only new messages).
+  // Safe for read-only DBs: indexing may fail if the DB is read-only and tables
+  // were not pre-created; in that case we skip indexing and search with available data.
+  try {
+    indexSessionEmbeddings(db, detail);
+  } catch {
+    // Read-only DB or indexing failed — proceed with search without indexing
+  }
+
+  // 4. Collect all text parts from messages as the search query
+  const sessionText = collectSessionText(detail);
+
+  // 5. Build session title map for result enrichment
+  const sessionTitles: Record<string, string> = {
+    [sessionId]: detail.title,
+  };
+
+  // 6. Perform hybrid similarity search.
+  // Graceful degradation: if similarity subsystem is unavailable, return empty.
+  try {
+    const results = await findSimilarSessions(db, sessionText, {
+      topK: topK ?? 5,
+      sessionTitles,
+    });
+
+    // 7. Exclude the query session itself from results
+    return results.filter((r) => r.sessionId !== sessionId);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Collect all text content from a session's messages.
+ * Only "text" parts ≥ 30 chars are included (mirrors chunk extraction rules).
+ * Concatenated with a single space separator.
+ */
+function collectSessionText(detail: SessionDetail): string {
+  const parts: string[] = [];
+  const messages = detail.messages ?? [];
+
+  for (const msg of messages) {
+    if (msg.role === "system") continue;
+    const textParts = msg.parts?.filter((p) => p.type === "text") ?? [];
+    for (const part of textParts) {
+      const text = (part as { text: string }).text;
+      if (text && text.length >= 30) {
+        parts.push(text);
+      }
+    }
+  }
+
+  return parts.join(" ");
 }
 
 // ============================================================================

@@ -11,6 +11,7 @@ import {
   SessionSummary,
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
+import type { SimilarSessionResult } from "../similarity/search";
 
 type ClaudeAdapterOptions = {
   defaultPath?: string;
@@ -108,6 +109,18 @@ export function createClaudeAdapter(
 
       throw new Error(`${label} session not found: ${sessionId}`);
     },
+    // REQ-SIM-03: Similarity search not yet supported for Claude adapter
+    findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [
+      {
+        sessionId: "",
+        title: "",
+        score: 0,
+        rank: 0,
+        matchType: "none",
+        matchedChunks: 0,
+        note: "Not yet supported",
+      },
+    ],
   };
 }
 

@@ -196,6 +196,7 @@ export function initializeSimilarity(db: Database, cfg: SimilarityConfig): void 
 
   // ── session_vec ──────────────────────────────────────────────────────────────
   // Try sqlite-vec virtual table first; fall back to a regular shadow table.
+  // Both paths are wrapped in try/catch so this function is safe for read-only DBs.
   try {
     db.exec(`
       CREATE VIRTUAL TABLE IF NOT EXISTS session_vec USING vec0(
@@ -206,17 +207,20 @@ export function initializeSimilarity(db: Database, cfg: SimilarityConfig): void 
       )
     `);
   } catch (_err) {
-    // sqlite-vec not available — create a regular shadow table so that
-    // tests can at least verify the table is present in sqlite_master.
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS session_vec (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        embedding   TEXT,
-        session_id  TEXT,
-        message_id  TEXT,
-        chunk_text  TEXT
-      )
-    `);
+    // sqlite-vec not available OR DB is read-only — try shadow table
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS session_vec (
+          id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          embedding   TEXT,
+          session_id  TEXT,
+          message_id  TEXT,
+          chunk_text  TEXT
+        )
+      `);
+    } catch {
+      // DB is read-only and vec is unavailable — skip silently
+    }
   }
 
   // ── session_fts ──────────────────────────────────────────────────────────────
@@ -230,14 +234,18 @@ export function initializeSimilarity(db: Database, cfg: SimilarityConfig): void 
       )
     `);
   } catch (_err) {
-    // FTS5 unavailable — create a regular shadow table.
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS session_fts (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_id  TEXT,
-        message_id  TEXT,
-        chunk_text  TEXT
-      )
-    `);
+    // FTS5 unavailable OR DB is read-only — try shadow table
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS session_fts (
+          id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_id  TEXT,
+          message_id  TEXT,
+          chunk_text  TEXT
+        )
+      `);
+    } catch {
+      // DB is read-only and FTS5 unavailable — skip silently
+    }
   }
 }

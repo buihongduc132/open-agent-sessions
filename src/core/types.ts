@@ -1,4 +1,5 @@
 import { AgentEntry, AgentKind } from "../config/types";
+import type { SimilarSessionResult } from "../similarity/search";
 
 export type SessionStorageKind = "db" | "jsonl" | "other";
 
@@ -116,6 +117,13 @@ export interface Adapter {
    * @returns ForkResult with newSessionId, parentSessionId, destAgent, destAlias, forkedAt.
    */
   forkSession?(sourceSessionId: string, destAgent: string, destAlias: string): Promise<ForkResult>;
+  /**
+   * REQ-SIM-03: Find sessions similar to the given session, ranked by hybrid similarity score.
+   * Uses sqlite-vec + FTS5 when available (OpenCode adapter).
+   * @param sessionId Session to find similar sessions for.
+   * @param topK Maximum results to return. Default: 5.
+   */
+  findSimilarSessions?(sessionId: string, topK?: number): Promise<SimilarSessionResult[]>;
 }
 
 export type AdapterFactory = (entry: AgentEntry) => Adapter;
@@ -136,6 +144,8 @@ export interface AdapterHandle {
   getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
   /** Optional — only present when the adapter supports session forking (R-39). */
   forkSession?(sourceSessionId: string, destAgent: string, destAlias: string): Promise<ForkResult>;
+  /** Optional — only present when the adapter supports similarity search (REQ-SIM-03). */
+  findSimilarSessions?(sessionId: string, topK?: number): Promise<SimilarSessionResult[]>;
 }
 
 export interface AdapterRegistry {

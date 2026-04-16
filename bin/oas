@@ -13,6 +13,7 @@ import { runDetailCommand, type DetailService } from "../src/cli/detail";
 import { runCloneCommand } from "../src/cli/clone";
 import { runConfigCommand } from "../src/cli/config";
 import { runExportCommand, type ExportService } from "../src/cli/export";
+import { runSimilarCommand, type SimilarService } from "../src/cli/similar";
 
 // TUI imports (R-15)
 import { runTuiApp } from "../src/tui/App";
@@ -348,6 +349,22 @@ function createExportService(config: Config): ExportService {
   };
 }
 
+function createSimilarService(config: Config): SimilarService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
+  return async (query, topK) => {
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
+    );
+
+    if (!adapter || !adapter.findSimilarSessions) {
+      return [];
+    }
+
+    return adapter.findSimilarSessions(query.id, topK);
+  };
+}
+
 function createCloneServiceFromConfig(config: Config) {
   const cwd = process.cwd();
   
@@ -649,6 +666,44 @@ async function handleExportCommand(parsed: ParsedArgs): Promise<void> {
   process.exit(result.exitCode);
 }
 
+async function handleSimilarCommand(parsed: ParsedArgs): Promise<void> {
+  // Positional: oas similar <session-id>
+  const sessionId = parsed.positional[0];
+  if (!sessionId) {
+    console.error("Usage: oas similar <session-id> [--top N] [--format json|text]");
+    process.exit(1);
+  }
+
+  // Parse --top / -n (default 5)
+  const topK = parsed.options["top"] as number | undefined;
+  if (topK !== undefined && (typeof topK !== "number" || isNaN(topK))) {
+    console.error("Invalid --top value: must be a number");
+    process.exit(1);
+  }
+
+  // Parse --format
+  const format = parsed.options["format"] as string | undefined;
+  if (format !== undefined && format !== "text" && format !== "json") {
+    console.error("Invalid --format value: must be 'text' or 'json'");
+    process.exit(1);
+  }
+
+  const config = loadConfig();
+  const findSimilar = createSimilarService(config);
+
+  const result = await runSimilarCommand({
+    sessionId,
+    top: topK,
+    format: format as "text" | "json" | undefined,
+    config,
+    findSimilar,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
 // ============================================================================
 // Help
 // ============================================================================
@@ -675,8 +730,9 @@ function showHelp() {
   console.log("    read [options]         Read session messages (alternative)");
     console.log("    search [options]       Search sessions by title and content");
     console.log("    clone [options]        Clone session from one agent to another");
-    console.log("    export [options]       Export session in CSF/Markdown/Text format");
-  console.log("    onboard                Initialize bd (beads) for the project");
+console.log("    export [options]       Export session in CSF/Markdown/Text format");
+    console.log("    similar <session-id>   Find similar sessions (hybrid similarity)");
+    console.log("    onboard                Initialize bd (beads) for the project");
   console.log("    tui                    Launch the interactive TUI (session browser + clone)");
   console.log("");
   console.log("Sessions Command Options:");
@@ -926,6 +982,13 @@ async function main() {
       return;
     }
     await handleExportCommand(parsed);
+    return;
+  }
+
+  // REQ-SIM-03: Similar sessions command
+  if (command === "similar") {
+    const parsed = parseArgs(restArgs);
+    await handleSimilarCommand(parsed);
     return;
   }
 

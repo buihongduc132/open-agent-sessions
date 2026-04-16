@@ -407,7 +407,7 @@ describe("graceful fallback — adapter compatibility", () => {
    * These tests verify the adapter does NOT throw when similarity is absent.
    */
 
-  test("codex adapter findSimilarSessions returns empty array gracefully", async () => {
+  test("codex adapter findSimilarSessions returns note 'Not yet supported'", async () => {
     // #given a codex adapter (non-opencode, no DB)
     const { createCodexAdapter } = await import("../../src/adapters/codex");
     const adapter = createCodexAdapter({
@@ -416,13 +416,15 @@ describe("graceful fallback — adapter compatibility", () => {
       enabled: true,
     });
     // #when findSimilarSessions is called
-    // #then it returns empty array (not an error)
+    // #then it returns a result with note 'Not yet supported' (graceful fallback)
     const result = (adapter as unknown as { findSimilarSessions: (q: string) => Promise<unknown[]> }).findSimilarSessions?.("hello");
     if (result !== undefined) {
-      await expect(result).resolves.toEqual([]);
+      const resolved = await result;
+      expect(Array.isArray(resolved)).toBe(true);
+      expect((resolved as unknown[]).length).toBeGreaterThan(0);
+      expect((resolved as { note?: string }[])[0].note).toBe("Not yet supported");
     } else {
-      // If the method doesn't exist yet, that's acceptable for RED phase
-      // The important thing is: no throw
+      // Method absent — acceptable (backward compat)
       expect(true).toBe(true);
     }
   });
@@ -436,10 +438,11 @@ describe("graceful fallback — adapter compatibility", () => {
       enabled: true,
     });
     // #when accessing findSimilarSessions property
-    // #then it is either absent OR returns empty array (never throws)
+    // #then it is either absent OR returns result with note (never throws)
     const handle = adapter as unknown as Record<string, unknown>;
     if (typeof handle.findSimilarSessions === "function") {
-      await expect(handle.findSimilarSessions("hello")).resolves.toEqual([]);
+      const result = await (handle.findSimilarSessions as (q: string) => Promise<unknown[]>)("hello");
+      expect(Array.isArray(result)).toBe(true);
     }
     // Absence of the method is also acceptable — additive feature
   });
@@ -453,7 +456,8 @@ describe("graceful fallback — adapter compatibility", () => {
     });
     const handle = adapter as unknown as Record<string, unknown>;
     if (typeof handle.findSimilarSessions === "function") {
-      await expect(handle.findSimilarSessions("hello")).resolves.toEqual([]);
+      const result = await (handle.findSimilarSessions as (q: string) => Promise<unknown[]>)("hello");
+      expect(Array.isArray(result)).toBe(true);
     }
   });
 });

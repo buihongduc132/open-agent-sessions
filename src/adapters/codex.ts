@@ -14,6 +14,7 @@ import {
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
 import type { CloneSourceAdapter, CloneSession, CloneMessage } from "../core/clone";
+import type { SimilarSessionResult } from "../similarity/search";
 
 type CodexAdapterOptions = {
   defaultPath?: string;
@@ -199,6 +200,18 @@ export function createCodexAdapter(
 
       throw new Error(`${label} session not found: ${sessionId}`);
     },
+    // REQ-SIM-03: Similarity search not yet supported for Codex adapter
+    findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [
+      {
+        sessionId: "",
+        title: "",
+        score: 0,
+        rank: 0,
+        matchType: "none",
+        matchedChunks: 0,
+        note: "Not yet supported",
+      },
+    ],
   };
 }
 
