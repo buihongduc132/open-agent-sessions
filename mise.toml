@@ -44,3 +44,7 @@ run = ["typecheck", "build", "test"]
 [tasks.clean]
 description = "Remove build artifacts and Bun test cache"
 run = "rm -rf dist/ .test/"
+
+[tasks.matrix-display]
+description = "Display the requirements matrix from normalized JSON"
+run = "cat .matrix-data/_normalized/items.json | jq ."

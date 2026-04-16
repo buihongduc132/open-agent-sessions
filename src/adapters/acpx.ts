@@ -27,6 +27,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { Adapter, SearchQuery, SessionDetail, SessionMessage, SessionReadOptions, SessionSummary } from "../core/types";
 import { AgentKind } from "../config/types";
+import type { SimilarSessionResult } from "../similarity/search";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -214,6 +215,24 @@ export function createAcpxAdapter(
         destAlias,
         forkedAt: new Date().toISOString(),
       };
+    },
+
+    // REQ-SIM-03: graceful fallback — acpx does not yet support similarity search
+    findSimilarSessions: async (
+      _sessionId: string,
+      _topK?: number
+    ): Promise<SimilarSessionResult[]> => {
+      return [
+        {
+          sessionId: "",
+          title: "",
+          score: 0,
+          rank: 0,
+          matchType: "none" as const,
+          matchedChunks: 0,
+          note: "Not yet supported",
+        },
+      ];
     },
   };
 }
