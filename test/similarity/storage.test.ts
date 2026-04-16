@@ -31,9 +31,9 @@ import { initializeSimilarity } from "../../src/similarity/config";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** 30-character string — the minimum threshold for chunk inclusion. */
-const LOREM_30 = "The quick brown fox jumps ov"; // exactly 30 chars
-const LOREM_31 = "The quick brown fox jumps over"; // 31 chars
-const LOREM_29 = "The quick brown fox jumps"; // 29 chars (excluded)
+const LOREM_30 = "The quick brown fox jumps ovxx"; // 30 chars (includes >=30)
+const LOREM_31 = "The quick brown fox jumps ovxxx"; // 31 chars (includes >=30)
+const LOREM_29 = "The quick brown fox jumps ovx"; // 29 chars (excludes <30)
 
 function makeDetail(sessionId: string, messages: SessionMessage[]): SessionDetail {
   return {
