@@ -192,7 +192,7 @@ describe("SimilarityConfig parsing", () => {
   });
 
   describe("validation — vector dimensions", () => {
-    const validDimensions = [384, 768, 1536];
+    const validDimensions = [384, 768, 1536] as const;
 
     for (const dim of validDimensions) {
       test(`similarity config vector dimension ${dim} is valid`, () => {
