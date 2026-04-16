@@ -1,4 +1,5 @@
-Check the requirement in the .matrix-data. MUST use matrix-creation skill. 
+Check the requirement in the ./.matrix-data. MUST use matrix-creation skill. 
+ALL requirement stays in cwd directory. NOT anywhere else. You are working in the open-agent-sessions repository , NOT anywhere else. 
 
 THEN pick 1 next task to do. 
 Use @verifier and @build to do it. 
