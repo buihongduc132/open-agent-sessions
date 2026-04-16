@@ -27,7 +27,7 @@ description = "Run the full test suite"
 run = "bun test"
 alias = "t"
 
-[tasks.test:coverage]
+[tasks."test:coverage"]
 description = "Run tests with coverage (excludes TUI source)"
 run = "bun run test:coverage:core"
 alias = "tcov"
