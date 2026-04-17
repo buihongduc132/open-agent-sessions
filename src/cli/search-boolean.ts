@@ -30,6 +30,13 @@ interface SearchError {
   alias: string;
   message: string;
 }
+// NOTE: This SearchError is structurally compatible with the one exported by
+// search.ts (which uses `agent: AgentKind`). The boolean module uses `string`
+// because error-generating catch blocks may produce `agent: "unknown"` when
+// the originating agent cannot be determined. The errors flow from here into
+// search.ts via BooleanSearchResult.errors, which is assigned to the stricter
+// SearchError[] from search.ts — this is safe at runtime since AgentKind is a
+// string union.
 
 // ─── Lexer ─────────────────────────────────────────────────────────────────
 
@@ -197,7 +204,15 @@ function empty(excludeSet: Set<string> = new Set(), errors: SearchError[] = []):
 function collectErrors(errors: SearchError[], into: Map<string, SearchError>): void {
   for (const e of errors) {
     const k = `${e.agent}:${e.alias}`;
-    if (!into.has(k)) into.set(k, e);
+    const existing = into.get(k);
+    if (existing) {
+      // Merge messages: append if different
+      if (existing.message !== e.message) {
+        existing.message = existing.message + "; " + e.message;
+      }
+    } else {
+      into.set(k, { ...e });
+    }
   }
 }
 
@@ -288,7 +303,8 @@ async function collectAndSeedAll(
   node: AstNode,
   options: BooleanSearchOptions,
   ctx: EvalContext,
-  seenTerms: Set<string>
+  seenTerms: Set<string>,
+  phase1Errors?: SearchError[]
 ): Promise<void> {
   switch (node.type) {
     case "term": {
@@ -298,6 +314,12 @@ async function collectAndSeedAll(
       try {
         const result = await options.searchTerm(term, ctx);
         ctx.seedAll(result.sessions);
+        // Gap F: Propagate errors from Phase 1
+        if (phase1Errors && result.errors) {
+          for (const e of result.errors) {
+            phase1Errors.push(e);
+          }
+        }
       } catch {
         // Partial failure during seeding — skip this term, continue with others
       }
@@ -305,14 +327,14 @@ async function collectAndSeedAll(
     }
     case "and":
     case "or": {
-      await collectAndSeedAll(node.left, options, ctx, seenTerms);
-      await collectAndSeedAll(node.right, options, ctx, seenTerms);
+      await collectAndSeedAll(node.left, options, ctx, seenTerms, phase1Errors);
+      await collectAndSeedAll(node.right, options, ctx, seenTerms, phase1Errors);
       break;
     }
     case "not": {
       // Collect NOT operands for the universe so that NOT can compute
       // the complement against the full set of matching sessions.
-      await collectAndSeedAll(node.operand, options, ctx, seenTerms);
+      await collectAndSeedAll(node.operand, options, ctx, seenTerms, phase1Errors);
       break;
     }
   }
@@ -345,8 +367,9 @@ export async function executeBooleanSearch(options: BooleanSearchOptions): Promi
   const ast = parseQuery(options.rawQuery);
   const ctx = new EvalContext();
 
-  // Phase 1: pre-collect universe
-  await collectAndSeedAll(ast, options, ctx, new Set<string>());
+  // Phase 1: pre-collect universe (with error tracking)
+  const phase1Errors: SearchError[] = [];
+  await collectAndSeedAll(ast, options, ctx, new Set<string>(), phase1Errors);
 
   // Special case: standalone NOT at root needs full universe.
   // Phase 1 only seeds the NOT operand's results, so the universe is too small.
@@ -362,7 +385,8 @@ export async function executeBooleanSearch(options: BooleanSearchOptions): Promi
 
   // Phase 2: evaluate
   const results = await evalNode(ast, options, ctx);
+  const allErrors = [...phase1Errors, ...results.errors];
   const errorMap = new Map<string, SearchError>();
-  collectErrors(results.errors, errorMap);
+  collectErrors(allErrors, errorMap);
   return { sessions: results.sessions, errors: Array.from(errorMap.values()) };
 }

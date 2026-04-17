@@ -14,6 +14,17 @@
  *
  * The plan extracts individual search terms that can be passed to backends
  * individually, with boolean logic applied in the CLI layer.
+ *
+ * ⚠️ ARCHITECTURE NOTE:
+ * This module's `planFromQuery` and `applyBooleanLogic` are NOT used by
+ * production code. The production boolean search path uses the custom
+ * tokenizer/parser in `src/cli/search-boolean.ts` instead (see
+ * executeBooleanSearch). This module remains because:
+ *   1. It provides an alternative liqe-based parser with Lucene-compatible
+ *      syntax that may be re-integrated when liqe parsing stabilises.
+ *   2. Test files (test/cli-gaps-edge-cases-2.test.ts) validate these
+ *      functions to ensure they remain correct if re-activated.
+ * See _16apr_gaps.md for the full architecture decision.
  */
 
 import { parse, type Node } from "liqe";
@@ -50,7 +61,7 @@ export function planFromQuery(query: string): SearchPlan {
     const terms: string[] = [];
     const excludeTerms: string[] = [];
 
-    walkAst(ast.expression, terms, excludeTerms);
+    walkAst(ast, terms, excludeTerms);
 
     const hasBoolean =
       terms.length > 1 || // implicit AND
@@ -80,10 +91,28 @@ export function planFromQuery(query: string): SearchPlan {
 
 /**
  * Walk the liqe AST, extracting search terms and NOT terms.
+ * Handles liqe's actual node types: Tag, LogicalExpression, LiteralExpression, etc.
  */
-function walkAst(node: Node, terms: string[], excludeTerms: string[]): void {
+function walkAst(node: any, terms: string[], excludeTerms: string[]): void {
   if (!node) return;
 
+  // Tag node: contains an expression (LiteralExpression, etc.) under .expression
+  // and optionally a field under .field
+  if (node.type === "Tag") {
+    walkAst(node.expression, terms, excludeTerms);
+    return;
+  }
+
+  // LiteralExpression: leaf node with .value
+  if (node.type === "LiteralExpression") {
+    const term = node.value;
+    if (term && typeof term === "string" && term.length > 0) {
+      terms.push(term);
+    }
+    return;
+  }
+
+  // Legacy: TermExpression (older liqe versions)
   if (node.type === "TermExpression") {
     const term = node.value;
     if (term && typeof term === "string" && term.length > 0) {
@@ -92,6 +121,43 @@ function walkAst(node: Node, terms: string[], excludeTerms: string[]): void {
     return;
   }
 
+  // LogicalExpression: binary node with .left, .right, .operator
+  if (node.type === "LogicalExpression") {
+    const op = node.operator;
+    const opType = op?.type;
+    const opValue = op?.operator;
+
+    // Check for NOT: either explicit "NOT" or ImplicitBooleanOperator with NOT on right
+    if (opType === "BooleanOperator" && opValue === "NOT") {
+      // "X NOT Y" → Y is excluded
+      const rightTerms: string[] = [];
+      walkAst(node.right, rightTerms, []);
+      for (const t of rightTerms) {
+        excludeTerms.push(t);
+      }
+      walkAst(node.left, terms, excludeTerms);
+      return;
+    }
+
+    // liqe parses "ast-grep NOT comby" as:
+    //   LogicalExpression { operator: ImplicitBooleanOperator("AND"), right: UnaryOperator(NOT) }
+    if (opType === "ImplicitBooleanOperator" && node.right?.type === "UnaryOperator" && node.right?.operator === "NOT") {
+      const rightTerms: string[] = [];
+      walkAst(node.right.operand, rightTerms, []);
+      for (const t of rightTerms) {
+        excludeTerms.push(t);
+      }
+      walkAst(node.left, terms, excludeTerms);
+      return;
+    }
+
+    // AND or OR: recurse into both sides
+    walkAst(node.left, terms, excludeTerms);
+    walkAst(node.right, terms, excludeTerms);
+    return;
+  }
+
+  // Legacy: BinaryExpression (older liqe versions)
   if (node.type === "BinaryExpression") {
     const bin = node as {
       type: "BinaryExpression";
@@ -101,25 +167,33 @@ function walkAst(node: Node, terms: string[], excludeTerms: string[]): void {
     };
 
     if (bin.operator === "NOT") {
-      // "NOT X" → X is excluded
       const rightTerms: string[] = [];
       walkAst(bin.right, rightTerms, []);
       for (const t of rightTerms) {
         excludeTerms.push(t);
       }
-      // Still need left side if it exists (e.g. "X NOT Y")
       walkAst(bin.left, terms, excludeTerms);
       return;
     }
 
-    // AND or OR: recurse into both sides
     walkAst(bin.left, terms, excludeTerms);
     walkAst(bin.right, terms, excludeTerms);
     return;
   }
 
+  // GroupExpression: wrapper around an inner expression
   if (node.type === "GroupExpression") {
     walkAst((node as { expression: Node }).expression, terms, excludeTerms);
+    return;
+  }
+
+  // UnaryOperator: NOT prefix
+  if (node.type === "UnaryOperator" && node.operator === "NOT") {
+    const rightTerms: string[] = [];
+    walkAst(node.operand, rightTerms, []);
+    for (const t of rightTerms) {
+      excludeTerms.push(t);
+    }
     return;
   }
 }

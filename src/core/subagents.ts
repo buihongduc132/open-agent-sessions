@@ -328,7 +328,7 @@ export function buildForkChain(
   while (current) {
     chain.unshift({
       sessionId: current.id,
-      title: current.title ?? current.id,
+      title: current.title || current.id,
       agent: current.agent,
       alias: current.alias,
       forkedAt: current.forkedAt,
