@@ -40,6 +40,17 @@ export interface SearchPlan {
   originalQuery: string;
   /** True when query contains a regex pattern. */
   hasRegex: boolean;
+
+  // ── REQ-22: Per-backend predicates (3-layer architecture) ────────────────
+
+  /** FTS5 MATCH predicate string for SQLite backends (e.g. "astgrep AND comby"). */
+  fts5Query: string;
+  /** Streaming filter function for JSONL backends. Returns true when text matches. */
+  jsonlFilter: (text: string) => boolean;
+  /** Individual positive terms for vector similarity search backends. */
+  vectorTerms: string[];
+  /** The boolean operator detected: "AND", "OR", or "NONE" (single term). */
+  booleanOp: "AND" | "OR" | "NONE";
 }
 
 /**
@@ -53,7 +64,17 @@ export interface SearchPlan {
  */
 export function planFromQuery(query: string): SearchPlan {
   if (!query || query.trim().length === 0) {
-    return { terms: [], hasBoolean: false, excludeTerms: [], originalQuery: query, hasRegex: false };
+    return {
+      terms: [],
+      hasBoolean: false,
+      excludeTerms: [],
+      originalQuery: query,
+      hasRegex: false,
+      fts5Query: "",
+      jsonlFilter: (_text: string) => true, // empty filter matches everything
+      vectorTerms: [],
+      booleanOp: "NONE" as const,
+    };
   }
 
   try {
@@ -70,21 +91,44 @@ export function planFromQuery(query: string): SearchPlan {
 
     const hasRegex = query.includes("/");
 
+    // REQ-22: Detect the boolean operator from the query
+    const booleanOp = detectBooleanOp(query, terms.length);
+
+    // REQ-22: Build per-backend predicates
+    const fts5Query = buildFts5Query(terms, excludeTerms, booleanOp);
+    const jsonlFilter = buildJsonlFilter(terms, excludeTerms, booleanOp);
+    // REQ-22: vectorTerms — normalized positive terms for vector similarity search.
+    // Exclude NOT terms; normalize by stripping hyphens for embedding lookup.
+    const vectorTerms = terms
+      .filter((t) => !excludeTerms.includes(t))
+      .map(normalizeTerm)
+      .filter((t) => t.length > 0);
+
     return {
       terms,
       hasBoolean,
       excludeTerms,
       originalQuery: query,
       hasRegex,
+      fts5Query,
+      jsonlFilter,
+      vectorTerms,
+      booleanOp,
     };
   } catch {
     // If parsing fails, fall back to treating the whole query as a single term
+    const fallbackTerm = query.trim();
+    const normalizedTerm = normalizeTerm(fallbackTerm);
     return {
-      terms: [query.trim()],
+      terms: [fallbackTerm],
       hasBoolean: false,
       excludeTerms: [],
       originalQuery: query,
       hasRegex: false,
+      fts5Query: normalizedTerm,
+      jsonlFilter: (text: string) => text.toLowerCase().includes(normalizedTerm),
+      vectorTerms: [normalizedTerm],
+      booleanOp: "NONE" as const,
     };
   }
 }
@@ -196,6 +240,97 @@ function walkAst(node: any, terms: string[], excludeTerms: string[]): void {
     }
     return;
   }
+}
+
+// ── REQ-22: Per-backend predicate builders ──────────────────────────────────
+
+/**
+ * Normalize a search term for FTS5: strip hyphens so "ast-grep" → "astgrep".
+ * FTS5 tokenizes on hyphens, so the compound form matches both.
+ */
+function normalizeTerm(term: string): string {
+  return term.replace(/-/g, "").toLowerCase();
+}
+
+/**
+ * Detect the top-level boolean operator from the query string.
+ * Returns "AND" for explicit AND or implicit multi-term, "OR" for explicit OR,
+ * or "NONE" for single-term queries.
+ */
+function detectBooleanOp(query: string, termCount: number): "AND" | "OR" | "NONE" {
+  const upper = query.toUpperCase();
+  if (/\bOR\b/.test(upper)) return "OR";
+  if (/\bAND\b/.test(upper) || /\bNOT\b/.test(upper) || termCount > 1) return "AND";
+  return "NONE";
+}
+
+/**
+ * Build an FTS5 MATCH query string from extracted terms.
+ * FTS5 syntax: "term1 AND term2", "term1 OR term2", "term1 NOT term2"
+ * Hyphens are stripped since FTS5 tokenizes on them.
+ */
+function buildFts5Query(terms: string[], excludeTerms: string[], op: "AND" | "OR" | "NONE"): string {
+  const normalized = terms.map(normalizeTerm).filter((t) => t.length > 0);
+  const normalizedExclude = excludeTerms.map(normalizeTerm).filter((t) => t.length > 0);
+
+  if (normalized.length === 0) return "";
+
+  // Build positive part
+  let positive: string;
+  if (op === "OR") {
+    positive = normalized.join(" OR ");
+  } else {
+    // AND or NONE (single term)
+    positive = normalized.join(" AND ");
+  }
+
+  // Append NOT terms
+  if (normalizedExclude.length > 0) {
+    positive += " NOT " + normalizedExclude.join(" NOT ");
+  }
+
+  return positive;
+}
+
+/**
+ * Build a streaming filter function for JSONL backends.
+ * Returns a predicate that checks message text against the query terms.
+ * Case-insensitive matching; hyphens stripped from both text and terms.
+ */
+function buildJsonlFilter(
+  terms: string[],
+  excludeTerms: string[],
+  op: "AND" | "OR" | "NONE"
+): (text: string) => boolean {
+  const normalized = terms.map(normalizeTerm).filter((t) => t.length > 0);
+  const normalizedExclude = excludeTerms.map(normalizeTerm).filter((t) => t.length > 0);
+
+  if (normalized.length === 0 && normalizedExclude.length === 0) {
+    return (_text: string) => true; // empty query matches everything
+  }
+
+  return (text: string): boolean => {
+    const lower = text.toLowerCase().replace(/-/g, "");
+
+    // Check positive terms
+    let positiveMatch: boolean;
+    if (normalized.length === 0) {
+      positiveMatch = true; // only exclusion, match everything positive
+    } else if (op === "OR") {
+      positiveMatch = normalized.some((t) => lower.includes(t));
+    } else {
+      // AND or NONE: all terms must be present
+      positiveMatch = normalized.every((t) => lower.includes(t));
+    }
+
+    // Check exclusion terms
+    if (positiveMatch && normalizedExclude.length > 0) {
+      const hasExcluded = normalizedExclude.some((t) => lower.includes(t));
+      if (hasExcluded) return false;
+    }
+
+    return positiveMatch;
+  };
 }
 
 /**
