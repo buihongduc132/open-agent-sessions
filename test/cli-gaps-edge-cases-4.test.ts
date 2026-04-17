@@ -542,3 +542,274 @@ describe("GAP 5 — List output shows agent role tag (main vs sub)", () => {
     expect(standaloneLine!).toMatch(/\[main\]|\(main\)/);
   });
 });
+
+// ============================================================================
+// GAP 6 — Sub-agent sessions shown by default in CLI and TUI (no filter)
+// ============================================================================
+// Root cause: Both `runListCommand` (CLI) and `applyFilters` / list view (TUI)
+// display ALL sessions including sub-agent sessions (sessions with a parentSessionId).
+// Users see noise from child sessions mixed with root sessions.
+//
+// Requirement: By DEFAULT, sub-agent sessions must be FILTERED OUT.
+// The root session row MUST carry an indicator showing how many child sessions
+// exist (e.g. "[main] +3"). This tells users at a glance that the session has
+// sub-agents without cluttering the list.
+//
+// When the user wants to see sub-agents, they can:
+//   CLI  : use `--children-of <session-id>` or `--sub-only`
+//   TUI  : press Enter / navigate into the root session to see its children
+//
+// ---- CLI default view ----
+//
+//   [opencode:personal] [main] +4  My research session (ses_001)
+//   [opencode:personal] [main] -   Quick patch (ses_002)
+//   [codex:work]       [main] +1  PRD draft (ses_003)
+//   [opencode:personal] [main] -   Standalone root (ses_004)
+//
+//   - Rows with `parentSessionId` are NEVER shown in the default view.
+//   - `+N` label appears only when N > 0, `-` when the session has no children.
+//   - Drill-down in CLI: `--children-of ses_001` to list children.
+//
+// ---- TUI default list view ----
+//
+//   ▸ opencode   personal  My research session         4   ██████  10:32
+//     opencode   personal  Quick patch                -   █████   09:14
+//   ▸ codex      work      PRD draft                   1   ████    09:01
+//     opencode   personal  Standalone root            -   ██      08:55
+//
+//   - `▸` appears ONLY on rows with children > 0 (not on rows with `-`).
+//   - Children column: bare NUMBER (e.g. 4, 1) or `-` when zero.
+//   - Rows with `parentSessionId` are hidden by default.
+//   - Cursor + Enter on a ▸ row → drill-down view for that session.
+//
+// ---- TUI drill-down view (after Enter on a ▸ row) ----
+//
+//   ← BACK  │  ses_001 "My research session"
+//   opencode   personal  [sub] Sub-session A (ses_005)     ████    10:30
+//   codex      work      [sub] Sub-session B (ses_006)     ███     10:28
+//   opencode   personal  [sub] Sub-session C (ses_007)     ██      10:25
+//   opencode   personal  [sub] (no title) (ses_008)       █       10:20
+//
+//   - "← BACK" returns to the root-only list view.
+//
+// Implementation notes:
+//   1. CLI `runListCommand` — the DEFAULT path (no flags) must filter:
+//        sessions = sessions.filter(s => !s.parentSessionId)
+//      BEFORE applying rootsOnly / childrenOf / subOnly / includeSubagents flags.
+//      childCount must be computed from the FULL (unfiltered) list of sessions:
+//        childCount = allSessions.filter(s => s.parentSessionId === session.id).length
+//      Append `+N` badge if N > 0, `-` if N === 0.
+//   2. TUI `applyFilters` — add filter: exclude sessions with parentSessionId.
+//      childCount must be computed from allSessions (unfiltered), not filteredSessions.
+//   3. TUI row renderer — children column: bare number or `-`; `▸` only when children > 0.
+//   4. TUI navigation — add a TuiEffect variant: { type: "drill-down"; parent: SessionSummary }.
+//      Map Enter key on a ▸ row to the drill-down view.
+//   5. CLI: add `includeSubagents?: boolean` to ListOptions.
+//      When true, skip the default roots-only filter (show everything, no +N badges).
+//      Mutual conflict: `rootsOnly` + `includeSubagents` returns exit 1.
+//   6. `childrenOf` + `subOnly` — add mutual conflict validation (returns exit 1).
+// ============================================================================
+
+describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
+  const allSessions = [
+    makeSession("ses_001", "opencode", "personal", "My research session"),
+    makeSession("ses_005", "opencode", "personal", "Sub-session A", { parentSessionId: "ses_001" }),
+    makeSession("ses_006", "codex", "work", "Sub-session B", { parentSessionId: "ses_001" }),
+    makeSession("ses_007", "opencode", "personal", "Sub-session C", { parentSessionId: "ses_001" }),
+    makeSession("ses_008", "opencode", "personal", "Untitled sub", { parentSessionId: "ses_001" }),
+    makeSession("ses_010", "opencode", "personal", "Nested child", { parentSessionId: "ses_005" }), // nested child
+    makeSession("ses_002", "opencode", "personal", "Quick patch"),
+    makeSession("ses_003", "codex", "work", "PRD draft"),
+    makeSession("ses_009", "codex", "work", "Child of PRD", { parentSessionId: "ses_003" }),
+    makeSession("ses_004", "opencode", "personal", "Standalone root"),
+  ];
+
+  const listService: ListService = async () => ({
+    sessions: allSessions,
+    errors: [],
+  });
+
+  /**
+   * WHY RED: By default, runListCommand shows ALL sessions including sub-agents.
+   * ses_005 through ses_010 all have parentSessionId and should NOT appear.
+   * ses_001 and ses_003 must show "+N" child count badges.
+   */
+  test("list_default_hides_child_sessions_and_shows_child_count_badge", async () => {
+    const result = await runListCommand({ config: baseConfig, list: listService });
+
+    expect(result.exitCode).toBe(0);
+
+    // Root sessions appear
+    expect(result.stdout).toContain("ses_001");
+    expect(result.stdout).toContain("ses_002");
+    expect(result.stdout).toContain("ses_003");
+    expect(result.stdout).toContain("ses_004");
+
+    // All sessions with parentSessionId are hidden (including nested)
+    expect(result.stdout).not.toContain("ses_005"); // parent: ses_001
+    expect(result.stdout).not.toContain("ses_006"); // parent: ses_001
+    expect(result.stdout).not.toContain("ses_007"); // parent: ses_001
+    expect(result.stdout).not.toContain("ses_008"); // parent: ses_001
+    expect(result.stdout).not.toContain("ses_009"); // parent: ses_003
+    expect(result.stdout).not.toContain("ses_010"); // nested: parent ses_005
+
+    // Child count badges: ses_001 has 4 direct children, ses_003 has 1
+    const lines = result.stdout.split("\n").filter(Boolean);
+    const ses001Line = lines.find((l) => l.includes("ses_001"));
+    const ses003Line = lines.find((l) => l.includes("ses_003"));
+    const ses002Line = lines.find((l) => l.includes("ses_002"));
+
+    expect(ses001Line).toMatch(/\+4/);
+    expect(ses003Line).toMatch(/\+1/);
+    // ses_002 has no children — must show "-" not "+N"
+    expect(ses002Line).toMatch(/-/);
+  });
+
+  /**
+   * WHY RED: `--sub-only` should show ONLY child sessions (no roots).
+   * The opposite of the default. ses_005–ses_010 only.
+   */
+  test("list_sub_only_shows_only_child_sessions", async () => {
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      // @ts-expect-error — subOnly doesn't exist yet (also GAP 2)
+      subOnly: true,
+    });
+
+    expect(result.exitCode).toBe(0);
+
+    // Only sessions WITH parentSessionId appear (includes nested)
+    expect(result.stdout).toContain("ses_005");
+    expect(result.stdout).toContain("ses_006");
+    expect(result.stdout).toContain("ses_007");
+    expect(result.stdout).toContain("ses_008");
+    expect(result.stdout).toContain("ses_009");
+    expect(result.stdout).toContain("ses_010"); // nested child
+
+    // Root sessions are hidden
+    expect(result.stdout).not.toContain("ses_001");
+    expect(result.stdout).not.toContain("ses_002");
+    expect(result.stdout).not.toContain("ses_003");
+    expect(result.stdout).not.toContain("ses_004");
+  });
+
+  /**
+   * WHY RED: `--children-of ses_001` shows only DIRECT children of ses_001.
+   * ses_005–ses_008 only. ses_010 (nested child of ses_005) is NOT shown.
+   */
+  test("list_children_of_shows_only_direct_children", async () => {
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      childrenOf: "ses_001",
+    });
+
+    expect(result.exitCode).toBe(0);
+
+    expect(result.stdout).toContain("ses_005");
+    expect(result.stdout).toContain("ses_006");
+    expect(result.stdout).toContain("ses_007");
+    expect(result.stdout).toContain("ses_008");
+
+    // ses_010 is nested (child of ses_005), not a direct child of ses_001
+    expect(result.stdout).not.toContain("ses_010");
+    // ses_009 is child of ses_003, not ses_001
+    expect(result.stdout).not.toContain("ses_009");
+    // Root sessions are hidden in childrenOf view
+    expect(result.stdout).not.toContain("ses_001");
+  });
+
+  /**
+   * WHY RED: `--children-of` with a nonexistent parent ID returns exit 0
+   * with "No sessions found." (empty result, not an error).
+   */
+  test("list_children_of_nonexistent_parent_returns_empty", async () => {
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      childrenOf: "ses_999",
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toMatch(/no sessions found/i);
+  });
+
+  /**
+   * WHY RED: `--children-of` on a session that IS itself a leaf child (has no
+   * children) returns 0 sessions (exit 0, not an error). ses_009 is a child
+   * of ses_003 and has no children of its own, so childrenOf: ses_009 is an
+   * empty result.
+   */
+  test("list_children_of_child_session_with_no_direct_children_returns_empty", async () => {
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      childrenOf: "ses_009",
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toMatch(/no sessions found/i);
+  });
+
+  /**
+   * WHY RED: `--sub-only` + `--children-of` together is contradictory:
+   * subOnly says "sessions WITH a parent", childrenOf says "sessions whose
+   * parent is X". The intersection is valid in theory but the combination
+   * is confusing UX — reject it explicitly.
+   */
+  test("list_sub_only_and_children_of_conflict_returns_error", async () => {
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      // @ts-expect-error — subOnly doesn't exist yet (also GAP 2)
+      subOnly: true,
+      childrenOf: "ses_001",
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toMatch(/cannot use|conflict|mutually exclusive/i);
+  });
+
+  /**
+   * WHY RED: `--include-subagents` overrides the default filter so all sessions
+   * are shown, including child sessions. No +N badges, no - indicators.
+   */
+  test("list_include_subagents_overrides_default_and_shows_all", async () => {
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      // @ts-expect-error — includeSubagents doesn't exist yet
+      includeSubagents: true,
+    });
+
+    expect(result.exitCode).toBe(0);
+
+    // All 10 sessions appear
+    for (const id of ["ses_001", "ses_002", "ses_003", "ses_004", "ses_005", "ses_006", "ses_007", "ses_008", "ses_009", "ses_010"]) {
+      expect(result.stdout).toContain(id);
+    }
+
+    // No +N badges in include-subagents mode
+    expect(result.stdout).not.toMatch(/\+\d/);
+    // No - indicators either
+    expect(result.stdout).not.toMatch(/\s-\s/);
+  });
+
+  /**
+   * WHY RED: `rootsOnly` and `includeSubagents` are contradictory.
+   * rootsOnly says "only roots", includeSubagents says "show everything".
+   */
+  test("list_include_subagents_and_roots_only_conflict", async () => {
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      rootsOnly: true,
+      // @ts-expect-error — includeSubagents doesn't exist yet
+      includeSubagents: true,
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toMatch(/cannot use|conflict|mutually exclusive/i);
+  });
+});
