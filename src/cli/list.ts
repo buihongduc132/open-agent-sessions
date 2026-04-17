@@ -3,6 +3,8 @@ import { SessionListQuery, SessionListResult } from "../core/list";
 import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
 import { type ConfigOptions, type ParseResult, resolveConfig, errorResult, errorMessage } from "./utils/config";
+import { sanitizeTitle } from "./utils/format";
+import { formatErrors } from "./formatters/text";
 
 const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>] [--limit <n>] [--after <cursor>]";
 
@@ -20,6 +22,8 @@ export type ListOptions = {
   subOnly?: boolean;
   /** Filter to only sessions that are direct children of this parent session ID. */
   childrenOf?: string;
+  /** Include sub-agent sessions in output (overrides default hiding). */
+  includeSubagents?: boolean;
   list: ListService;
 } & ConfigOptions;
 
@@ -36,6 +40,14 @@ export async function runListCommand(options: ListOptions): Promise<CliResult> {
 
   if (options.rootsOnly && options.subOnly) {
     return errorResult("Cannot use --roots-only and --sub-only together: they are mutually exclusive.");
+  }
+
+  if (options.subOnly && options.childrenOf !== undefined) {
+    return errorResult("Cannot use --sub-only and --children-of together: they are mutually exclusive.");
+  }
+
+  if (options.includeSubagents && options.rootsOnly) {
+    return errorResult("Cannot use --include-subagents and --roots-only together: they are mutually exclusive.");
   }
 
   const enabledEntries = configResult.value.agents.filter((entry) => entry.enabled);
@@ -80,6 +92,18 @@ export async function runListCommand(options: ListOptions): Promise<CliResult> {
     sessions = sessions.filter((s) => !!s.parentSessionId);
   }
 
+  // Determine badge mode for formatting
+  // - includeSubagents: show all, no badges
+  // - childrenOf/subOnly: filtered view, no badges
+  // - default/rootsOnly: hide children, show +N badges
+  const showBadges = !options.includeSubagents && options.childrenOf === undefined && !options.subOnly;
+  const hideChildren = showBadges && !options.rootsOnly; // rootsOnly already filters them
+
+  if (hideChildren) {
+    // Default mode: hide child sessions, show only roots with child count badges
+    sessions = sessions.filter((s) => !s.parentSessionId);
+  }
+
   const stderr = formatErrors(result.errors);
   if (sessions.length === 0) {
     return {
@@ -89,7 +113,18 @@ export async function runListCommand(options: ListOptions): Promise<CliResult> {
     };
   }
 
-  const stdout = sessions.map(formatSessionRow).join("\n") + "\n";
+  // Build child count map for badge display
+  let childCounts: Map<string, number> | undefined;
+  if (showBadges) {
+    childCounts = new Map<string, number>();
+    for (const s of result.sessions) {
+      if (s.parentSessionId) {
+        childCounts.set(s.parentSessionId, (childCounts.get(s.parentSessionId) ?? 0) + 1);
+      }
+    }
+  }
+
+  const stdout = sessions.map((s) => formatSessionRow(s, showBadges, childCounts)).join("\n") + "\n";
   return {
     exitCode: 0,
     stdout,
@@ -171,32 +206,26 @@ function normalizeQuery(query: string | undefined): string | undefined {
   return trimmed.length === 0 ? undefined : trimmed;
 }
 
-function formatSessionRow(session: SessionSummary): string {
+function formatSessionRow(
+  session: SessionSummary,
+  showBadges = false,
+  childCounts?: Map<string, number>,
+): string {
   const label = `[${session.agent}:${session.alias}]`;
   const roleTag = session.parentSessionId ? "[sub]" : "[main]";
-  const title = session.title.trim().length > 0 ? session.title : session.id;
+  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
+  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
+  const badge = showBadges && !session.parentSessionId
+    ? (() => {
+        const count = childCounts?.get(session.id) ?? 0;
+        return count > 0 ? `+${count}` : "-";
+      })()
+    : null;
   if (title === session.id) {
-    return `${label} ${roleTag} ${session.id}`;
+    return badge ? `${label} ${roleTag} ${session.id} ${badge}` : `${label} ${roleTag} ${session.id}`;
   }
-  return `${label} ${roleTag} ${title} (${session.id})`;
-}
-
-function formatErrors(errors: SessionListResult["errors"]): string {
-  if (errors.length === 0) {
-    return "";
-  }
-  return (
-    errors
-      .map((error) => {
-        const label = `[${error.agent}:${error.alias}]`;
-        const message = error.message;
-        if (message.includes(label)) {
-          return message;
-        }
-        return `${label} ${message}`;
-      })
-      .join("\n") + "\n"
-  );
+  const base = `${label} ${roleTag} ${title} (${session.id})`;
+  return badge ? `${base} ${badge}` : base;
 }
 
 function formatList(values: string[]): string {

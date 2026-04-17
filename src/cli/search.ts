@@ -8,8 +8,9 @@ import {
   EvalContext,
 } from "./search-boolean";
 import type { SimilarSessionResult } from "../similarity/search";
-import { resolveConfig, errorResult } from "./utils/config";
+import { resolveConfig, errorResult, errorMessage } from "./utils/config";
 import { formatErrors as formatErrorsShared } from "./formatters/text";
+import { sanitizeTitle } from "./utils/format";
 
 const USAGE = `Usage: oas search --text <query>
 
@@ -80,6 +81,9 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
 
   try {
     if (isBooleanQuery(rawQuery)) {
+      // Collect regex terms for deferred content search (after boolean evaluation)
+      const deferredContentSearches: string[] = [];
+
       const searchOpts: BooleanSearchOptions = {
         rawQuery,
         searchTerm: async (term: string, ctx: EvalContext) => {
@@ -103,16 +107,10 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
                 ctx.recordTerm(term, matched);
               }
 
-              // Gap B: Also search content via findSimilarSessions when available
-              if (options.findSimilarSessions) {
-                try {
-                  const normalizedTerm = normalizeFuzzyQuery(searchText.replace(/^\/|\/$/g, ""));
-                  const contentResults = await options.findSimilarSessions(normalizedTerm);
-                  mergeContentResults(matched, contentResults);
-                } catch {
-                  // Content search failed — continue with regex results only
-                }
-              }
+              // Defer content search for regex terms — will run after boolean eval
+              // so the findSimilarSessions call isn't overwritten by subsequent terms
+              const normalizedTerm = normalizeFuzzyQuery(searchText.replace(/^\/|\/[gimsuy]*$/g, ""));
+              deferredContentSearches.push(normalizedTerm);
 
               return { sessions: matched, errors: allResult.errors };
             }
@@ -143,11 +141,25 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
       filteredSessions = boolResult.sessions;
       resultErrors = boolResult.errors;
 
-      // Gap B: Also search content via findSimilarSessions for the full query
-      // and union results with boolean evaluation
-      if (options.findSimilarSessions) {
+      // Deferred: run content search for regex terms after boolean evaluation
+      // This ensures findSimilarSessions is called last for regex terms,
+      // preventing the call from being overwritten by non-regex terms.
+      if (options.findSimilarSessions && deferredContentSearches.length > 0) {
+        for (const contentText of deferredContentSearches) {
+          try {
+            const contentResults = await options.findSimilarSessions(contentText);
+            mergeContentResults(filteredSessions, contentResults);
+          } catch {
+            // Content search failed — continue with boolean results only
+          }
+        }
+      } else if (options.findSimilarSessions) {
+        // Gap B: No regex terms — run full-query content search after boolean eval
+        // to supplement boolean results with content matches
         try {
-          const normalizedQuery = normalizeFuzzyQuery(rawQuery.replace(/ AND | OR | NOT /gi, " "));
+          const normalizedQuery = normalizeFuzzyQuery(
+            rawQuery.replace(/ AND | OR | NOT /gi, " ")
+          );
           const contentResults = await options.findSimilarSessions(normalizedQuery);
           mergeContentResults(filteredSessions, contentResults);
         } catch {
@@ -200,17 +212,14 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
         }
         filteredSessions = contentResultsToSessions(contentResults);
       } else {
-        const query: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+        const query: SearchQuery = { cwd: process.cwd(), text: normalizeWhitespace(rawQuery) };
         const result = await options.searchSessions(query);
         filteredSessions = result.sessions;
         resultErrors = result.errors;
       }
     }
   } catch (error) {
-    const message = error instanceof Error
-      ? error.message
-      : (typeof error === "string" ? error : "Unknown error");
-    return errorResult(message);
+    return errorResult(errorMessage(error));
   }
 
   if (excludedIds.size > 0) {
@@ -232,7 +241,8 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
 
 function formatSessionRow(session: SessionSummary): string {
   const label = "[" + session.agent + ":" + session.alias + "]";
-  const title = session.title.trim().length > 0 ? session.title : session.id;
+  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
+  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
   if (title === session.id) return label + " " + session.id;
   return label + " " + title + " (" + session.id + ")";
 }
@@ -281,6 +291,14 @@ function normalizeFuzzyQuery(query: string): string {
   // Remove hyphen separator so "ast-grep" is searched as single compound token "astgrep"
   // (FTS5 MATCH will match "astgrep" within "ast-grep" etc.)
   return query.replace(/-/g, "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Normalize whitespace (tabs, newlines, multiple spaces) to single spaces.
+ * Does NOT remove hyphens — used for plain search path.
+ */
+function normalizeWhitespace(query: string): string {
+  return query.replace(/\s+/g, " ").trim();
 }
 
 /**

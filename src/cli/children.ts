@@ -15,6 +15,8 @@
 import { Config } from "../config/types";
 import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
+import { sanitizeTitle } from "./utils/format";
+import { errorMessage } from "./utils/config";
 
 export type ChildrenService = (parentSessionId: string) => Promise<SessionSummary[]>;
 
@@ -33,7 +35,7 @@ export async function runChildrenCommand(options: ChildrenOptions): Promise<CliR
     return {
       exitCode: 1,
       stdout: "",
-      stderr: `${error instanceof Error ? error.message : String(error)}\n`,
+      stderr: `Error fetching children for ${options.parentSessionId}: ${errorMessage(error)}\n`,
     };
   }
 
@@ -49,7 +51,8 @@ export async function runChildrenCommand(options: ChildrenOptions): Promise<CliR
   const lines: string[] = [];
   for (const child of children) {
     const label = `[${child.agent}:${child.alias}]`;
-    const title = child.title?.trim() || child.id;
+    const rawTitle = child.title?.trim() || child.id;
+    const title = rawTitle === child.id ? rawTitle : sanitizeTitle(rawTitle);
     if (title === child.id) {
       lines.push(`${label} ${child.id}`);
     } else {

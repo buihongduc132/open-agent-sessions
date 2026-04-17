@@ -13,6 +13,7 @@
 
 import type { SessionSummary } from "../core/types";
 import type { SearchService, SearchResult } from "./search";
+import { errorMessage } from "./utils/config";
 
 export interface BooleanSearchOptions {
   rawQuery: string;
@@ -108,14 +109,18 @@ class Parser {
 
   private parseAnd(): AstNode {
     let left = this.parseNot();
-    while (this.peek().type === "AND" || this.peek().type === "NOT") {
+    while (this.peek().type === "AND" || this.peek().type === "NOT" || this.peek().type === "TERM") {
       if (this.peek().type === "NOT") {
         // Implicit AND: "X NOT Y" = "X AND (NOT Y)"
         const right = this.parseNot();
         left = { type: "and", left, right };
-      } else {
+      } else if (this.peek().type === "AND") {
         this.consume(); // consume AND
         const right = this.parseNot();
+        left = { type: "and", left, right };
+      } else {
+        // Implicit AND: bare TERM after another term/expression
+        const right = this.parsePrimary();
         left = { type: "and", left, right };
       }
     }
@@ -224,7 +229,7 @@ async function evalNode(node: AstNode, options: BooleanSearchOptions, ctx: EvalC
         const result = await options.searchTerm(node.value.trim(), ctx);
         return { sessions: result.sessions, excludeSet: new Set(), errors: result.errors };
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : (typeof error === "string" ? error : "Unknown error");
+        const errorMsg = errorMessage(error);
         return empty(new Set(), [{ agent: "unknown", alias: "unknown", message: errorMsg }]);
       }
     }
@@ -262,27 +267,36 @@ async function evalNode(node: AstNode, options: BooleanSearchOptions, ctx: EvalC
       };
     }
     case "not": {
-      // NOT(term): complement against the pre-seeded universe (ctx.getAllSessions()).
-      // We DO NOT re-evaluate the operand via evalNode — that would record its
-      // results to ctx, corrupting the universe for subsequent sibling evaluations.
-      // Instead, we directly call searchTerm and compute the complement.
+      // NOT(X): complement against the pre-seeded universe (ctx.getAllSessions()).
+      // For simple terms, search directly. For compound operands (AND/OR),
+      // recursively evaluate to get the set of sessions to exclude.
       const all = ctx.getAllSessions();
-      let termValue = "";
+      let operandSessions: SessionSummary[];
+      let operandErrors: SearchError[];
+
       if (node.operand.type === "term") {
-        termValue = node.operand.value.trim();
+        // Simple term: search directly
+        const termValue = node.operand.value.trim();
+        try {
+          const operandResult = await options.searchTerm(termValue, ctx);
+          operandSessions = operandResult.sessions;
+          operandErrors = operandResult.errors;
+        } catch (error) {
+          const errorMsg = errorMessage(error);
+          return empty(new Set(), [{ agent: "unknown", alias: "unknown", message: errorMsg }]);
+        }
+      } else {
+        // Compound operand (AND/OR): recursively evaluate to find sessions to exclude
+        const operandResult = await evalNode(node.operand, options, ctx);
+        operandSessions = operandResult.sessions;
+        operandErrors = operandResult.errors;
       }
-      let operandResult;
-      try {
-        operandResult = await options.searchTerm(termValue, ctx);
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : (typeof error === "string" ? error : "Unknown error");
-        return empty(new Set(), [{ agent: "unknown", alias: "unknown", message: errorMsg }]);
-      }
-      const excludeIds = new Set(operandResult.sessions.map(s => s.id));
+
+      const excludeIds = new Set(operandSessions.map(s => s.id));
       return {
         sessions: all.filter(s => !excludeIds.has(s.id)),
         excludeSet: excludeIds,
-        errors: operandResult.errors,
+        errors: operandErrors,
       };
     }
     default: {
@@ -343,11 +357,26 @@ async function collectAndSeedAll(
 // ─── Public API ────────────────────────────────────────────────────────────
 
 /**
+ * Check whether the AST contains any NOT nodes at any depth.
+ */
+function astContainsNot(node: AstNode): boolean {
+  if (node.type === "not") return true;
+  if (node.type === "and" || node.type === "or") {
+    return astContainsNot(node.left) || astContainsNot(node.right);
+  }
+  return false;
+}
+
+/**
  * Check if a query contains boolean operators or parentheses.
  * Uses word-boundary-aware detection to avoid "ast-grep" matching "AND".
  */
 export function isBooleanQuery(query: string): boolean {
   const u = query.trim();
+  // Skip regex patterns entirely — /pattern/ with optional flags should never
+  // be routed through the boolean parser. Check this BEFORE operators/parens
+  // because regex patterns like /(a{2,}){3,}/ contain parentheses.
+  if (/^\/.+\/[gimsuy]*$/.test(u)) return false;
   // Match standalone NOT at start or after operator/parens: "NOT comby", "AND NOT foo"
   const hasNotOp = (/\bNOT\b/i.test(u) || /^\s*NOT\s/i.test(u));
   const hasOperator = (/\bAND\b/i.test(u) || /\bOR\b/i.test(u));
@@ -371,10 +400,10 @@ export async function executeBooleanSearch(options: BooleanSearchOptions): Promi
   const phase1Errors: SearchError[] = [];
   await collectAndSeedAll(ast, options, ctx, new Set<string>(), phase1Errors);
 
-  // Special case: standalone NOT at root needs full universe.
-  // Phase 1 only seeds the NOT operand's results, so the universe is too small.
+  // Special case: any NOT nodes in the AST (not just root) need full universe.
+  // Phase 1 only seeds results from the NOT operands, so the universe is too small.
   // Do a wildcard search to expand the universe with all accessible sessions.
-  if (ast.type === "not") {
+  if (astContainsNot(ast)) {
     try {
       const wildcardResult = await options.searchTerm("*", ctx);
       ctx.seedAll(wildcardResult.sessions);

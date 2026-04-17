@@ -494,13 +494,17 @@ describe("GAP 5 — List output shows agent role tag (main vs sub)", () => {
       errors: [],
     });
 
+    // GAP 6 supersedes the original GAP 5 expectation: child sessions are hidden
+    // by default. Use --children-of (drill-down) to reveal them, matching GAP 6's
+    // intended context for [sub] tags.
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
+      childrenOf: "root-1",
     });
 
     expect(result.exitCode).toBe(0);
-    // The sub session row should contain a [sub] indicator
+    // The sub session row should contain a [sub] indicator in the drill-down view
     const sub1Line = result.stdout
       .split("\n")
       .find((line) => line.includes("sub-1"));

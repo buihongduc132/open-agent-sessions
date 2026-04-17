@@ -19,6 +19,8 @@
 import { Config } from "../config/types";
 import { CliResult } from "./types";
 import type { ForkChainNode } from "../core/subagents";
+import { sanitizeTitle } from "./utils/format";
+import { errorMessage } from "./utils/config";
 
 export type TreeService = (sessionId: string) => Promise<ForkChainNode[]>;
 
@@ -40,7 +42,7 @@ export async function runTreeCommand(options: TreeOptions): Promise<CliResult> {
     return {
       exitCode: 1,
       stdout: "",
-      stderr: `Error fetching fork chain: ${error instanceof Error ? error.message : String(error)}\n`,
+      stderr: `Error fetching fork chain for ${options.session}: ${errorMessage(error)}\n`,
     };
   }
 
@@ -52,8 +54,14 @@ export async function runTreeCommand(options: TreeOptions): Promise<CliResult> {
     };
   }
 
-  // Handle circular references — if chain has duplicate IDs, deduplicate
-  // while preserving order (first occurrence wins)
+  if (options.format === "json") {
+    // JSON format preserves all chain entries including cycles —
+    // consumers detect cycles themselves
+    const output = JSON.stringify(chain, null, 2) + "\n";
+    return { exitCode: 0, stdout: output, stderr: "" };
+  }
+
+  // Text format — deduplicate circular references, one line per node with depth indentation
   const seen = new Set<string>();
   const deduped: ForkChainNode[] = [];
   for (const node of chain) {
@@ -63,17 +71,12 @@ export async function runTreeCommand(options: TreeOptions): Promise<CliResult> {
     }
   }
 
-  if (options.format === "json") {
-    const output = JSON.stringify(deduped, null, 2) + "\n";
-    return { exitCode: 0, stdout: output, stderr: "" };
-  }
-
-  // Text format — one line per node with depth indentation
   const lines: string[] = [];
   for (const node of deduped) {
     const indent = "  ".repeat(node.depth);
     const label = `[${node.agent}:${node.alias}]`;
-    const title = node.title?.trim() || node.sessionId;
+    const rawTitle = node.title?.trim() || node.sessionId;
+    const title = rawTitle === node.sessionId ? rawTitle : sanitizeTitle(rawTitle);
     if (node.sessionId === title) {
       lines.push(`${indent}${label} ${node.sessionId}`);
     } else {
