@@ -19,7 +19,7 @@
 import { Config } from "../config/types";
 import { CliResult } from "./types";
 import type { ForkChainNode } from "../core/subagents";
-import { sanitizeTitle } from "./utils/format";
+import { formatSessionRowSimple } from "./formatters/text";
 import { errorMessage } from "./utils/config";
 
 export type TreeService = (sessionId: string) => Promise<ForkChainNode[]>;
@@ -74,14 +74,13 @@ export async function runTreeCommand(options: TreeOptions): Promise<CliResult> {
   const lines: string[] = [];
   for (const node of deduped) {
     const indent = "  ".repeat(node.depth);
-    const label = `[${node.agent}:${node.alias}]`;
-    const rawTitle = node.title?.trim() || node.sessionId;
-    const title = rawTitle === node.sessionId ? rawTitle : sanitizeTitle(rawTitle);
-    if (node.sessionId === title) {
-      lines.push(`${indent}${label} ${node.sessionId}`);
-    } else {
-      lines.push(`${indent}${label} ${title} (${node.sessionId})`);
-    }
+    const row = formatSessionRowSimple({
+      agent: node.agent,
+      alias: node.alias,
+      id: node.sessionId,
+      title: node.title ?? "",
+    });
+    lines.push(`${indent}${row}`);
   }
 
   return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };

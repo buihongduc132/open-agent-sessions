@@ -15,7 +15,7 @@
 import { Config } from "../config/types";
 import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
-import { sanitizeTitle } from "./utils/format";
+import { formatSessionRowSimple } from "./formatters/text";
 import { errorMessage } from "./utils/config";
 
 export type ChildrenService = (parentSessionId: string) => Promise<SessionSummary[]>;
@@ -40,7 +40,7 @@ export async function runChildrenCommand(options: ChildrenOptions): Promise<CliR
   }
 
   if (children.length === 0) {
-    return { exitCode: 0, stdout: "", stderr: "" };
+    return { exitCode: 0, stdout: "No children found.\n", stderr: "" };
   }
 
   if (options.format === "json") {
@@ -48,17 +48,7 @@ export async function runChildrenCommand(options: ChildrenOptions): Promise<CliR
     return { exitCode: 0, stdout: output, stderr: "" };
   }
 
-  const lines: string[] = [];
-  for (const child of children) {
-    const label = `[${child.agent}:${child.alias}]`;
-    const rawTitle = child.title?.trim() || child.id;
-    const title = rawTitle === child.id ? rawTitle : sanitizeTitle(rawTitle);
-    if (title === child.id) {
-      lines.push(`${label} ${child.id}`);
-    } else {
-      lines.push(`${label} ${title} (${child.id})`);
-    }
-  }
+  const lines = children.map((child) => formatSessionRowSimple(child));
 
   return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };
 }

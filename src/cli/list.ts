@@ -5,6 +5,7 @@ import { CliResult } from "./types";
 import { type ConfigOptions, type ParseResult, resolveConfig, errorResult, errorMessage } from "./utils/config";
 import { sanitizeTitle } from "./utils/format";
 import { formatErrors } from "./formatters/text";
+import { isAgentKind, formatList, listAgents, listAliases, compareAgents } from "./utils/agents";
 
 const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>] [--limit <n>] [--after <cursor>]";
 
@@ -173,30 +174,7 @@ function parseAlias(
   return { ok: true, value: trimmed };
 }
 
-function listAgents(entries: AgentEntry[]): AgentKind[] {
-  const seen = new Set<AgentKind>();
-  for (const entry of entries) {
-    seen.add(entry.agent);
-  }
-  return Array.from(seen).sort(compareAgents);
-}
-
-function listAliases(entries: AgentEntry[]): string[] {
-  const seen = new Set<string>();
-  for (const entry of entries) {
-    seen.add(entry.alias);
-  }
-  return Array.from(seen).sort((a, b) => a.localeCompare(b));
-}
-
-function compareAgents(a: AgentKind, b: AgentKind): number {
-  const order: Record<AgentKind, number> = {
-    opencode: 0,
-    codex: 1,
-    claude: 2,
-  };
-  return order[a] - order[b];
-}
+// Agent helpers: imported from ./utils/agents
 
 function normalizeQuery(query: string | undefined): string | undefined {
   if (query === undefined) {
@@ -228,13 +206,4 @@ function formatSessionRow(
   return badge ? `${base} ${badge}` : base;
 }
 
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "(none)";
-  }
-  return values.join(", ");
-}
-
-function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
-}
+// Formatting helpers: imported from ./utils/agents

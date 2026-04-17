@@ -362,8 +362,8 @@ describe("cli search — content search gap (RED)", () => {
       });
 
       expect(result.exitCode).toBe(0);
-      // When findSimilarSessions returns empty, result is empty (content search preferred)
-      expect(result.stdout).toContain("No sessions found");
+      // When findSimilarSessions returns empty, CLI falls back to title-only results
+      expect(result.stdout).toContain("oc-config-001");
     });
   });
 

@@ -2,6 +2,15 @@ import { AgentEntry, AgentKind, Config } from "../config/types";
 import { SessionDetail, SessionReadOptions } from "../core/types";
 import { toCsf, toMarkdown, toText } from "../core/export";
 import { CliResult } from "./types";
+import { errorResult, errorMessage, type ParseResult, wrapLargeOutput } from "./utils/config";
+import {
+  isAgentKind,
+  formatList,
+  validateAlias,
+  unknownAgentError,
+  withLabel,
+  splitSpec,
+} from "./utils/agents";
 
 const USAGE = `Usage: oas export <session-ref> [options]
        oas export --from <agent:alias> --id <session-id> [options]
@@ -133,26 +142,12 @@ export async function runExportCommand(options: ExportOptions): Promise<CliResul
   }
 
   // Warn if output is large
-  if (stdout.length > 60000) {
-    return {
-      exitCode: 0,
-      stdout,
-      stderr: `Warning: Large output (${stdout.length} bytes). For reliable piping, use --output flag.\n`,
-    };
-  }
-
-  return {
-    exitCode: 0,
-    stdout,
-    stderr: "",
-  };
+  return wrapLargeOutput(stdout);
 }
 
 // ============================================================================
 // Session Spec Parsing
 // ============================================================================
-
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
 function parseSessionSpec(
   spec: string,
@@ -218,60 +213,4 @@ function formatDetail(detail: SessionDetail, format: "csf" | "markdown" | "text"
   }
 }
 
-// ============================================================================
-// Helpers
-// ============================================================================
-
-function splitSpec(spec: string): string[] {
-  return spec.split(":").filter((part) => part.length > 0);
-}
-
-function validateAlias(
-  agent: AgentKind,
-  alias: string,
-  entries: AgentEntry[]
-): ParseResult<string> {
-  const aliases = entries
-    .filter((e) => e.agent === agent)
-    .map((e) => e.alias);
-
-  if (!aliases.includes(alias)) {
-    return {
-      ok: false,
-      error: `Unknown alias "${alias}" for ${agent}. Available aliases: ${formatList(aliases)}`,
-    };
-  }
-  return { ok: true, value: alias };
-}
-
-function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
-}
-
-function unknownAgentError(agent: string, entries: AgentEntry[]): string {
-  const available = Array.from(new Set(entries.map((e) => e.agent)));
-  return `Unknown agent "${agent}". Available agents: ${formatList(available)}`;
-}
-
-function formatList(values: string[]): string {
-  return values.length === 0 ? "(none)" : values.join(", ");
-}
-
-function withLabel(target: ExportQuery, message: string): string {
-  const label = `[${target.agent}:${target.alias}]`;
-  return message.includes(label) ? message : `${label} ${message}`;
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
-}
+// Helpers: imported from ./utils/config and ./utils/agents

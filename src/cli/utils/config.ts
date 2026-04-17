@@ -63,3 +63,26 @@ export function errorResult(message: string): CliResult {
     stderr: `${message}\n`,
   };
 }
+
+// ============================================================================
+// Output Helpers
+// ============================================================================
+
+/** Threshold (bytes) beyond which stdout output gets a warning to use --output flag */
+const LARGE_OUTPUT_THRESHOLD = 60000;
+
+/**
+ * Wrap stdout output with a large-output warning if it exceeds the threshold.
+ *
+ * Previously duplicated in read.ts and export.ts.
+ */
+export function wrapLargeOutput(stdout: string): CliResult {
+  if (stdout.length > LARGE_OUTPUT_THRESHOLD) {
+    return {
+      exitCode: 0,
+      stdout,
+      stderr: `Warning: Large output (${stdout.length} bytes). For reliable piping, use --output flag.\n`,
+    };
+  }
+  return { exitCode: 0, stdout, stderr: "" };
+}

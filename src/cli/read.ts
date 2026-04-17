@@ -13,6 +13,18 @@ import {
   type TextFormatterOptions,
 } from "./formatters/text";
 import type { ReadQuery } from "./formatters/text";
+import { resolveConfig, errorResult, errorMessage, type ParseResult, wrapLargeOutput } from "./utils/config";
+import {
+  isAgentKind,
+  formatList,
+  validateAlias,
+  listAgents,
+  aliasesForAgent,
+  compareAgents,
+  unknownAgentError,
+  withLabel,
+  normalizeTitle,
+} from "./utils/agents";
 
 // Re-export ReadQuery for external use
 export type { ReadQuery };
@@ -181,53 +193,16 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
   }
   
   // Warn if output is large and might be truncated by subprocess buffer
-  if (stdout.length > 60000) {
-    const stderr = `Warning: Large output (${stdout.length} bytes). For reliable piping, use --output flag.\n`;
-    return {
-      exitCode: 0,
-      stdout,
-      stderr,
-    };
-  }
-  
-  return {
-    exitCode: 0,
-    stdout,
-    stderr: "",
-  };
+  return wrapLargeOutput(stdout);
 }
 
-// ============================================================================
-// Config Resolution
-// ============================================================================
-
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
-
-function resolveConfig(options: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (options.config) {
-    return { ok: true, value: options.config };
-  }
-
-  if (options.configPath && options.loadConfig) {
-    try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
-    }
-  }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
-}
+// Config resolution: imported from ./utils/config
 
 // ============================================================================
 // Target Resolution
 // ============================================================================
 
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
+// ParseResult: imported from ./utils/config
 
 function resolveTarget(
   options: {
@@ -519,88 +494,4 @@ function parseRange(rangeStr: string, userOnly?: boolean): ParseResult<MessageSe
 // Helpers
 // ============================================================================
 
-function validateAlias(
-  agent: AgentKind,
-  alias: string,
-  entries: AgentEntry[]
-): ParseResult<string> {
-  const aliases = aliasesForAgent(agent, entries);
-  if (!aliases.includes(alias)) {
-    return {
-      ok: false,
-      error: `Unknown alias "${alias}" for ${agent}. Available aliases: ${formatList(aliases)}`,
-    };
-  }
-  return { ok: true, value: alias };
-}
-
-function listAgents(entries: AgentEntry[]): AgentKind[] {
-  const seen = new Set<AgentKind>();
-  for (const entry of entries) {
-    seen.add(entry.agent);
-  }
-  return Array.from(seen).sort(compareAgents);
-}
-
-function aliasesForAgent(agent: AgentKind, entries: AgentEntry[]): string[] {
-  return entries
-    .filter((entry) => entry.agent === agent)
-    .map((entry) => entry.alias)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-function compareAgents(a: AgentKind, b: AgentKind): number {
-  const order: Record<AgentKind, number> = {
-    opencode: 0,
-    codex: 1,
-    claude: 2,
-  };
-  return order[a] - order[b];
-}
-
-function unknownAgentError(agent: string, entries: AgentEntry[]): string {
-  const available = listAgents(entries);
-  return `Unknown agent "${agent}". Available agents: ${formatList(available)}`;
-}
-
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "(none)";
-  }
-  return values.join(", ");
-}
-
-function normalizeTitle(title: string, id: string): string {
-  const trimmed = title.trim();
-  return trimmed.length > 0 ? trimmed : id;
-}
-
-function withLabel(target: ReadQuery, message: string): string {
-  const label = `[${target.agent}:${target.alias}]`;
-  if (message.includes(label)) {
-    return message;
-  }
-  return `${label} ${message}`;
-}
-
-function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
-}
+// Helpers: imported from ./utils/config and ./utils/agents

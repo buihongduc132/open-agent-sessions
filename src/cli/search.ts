@@ -9,8 +9,7 @@ import {
 } from "./search-boolean";
 import type { SimilarSessionResult } from "../similarity/search";
 import { resolveConfig, errorResult, errorMessage } from "./utils/config";
-import { formatErrors as formatErrorsShared } from "./formatters/text";
-import { sanitizeTitle } from "./utils/format";
+import { formatErrors as formatErrorsShared, formatSessionRowSimple } from "./formatters/text";
 
 const USAGE = `Usage: oas search --text <query>
 
@@ -188,15 +187,18 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
       if (options.findSimilarSessions) {
         // Normalize hyphenated queries for fuzzy/substring matching
         const normalizedQuery = normalizeFuzzyQuery(rawQuery);
+
+        // Always run title search for agent/alias resolution and fallback
+        const titleQuery: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+        const titleResult = await options.searchSessions(titleQuery);
+
         let contentResults;
         try {
           contentResults = await options.findSimilarSessions(normalizedQuery);
         } catch (simError) {
           // findSimilarSessions failed — fall back to title-only search
-          const query: SearchQuery = { cwd: process.cwd(), text: rawQuery };
-          const fallbackResult = await options.searchSessions(query);
-          filteredSessions = fallbackResult.sessions;
-          resultErrors = fallbackResult.errors;
+          filteredSessions = titleResult.sessions;
+          resultErrors = titleResult.errors;
           if (filteredSessions.length === 0) {
             return errorResult(simError instanceof Error ? simError.message : String(simError));
           }
@@ -207,10 +209,22 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
           if (filteredSessions.length === 0) {
             return { exitCode: 0, stdout: "No sessions found.\n", stderr };
           }
-          const stdout = filteredSessions.map(formatSessionRow).join("\n") + "\n";
+  const stdout = filteredSessions.map(formatSessionRowSimple).join("\n") + "\n";
           return { exitCode: 0, stdout, stderr };
         }
-        filteredSessions = contentResultsToSessions(contentResults);
+
+        if (contentResults.length === 0) {
+          // Content search found nothing — fall back to title-only results
+          filteredSessions = titleResult.sessions;
+          resultErrors = titleResult.errors;
+        } else {
+          // Resolve agent/alias from title results + config for content matches
+          filteredSessions = contentResultsToSessions(
+            contentResults,
+            titleResult.sessions,
+            configResult.value,
+          );
+        }
       } else {
         const query: SearchQuery = { cwd: process.cwd(), text: normalizeWhitespace(rawQuery) };
         const result = await options.searchSessions(query);
@@ -231,20 +245,8 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
     return { exitCode: 0, stdout: "No sessions found.\n", stderr };
   }
 
-  const stdout = filteredSessions.map(formatSessionRow).join("\n") + "\n";
+  const stdout = filteredSessions.map(formatSessionRowSimple).join("\n") + "\n";
   return { exitCode: 0, stdout, stderr };
-}
-
-// ============================================================================
-// Output Formatting
-// ============================================================================
-
-function formatSessionRow(session: SessionSummary): string {
-  const label = "[" + session.agent + ":" + session.alias + "]";
-  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
-  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
-  if (title === session.id) return label + " " + session.id;
-  return label + " " + title + " (" + session.id + ")";
 }
 
 // ============================================================================
@@ -253,20 +255,55 @@ function formatSessionRow(session: SessionSummary): string {
 
 /**
  * Convert SimilarSessionResult[] to SessionSummary[] (content search results
- * use a different shape). All such results are marked as "opencode/personal"
- * since content search only runs against the local FTS index.
+ * use a different shape). Resolves agent/alias from known sessions first,
+ * then falls back to config-based sessionId prefix matching.
  */
-function contentResultsToSessions(results: SimilarSessionResult[]): SessionSummary[] {
-  return results.map((r) => ({
-    id: r.sessionId,
-    agent: "opencode" as AgentKind,
-    alias: "personal" as const,
-    title: r.title,
-    created_at: new Date(0).toISOString(),
-    updated_at: new Date(0).toISOString(),
-    message_count: r.matchedChunks,
-    storage: "other" as const,
-  }));
+function contentResultsToSessions(
+  results: SimilarSessionResult[],
+  knownSessions: SessionSummary[] = [],
+  config?: Config,
+): SessionSummary[] {
+  // Build lookup from known sessions (title search results)
+  const sessionLookup = new Map<string, SessionSummary>();
+  for (const s of knownSessions) {
+    sessionLookup.set(s.id, s);
+  }
+
+  return results.map((r) => {
+    // Try to find in known sessions first for correct agent/alias
+    const known = sessionLookup.get(r.sessionId);
+    if (known) {
+      return {
+        ...known,
+        title: r.title || known.title,
+        message_count: r.matchedChunks,
+      };
+    }
+
+    // Try to match agent from config based on sessionId prefix (e.g. "codex-xxx" → codex)
+    let agent: AgentKind = "opencode";
+    let alias = "personal";
+    if (config) {
+      for (const entry of config.agents) {
+        if (r.sessionId.toLowerCase().startsWith(entry.agent.toLowerCase() + "-")) {
+          agent = entry.agent;
+          alias = entry.alias;
+          break;
+        }
+      }
+    }
+
+    return {
+      id: r.sessionId,
+      agent,
+      alias,
+      title: r.title,
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      message_count: r.matchedChunks,
+      storage: "other" as const,
+    };
+  });
 }
 
 /**

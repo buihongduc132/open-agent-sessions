@@ -354,7 +354,7 @@ describe("oas children command", () => {
     });
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout.trim()).toBe("");
+    expect(result.stdout).toMatch(/no children found/i);
   });
 
   test("test_children_command_shows_agent_alias_and_title_for_each_child", async () => {

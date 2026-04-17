@@ -7,6 +7,8 @@
 import type { AgentKind, Config } from "../config/types";
 import type { SimilarSessionResult } from "../similarity/search";
 import { CliResult } from "./types";
+import { resolveConfig, errorResult, errorMessage } from "./utils/config";
+import { withLabel } from "./utils/agents";
 
 const USAGE = `Usage: oas similar <session-id> [options]
 
@@ -105,27 +107,7 @@ export async function runSimilarCommand(options: {
   };
 }
 
-// ─── Config Resolution ─────────────────────────────────────────────────────────
-
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
-
-function resolveConfig(options: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (options.config) return { ok: true, value: options.config };
-
-  if (options.configPath && options.loadConfig) {
-    try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
-    }
-  }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
-}
+// Config/target resolution: imported from ./utils/config and ./utils/agents
 
 // ─── Target Resolution ─────────────────────────────────────────────────────────
 
@@ -165,19 +147,4 @@ function resolveTarget(
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return { exitCode: 1, stdout: "", stderr: `${message}\n` };
-}
-
-function withLabel(target: Target, message: string): string {
-  const label = `[${target.agent}:${target.alias}]`;
-  return message.includes(label) ? message : `${label} ${message}`;
-}
+// Helpers: imported from ./utils/config and ./utils/agents

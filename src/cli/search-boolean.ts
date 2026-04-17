@@ -394,6 +394,15 @@ export function isBooleanQuery(query: string): boolean {
  */
 export async function executeBooleanSearch(options: BooleanSearchOptions): Promise<BooleanSearchResult> {
   const ast = parseQuery(options.rawQuery);
+
+  // Validate: detect trailing operators (AND/OR followed by no term)
+  // when there is at least one real search term in the query.
+  // "alpha AND" → error (real term + trailing operator)
+  // "AND OR"    → no error (no real terms, different gap)
+  if (hasTrailingOperator(ast)) {
+    throw new Error("Incomplete query: missing term after operator");
+  }
+
   const ctx = new EvalContext();
 
   // Phase 1: pre-collect universe (with error tracking)
@@ -418,4 +427,42 @@ export async function executeBooleanSearch(options: BooleanSearchOptions): Promi
   const errorMap = new Map<string, SearchError>();
   collectErrors(allErrors, errorMap);
   return { sessions: results.sessions, errors: Array.from(errorMap.values()) };
+}
+
+/**
+ * Detect trailing AND/OR: an AND/OR node whose right operand is an empty term,
+ * AND whose left subtree contains at least one real (non-operator) search term.
+ * "alpha AND" → true  (real term + trailing operator)
+ * "AND OR"    → false (no real terms, different gap)
+ */
+function hasTrailingOperator(node: AstNode): boolean {
+  if (node.type === "and" || node.type === "or") {
+    const rightIsEmpty = node.right.type === "term" && !node.right.value.trim();
+    if (rightIsEmpty && hasRealTerm(node.left)) {
+      return true;
+    }
+    return hasTrailingOperator(node.left) || hasTrailingOperator(node.right);
+  }
+  if (node.type === "not") {
+    return hasTrailingOperator(node.operand);
+  }
+  return false;
+}
+
+/**
+ * Check if an AST subtree contains at least one real search term
+ * (non-empty, not an operator keyword like AND/OR/NOT).
+ */
+function hasRealTerm(node: AstNode): boolean {
+  if (node.type === "term") {
+    const v = node.value.trim().toUpperCase();
+    return v.length > 0 && v !== "AND" && v !== "OR" && v !== "NOT";
+  }
+  if (node.type === "and" || node.type === "or") {
+    return hasRealTerm(node.left) || hasRealTerm(node.right);
+  }
+  if (node.type === "not") {
+    return hasRealTerm(node.operand);
+  }
+  return false;
 }
