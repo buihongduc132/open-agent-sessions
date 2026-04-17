@@ -324,15 +324,52 @@ function isRegexPattern(query: string): boolean {
 }
 
 /**
- * Parse a /pattern/ query into a RegExp. Returns null if invalid.
+ * Detect nested quantifier patterns that cause catastrophic backtracking (ReDoS).
+ * E.g. patterns like (a+)+ or (x*)* or (a|a)+ where quantified groups wrap quantified content.
+ * Returns true if the pattern is potentially dangerous.
+ */
+function hasNestedQuantifiers(pattern: string): boolean {
+  // Strip escaped characters and character classes so we only analyse
+  // the structural quantifiers, not literal +/* inside [] or after \.
+  const stripped = pattern
+    .replace(/\\[^]/g, " ")   // remove escaped chars (\+, \*, \\, etc.)
+    .replace(/\[[^\]]*\]/g, "m");  // remove char classes [...] (non-nested)
+
+  // Detect quantified group containing quantified content:
+  // e.g. (a+)+, (x*)*, (a|b)+ with inner quantifiers
+  const nestedQuantifier = /\([^()]*[+*][^()]*\)[+*{]/;
+  if (nestedQuantifier.test(stripped)) return true;
+
+  // Detect alternation with overlapping branches + quantifier:
+  // e.g. (a|a)+ where identical alternatives cause exponential branching
+  const overlapAlt = /\(([^|()]+)\|\1\)[+*{]/;
+  if (overlapAlt.test(stripped)) return true;
+
+  return false;
+}
+
+/**
+ * Parse a /pattern/ query into a RegExp. Returns null if invalid or dangerous.
+ *
+ * - Strips the 'g' flag: it causes stateful .test() in filter loops
+ *   (lastIndex advances per call, silently dropping every-other match).
+ * - Rejects patterns with nested quantifiers to prevent ReDoS.
  */
 function parseRegex(query: string): RegExp | null {
   const match = query.match(/^\/(.+)\/([gimsuy]*)$/);
   if (!match) return null;
   try {
+    const pattern = match[1];
+
+    // ReDoS protection: reject nested quantifier patterns
+    if (hasNestedQuantifiers(pattern)) return null;
+
+    // Strip 'g' flag — it is harmful in boolean .test() filter loops.
+    // 'g' is only useful for matchAll/exec loops, which we never use.
+    const rawFlags = match[2].replace(/g/g, "");
     // Default to case-insensitive if no 'i' flag specified
-    const flags = match[2].includes("i") ? match[2] : match[2] + "i";
-    return new RegExp(match[1], flags);
+    const flags = rawFlags.includes("i") ? rawFlags : rawFlags + "i";
+    return new RegExp(pattern, flags);
   } catch {
     return null;
   }
