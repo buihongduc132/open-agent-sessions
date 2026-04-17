@@ -228,7 +228,7 @@ export function toText(detail: SessionDetail): string {
     if (msg.modelID) meta.push(`model=${msg.modelID}`);
     if (msg.agent) meta.push(`agent=${msg.agent}`);
 
-    lines.push(`[${meta.join(" | ")}] ${msg.created_at}`);
+    lines.push(`[${detail.agent}:${detail.alias}] [${meta.join(" | ")}] ${msg.created_at}`);
     lines.push("");
 
     for (const part of msg.parts) {

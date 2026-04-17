@@ -1,6 +1,13 @@
-import { AgentEntry, AgentKind, Config } from "../config/types";
+import { AgentKind, Config } from "../config/types";
 import { SessionSummary, SearchQuery } from "../core/types";
 import { CliResult } from "./types";
+import {
+  executeBooleanSearch,
+  isBooleanQuery,
+  type BooleanSearchOptions,
+  EvalContext,
+} from "./search-boolean";
+import type { SimilarSessionResult } from "../similarity/search";
 
 const USAGE = `Usage: oas search --text <query>
 
@@ -14,6 +21,8 @@ Searches session titles and message content.`;
 // ============================================================================
 
 export type SearchService = (query: SearchQuery) => Promise<SearchResult>;
+
+export type ContentSearchService = (text: string) => Promise<SimilarSessionResult[]>;
 
 export type SearchResult = {
   sessions: SessionSummary[];
@@ -31,7 +40,11 @@ export type SearchOptions = {
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
+  currentSessionId?: string;
+  excludeCurrent?: boolean;
+  excludeSession?: string[];
   searchSessions: SearchService;
+  findSimilarSessions?: ContentSearchService;
 };
 
 // ============================================================================
@@ -39,46 +52,112 @@ export type SearchOptions = {
 // ============================================================================
 
 export async function runSearchCommand(options: SearchOptions): Promise<CliResult> {
-  // Validate --text argument
   if (!options.text || String(options.text).trim().length === 0) {
-    return errorResult(`Missing required argument: --text. ${USAGE}`);
+    return { exitCode: 1, stdout: "", stderr: "Missing required argument: --text\n" };
   }
 
-  // Resolve config
   const configResult = resolveConfig(options);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }
 
-  // Build query
-  const query: SearchQuery = {
-    cwd: process.cwd(),
-    text: String(options.text).trim(),
-  };
+  const rawQuery = String(options.text).trim();
 
-  // Search sessions
-  let result: SearchResult;
+  const excludedIds = new Set<string>();
+  if (options.excludeCurrent && options.currentSessionId) {
+    excludedIds.add(options.currentSessionId);
+  }
+  if (options.excludeSession) {
+    for (const id of options.excludeSession) {
+      excludedIds.add(id);
+    }
+  }
+
+  let filteredSessions: SessionSummary[];
+  let resultErrors: SearchError[] = [];
+
   try {
-    result = await options.searchSessions(query);
+    if (isBooleanQuery(rawQuery)) {
+      const searchOpts: BooleanSearchOptions = {
+        rawQuery,
+        searchTerm: async (term: string, ctx: EvalContext) => {
+          // Wildcard term "*" is used by executeBooleanSearch to expand the
+          // universe for standalone NOT queries. Use a common vowel to
+          // maximize session coverage when the service doesn't support
+          // true wildcard queries.
+          const searchText = term === "*" ? "e" : term;
+          const query: SearchQuery = { cwd: process.cwd(), text: searchText };
+          const result = await options.searchSessions(query);
+          if (term !== "*") {
+            ctx.recordTerm(term, result.sessions);
+          }
+          return result;
+        },
+      };
+      const boolResult = await executeBooleanSearch(searchOpts);
+      filteredSessions = boolResult.sessions;
+      resultErrors = boolResult.errors;
+    } else {
+      if (options.findSimilarSessions) {
+        // Normalize hyphenated queries for fuzzy/substring matching
+        const normalizedQuery = normalizeFuzzyQuery(rawQuery);
+        let contentResults;
+        try {
+          contentResults = await options.findSimilarSessions(normalizedQuery);
+        } catch (simError) {
+          // findSimilarSessions failed — fall back to title-only search
+          const query: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+          const fallbackResult = await options.searchSessions(query);
+          filteredSessions = fallbackResult.sessions;
+          resultErrors = fallbackResult.errors;
+          if (filteredSessions.length === 0) {
+            return errorResult(simError instanceof Error ? simError.message : String(simError));
+          }
+          if (excludedIds.size > 0) {
+            filteredSessions = filteredSessions.filter((s) => !excludedIds.has(s.id));
+          }
+          const stderr = formatErrors(resultErrors);
+          if (filteredSessions.length === 0) {
+            return { exitCode: 0, stdout: "No sessions found.\n", stderr };
+          }
+          const stdout = filteredSessions.map(formatSessionRow).join("\n") + "\n";
+          return { exitCode: 0, stdout, stderr };
+        }
+        filteredSessions = contentResults.map((r) => ({
+          id: r.sessionId,
+          agent: "opencode" as AgentKind,
+          alias: "personal" as const,
+          title: r.title,
+          created_at: new Date(0).toISOString(),
+          updated_at: new Date(0).toISOString(),
+          message_count: r.matchedChunks,
+          storage: "other" as const,
+        }));
+      } else {
+        const query: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+        const result = await options.searchSessions(query);
+        filteredSessions = result.sessions;
+        resultErrors = result.errors;
+      }
+    }
   } catch (error) {
-    return errorResult(errorMessage(error));
+    const message = error instanceof Error
+      ? error.message
+      : (typeof error === "string" ? error : "Unknown error");
+    return errorResult(message);
   }
 
-  const stderr = formatErrors(result.errors);
-  if (result.sessions.length === 0) {
-    return {
-      exitCode: 0,
-      stdout: "No sessions found.\n",
-      stderr,
-    };
+  if (excludedIds.size > 0) {
+    filteredSessions = filteredSessions.filter((s) => !excludedIds.has(s.id));
   }
 
-  const stdout = result.sessions.map(formatSessionRow).join("\n") + "\n";
-  return {
-    exitCode: 0,
-    stdout,
-    stderr,
-  };
+  const stderr = formatErrors(resultErrors);
+  if (filteredSessions.length === 0) {
+    return { exitCode: 0, stdout: "No sessions found.\n", stderr };
+  }
+
+  const stdout = filteredSessions.map(formatSessionRow).join("\n") + "\n";
+  return { exitCode: 0, stdout, stderr };
 }
 
 // ============================================================================
@@ -87,24 +166,20 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
 
 type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
 
-function resolveConfig(options: {
+function resolveConfig(opts: {
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
 }): ConfigResult {
-  if (options.config) {
-    return { ok: true, value: options.config };
-  }
-
-  if (options.configPath && options.loadConfig) {
+  if (opts.config) return { ok: true, value: opts.config };
+  if (opts.configPath && opts.loadConfig) {
     try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
+      return { ok: true, value: opts.loadConfig(opts.configPath) };
+    } catch (e) {
+      return { ok: false, error: String(e instanceof Error ? e.message : e) };
     }
   }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
+  return { ok: false, error: "Missing config. " + USAGE };
 }
 
 // ============================================================================
@@ -112,50 +187,28 @@ function resolveConfig(options: {
 // ============================================================================
 
 function formatSessionRow(session: SessionSummary): string {
-  const label = `[${session.agent}:${session.alias}]`;
+  const label = "[" + session.agent + ":" + session.alias + "]";
   const title = session.title.trim().length > 0 ? session.title : session.id;
-  if (title === session.id) {
-    return `${label} ${session.id}`;
-  }
-  return `${label} ${title} (${session.id})`;
+  if (title === session.id) return label + " " + session.id;
+  return label + " " + title + " (" + session.id + ")";
 }
 
 function formatErrors(errors: SearchError[]): string {
-  if (errors.length === 0) {
-    return "";
-  }
-  return (
-    errors
-      .map((error) => {
-        const label = `[${error.agent}:${error.alias}]`;
-        const message = error.message;
-        if (message.includes(label)) {
-          return message;
-        }
-        return `${label} ${message}`;
-      })
-      .join("\n") + "\n"
-  );
-}
-
-// ============================================================================
-// Helpers
-// ============================================================================
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
+  if (errors.length === 0) return "";
+  const lines = errors.map((e) => {
+    const label = "[" + e.agent + ":" + e.alias + "]";
+    if (e.message.includes(label)) return e.message;
+    return label + " " + e.message;
+  });
+  return lines.join("\n") + "\n";
 }
 
 function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
+  return { exitCode: 1, stdout: "", stderr: message + "\n" };
+}
+
+function normalizeFuzzyQuery(query: string): string {
+  // Remove hyphen separator so "ast-grep" is searched as single compound token "astgrep"
+  // (FTS5 MATCH will match "astgrep" within "ast-grep" etc.)
+  return query.replace(/-/g, "").replace(/\s+/g, " ").trim();
 }

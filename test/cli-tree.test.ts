@@ -788,3 +788,288 @@ describe("buildForkChain subagent utility", () => {
   });
 
 });
+
+// ============================================================================
+// Zone 1: Edge cases for tree command
+// ============================================================================
+describe("oas tree — edge cases (Zone 1)", () => {
+
+  test("test_tree_with_single_root_and_no_children", async () => {
+    const { runTreeCommand } = await import("../src/cli/tree");
+    const singleChain: ForkChainNode[] = [
+      {
+        sessionId: "root-only-001",
+        title: "Orphan root session",
+        agent: "opencode",
+        alias: "main",
+        depth: 0,
+      },
+    ];
+    const getForkChain = async (): Promise<ForkChainNode[]> => singleChain;
+
+    const result = await runTreeCommand({
+      session: "root-only-001",
+      config: baseConfig,
+      getForkChain,
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("root-only-001");
+    expect(result.stdout).toContain("Orphan root session");
+    // No indentation (single node = root with depth=0)
+    const lines = result.stdout.split("\n").filter((l) => l.length > 0);
+    expect(lines.length).toBe(1);
+  });
+
+  test("test_tree_json_format_returns_structured_output", async () => {
+    const { runTreeCommand } = await import("../src/cli/tree");
+    const chain: ForkChainNode[] = [
+      {
+        sessionId: "root-json",
+        title: "Root JSON test",
+        agent: "opencode",
+        alias: "main",
+        depth: 1,
+        parentSessionId: undefined,
+      },
+      {
+        sessionId: "child-json",
+        title: "Child JSON test",
+        agent: "codex",
+        alias: "work",
+        depth: 0,
+        parentSessionId: "root-json",
+      },
+    ];
+    const getForkChain = async (): Promise<ForkChainNode[]> => chain;
+
+    // @ts-ignore -- json format flag may not be implemented yet
+    const result = await runTreeCommand({
+      session: "child-json",
+      config: baseConfig,
+      getForkChain,
+      format: "json",
+    });
+
+    // RED: tree command with --format json should return structured JSON
+    expect(result.exitCode).toBe(0);
+    expect(() => {
+      JSON.parse(result.stdout);
+    }).not.toThrow();
+    const parsed = JSON.parse(result.stdout);
+    expect(Array.isArray(parsed) || typeof parsed === "object").toBe(true);
+  });
+
+  test("test_tree_command_circular_reference_handles_gracefully", async () => {
+    const { runTreeCommand } = await import("../src/cli/tree");
+    // Simulate a circular chain: A→B→C→A (cycle)
+    const circularChain: ForkChainNode[] = [
+      {
+        sessionId: "node-a",
+        title: "Node A",
+        agent: "opencode",
+        alias: "main",
+        depth: 2,
+        parentSessionId: "node-c",
+      },
+      {
+        sessionId: "node-b",
+        title: "Node B",
+        agent: "codex",
+        alias: "work",
+        depth: 1,
+        parentSessionId: "node-a",
+      },
+      {
+        sessionId: "node-c",
+        title: "Node C",
+        agent: "opencode",
+        alias: "main",
+        depth: 0,
+        parentSessionId: "node-b",
+      },
+    ];
+    const getForkChain = async (): Promise<ForkChainNode[]> => circularChain;
+
+    // RED: circular reference should handle gracefully without crash
+    const result = await runTreeCommand({
+      session: "node-c",
+      config: baseConfig,
+      getForkChain,
+    });
+
+    // Should not crash — either exitCode 0 with output, or exitCode 1 with error
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.length).toBeGreaterThan(0);
+  });
+});
+
+// ============================================================================
+// Zone 2: Edge cases for children command
+// ============================================================================
+describe("oas children — edge cases (Zone 2)", () => {
+
+  test("test_children_command_shows_parent_agent_and_alias", async () => {
+    const { runChildrenCommand } = await import("../src/cli/children");
+    const children: SessionItem[] = [
+      {
+        id: "child-001",
+        agent: "codex" as const,
+        alias: "work" as const,
+        title: "Verifier sub-session",
+        created_at: "2024-01-01T01:30:00Z",
+        updated_at: "2024-01-01T02:00:00Z",
+        message_count: 2,
+        storage: "db" as const,
+        parentSessionId: "root-sess-001",
+      },
+    ];
+    const getChildren = async (): Promise<SessionItem[]> => children;
+
+    const result = await runChildrenCommand({
+      parentSessionId: "root-sess-001",
+      config: baseConfig,
+      getChildren,
+    });
+
+    expect(result.exitCode).toBe(0);
+    // Should show agent:alias on each child line
+    expect(result.stdout).toContain("[codex:work]");
+  });
+
+  test("test_children_command_json_format", async () => {
+    const { runChildrenCommand } = await import("../src/cli/children");
+    const children: SessionItem[] = [
+      {
+        id: "child-x",
+        agent: "opencode" as const,
+        alias: "main" as const,
+        title: "Child X",
+        created_at: "2024-01-01T01:00:00Z",
+        updated_at: "2024-01-01T01:00:00Z",
+        message_count: 1,
+        storage: "db" as const,
+        parentSessionId: "root-001",
+      },
+    ];
+    const getChildren = async (): Promise<SessionItem[]> => children;
+
+    // @ts-ignore -- json format may not be implemented
+    const result = await runChildrenCommand({
+      parentSessionId: "root-001",
+      config: baseConfig,
+      getChildren,
+      format: "json",
+    });
+
+    // RED: children command should support --format json
+    expect(result.exitCode).toBe(0);
+    expect(() => {
+      JSON.parse(result.stdout);
+    }).not.toThrow();
+  });
+
+  test("test_children_command_large_number_of_children", async () => {
+    const { runChildrenCommand } = await import("../src/cli/children");
+    const manyChildren: SessionItem[] = Array.from({ length: 50 }, (_, i) => ({
+      id: `child-${String(i).padStart(3, "0")}`,
+      agent: "opencode" as const,
+      alias: "main" as const,
+      title: `Child ${i}`,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      message_count: 1,
+      storage: "db" as const,
+      parentSessionId: "root-001",
+    }));
+    const getChildren = async (): Promise<SessionItem[]> => manyChildren;
+
+    const result = await runChildrenCommand({
+      parentSessionId: "root-001",
+      config: baseConfig,
+      getChildren,
+    });
+
+    expect(result.exitCode).toBe(0);
+    // All 50 children should appear
+    expect(result.stdout).toContain("child-000");
+    expect(result.stdout).toContain("child-049");
+  });
+});
+
+// ============================================================================
+// Zone 3: Cross-feature interactions
+// ============================================================================
+describe("fork hierarchy cross-feature interactions (Zone 3)", () => {
+
+  test("test_read_shows_child_agent_info_when_present", async () => {
+    // @ts-ignore -- ReadService is a type-only import
+    const { runReadCommand } = await import("../src/cli/read");
+    const childSession: SessionDetail = {
+      id: "child-agent-001",
+      agent: "codex",
+      alias: "work",
+      title: "Verifier session",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      message_count: 2,
+      storage: "db",
+      messages: [],
+      parentSessionId: "root-session-001",
+    };
+    const getSession: Parameters<typeof runReadCommand>[0] extends { getSession: infer S } ? S : never = async () => childSession;
+
+    const result = await runReadCommand({
+      session: "child-agent-001",
+      config: baseConfig,
+      getSession,
+    });
+
+    expect(result.exitCode).toBe(0);
+    // Should show the agent:alias of the child
+    expect(result.stdout).toContain("[codex:work]");
+    expect(result.stdout).toContain("parent");
+    expect(result.stdout).toContain("root-session-001");
+  });
+
+  test("test_list_roots_only_with_mixed_storage_types", async () => {
+    const { runListCommand } = await import("../src/cli/list");
+    const mixedStorage: SessionItem[] = [
+      {
+        id: "root-db", agent: "opencode" as const, alias: "main" as const,
+        title: "DB root", created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+        message_count: 1, storage: "db" as const,
+      },
+      {
+        id: "root-jsonl", agent: "codex" as const, alias: "work" as const,
+        title: "JSONL root", created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+        message_count: 1, storage: "jsonl" as const,
+      },
+      {
+        id: "child-db", agent: "claude" as const, alias: "team" as const,
+        title: "DB child", created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+        message_count: 1, storage: "db" as const,
+        parentSessionId: "root-db",
+      },
+    ];
+    const listService: ListService = async () => ({ sessions: mixedStorage, errors: [] });
+
+    // @ts-ignore -- rootsOnly does not exist yet
+    const result = await runListCommand({
+      config: baseConfig,
+      list: listService,
+      rootsOnly: true,
+    });
+
+    expect(result.exitCode).toBe(0);
+    const lines = result.stdout.split("\n").filter((l) => l.length > 0);
+    // Both roots (db and jsonl) should appear
+    expect(lines.some((l) => l.includes("root-db"))).toBe(true);
+    expect(lines.some((l) => l.includes("root-jsonl"))).toBe(true);
+    // Child should NOT appear
+    expect(lines.some((l) => l.includes("child-db"))).toBe(false);
+  });
+});

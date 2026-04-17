@@ -13,6 +13,10 @@ export async function runListCommand(options: {
   q?: string;
   limit?: number;
   after?: string;
+  /** Filter to only root sessions (sessions with no parent). */
+  rootsOnly?: boolean;
+  /** Filter to only sessions that are direct children of this parent session ID. */
+  childrenOf?: string;
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -21,6 +25,11 @@ export async function runListCommand(options: {
   const configResult = resolveConfig(options);
   if (!configResult.ok) {
     return errorResult(configResult.error);
+  }
+
+  // Validate mutually exclusive flags
+  if (options.rootsOnly && options.childrenOf !== undefined) {
+    return errorResult("Cannot use --roots-only and --children-of together: they are mutually exclusive.");
   }
 
   const enabledEntries = configResult.value.agents.filter((entry) => entry.enabled);
@@ -49,8 +58,19 @@ export async function runListCommand(options: {
     return errorResult(errorMessage(error));
   }
 
+  // Apply rootsOnly filter: only sessions with no parentSessionId
+  let sessions = result.sessions;
+  if (options.rootsOnly) {
+    sessions = sessions.filter((s) => !s.parentSessionId);
+  }
+
+  // Apply childrenOf filter: only sessions whose parent is the specified ID
+  if (options.childrenOf !== undefined) {
+    sessions = sessions.filter((s) => s.parentSessionId === options.childrenOf);
+  }
+
   const stderr = formatErrors(result.errors);
-  if (result.sessions.length === 0) {
+  if (sessions.length === 0) {
     return {
       exitCode: 0,
       stdout: "No sessions found.\n",
@@ -58,7 +78,7 @@ export async function runListCommand(options: {
     };
   }
 
-  const stdout = result.sessions.map(formatSessionRow).join("\n") + "\n";
+  const stdout = sessions.map(formatSessionRow).join("\n") + "\n";
   return {
     exitCode: 0,
     stdout,

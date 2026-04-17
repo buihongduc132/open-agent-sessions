@@ -489,7 +489,7 @@ describe("cli read", () => {
   // AC14: --user-only flag
   // ==========================================================================
   describe("AC14: --user-only flag", () => {
-    test("parses --user-only and passes to service", async () => {
+    test("--user-only alone defaults to mode=last, count=10, userOnly=true", async () => {
       let receivedOptions: SessionReadOptions | undefined;
       const detail = makeSessionDetail();
 
@@ -502,72 +502,12 @@ describe("cli read", () => {
         }),
       });
 
+      // When --user-only is used alone (no --first/--last/--all/--range),
+      // it defaults to mode="last", count=10, with userOnly=true as additive filter.
       expect(result.exitCode).toBe(0);
-      expect(receivedOptions?.selection?.mode).toBe("user-only");
-    });
-
-    test("--user-only conflicts with --first", async () => {
-      const result = await runReadCommand({
-        session: "opencode:personal:session-001",
-        userOnly: true,
-        first: 5,
-        config: baseConfig,
-        getSession: makeReadService(makeSessionDetail()),
-      });
-
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain("Cannot use");
-      expect(result.stderr).toContain("--first");
-      expect(result.stderr).toContain("--user-only");
-      expect(result.stderr).toContain("together");
-    });
-
-    test("--user-only conflicts with --last", async () => {
-      const result = await runReadCommand({
-        session: "opencode:personal:session-001",
-        userOnly: true,
-        last: 10,
-        config: baseConfig,
-        getSession: makeReadService(makeSessionDetail()),
-      });
-
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain("Cannot use");
-      expect(result.stderr).toContain("--last");
-      expect(result.stderr).toContain("--user-only");
-      expect(result.stderr).toContain("together");
-    });
-
-    test("--user-only conflicts with --all", async () => {
-      const result = await runReadCommand({
-        session: "opencode:personal:session-001",
-        userOnly: true,
-        all: true,
-        config: baseConfig,
-        getSession: makeReadService(makeSessionDetail()),
-      });
-
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain("Cannot use");
-      expect(result.stderr).toContain("--all");
-      expect(result.stderr).toContain("--user-only");
-      expect(result.stderr).toContain("together");
-    });
-
-    test("--user-only conflicts with --range", async () => {
-      const result = await runReadCommand({
-        session: "opencode:personal:session-001",
-        userOnly: true,
-        range: "1:10",
-        config: baseConfig,
-        getSession: makeReadService(makeSessionDetail()),
-      });
-
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain("Cannot use");
-      expect(result.stderr).toContain("--range");
-      expect(result.stderr).toContain("--user-only");
-      expect(result.stderr).toContain("together");
+      expect(receivedOptions?.selection?.mode).toBe("last");
+      expect(receivedOptions?.selection?.count).toBe(10);
+      expect(receivedOptions?.selection?.userOnly).toBe(true);
     });
   });
 

@@ -121,9 +121,10 @@ function buildBooleanAwareMock(sessions: SessionSummary[]): SearchService {
     } else {
       // CLI HAS parsed operators and is passing pre-filtered terms —
       // do plain substring match so the test can distinguish the two states
-      const term = text.toLowerCase();
-      const results = term.length > 0
-        ? sessions.filter((s) => s.title.toLowerCase().includes(term))
+      // Also handle hyphen normalization: "sqlite-vec" → "sqlitevec" matches "sqlitevec session"
+      const lcTerm = text.toLowerCase().replace(/-/g, "");
+      const results = lcTerm.length > 0
+        ? sessions.filter((s) => s.title.toLowerCase().replace(/-/g, "").includes(lcTerm))
         : [];
       return { sessions: results, errors: [] };
     }
@@ -557,6 +558,269 @@ describe("cli search — boolean operators", () => {
       // Should match BOTH uppercase and lowercase titles
       expect(result.stdout).toContain("oc-upper");
       expect(result.stdout).toContain("oc-lower");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Zone 1: Boolean operator edge cases
+  // -------------------------------------------------------------------------
+  describe("Zone 1 — boolean operator edge cases", () => {
+
+    test("AND_with_whitespace_variation_is_normalized", async () => {
+      // "ast-grep   AND   comby" (extra spaces) should still parse as AND
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "ast-grep   AND   comby",
+        config: baseConfig,
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      // Operators should be parsed out — no raw AND in query passed to service
+      expect(capturedQuery!.text).not.toMatch(/ AND /i);
+      expect(result.stdout).toContain("ses_AG_CB");
+    });
+
+    test("NOT_at_start_excludes_matching_sessions", async () => {
+      // "NOT comby" means: all sessions that do NOT contain "comby"
+      // Should return sessions from allSessions minus sessions with "comby" in title
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "NOT comby",
+        config: baseConfig,
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      // NOT parsed → query should not contain raw "NOT"
+      expect(capturedQuery!.text).not.toMatch(/ NOT /i);
+      // Sessions without "comby": ses_AG, ses_GQ, ses_AG_GQ, ses_NONE
+      expect(result.stdout).toContain("ses_AG");
+      expect(result.stdout).toContain("ses_GQ");
+      expect(result.stdout).not.toContain("ses_CB");
+      expect(result.stdout).not.toContain("ses_AG_CB");
+      expect(result.stdout).not.toContain("ses_ALL");
+    });
+
+    test("lowercase_operators_are_case_insensitive", async () => {
+      // "ast-grep and comby" (lowercase "and") should parse as AND
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "ast-grep and comby",
+        config: baseConfig,
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      // Lowercase operators should also be recognized
+      expect(capturedQuery!.text).not.toMatch(/\sand\b/i);
+      expect(result.stdout).toContain("ses_AG_CB");
+    });
+
+    test("triple_operator_AND_OR_NOT_precedence_chain", async () => {
+      // "ast-grep AND comby OR gritql NOT ses-all"
+      // With precedence: ((ast-grep AND comby) OR gritql) AND NOT("ses-all")
+      // = sessions with (ast-grep AND comby) OR sessions with gritql, minus ses-all
+      // = ses-agcb, ses-gq, ses-agpq, ses-all → minus ses-all = ses-agcb, ses-gq, ses-agpq
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "ast-grep AND comby OR gritql NOT ses_ALL",
+        config: baseConfig,
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(capturedQuery!.text).not.toMatch(/ AND /i);
+      expect(capturedQuery!.text).not.toMatch(/ OR /i);
+      expect(capturedQuery!.text).not.toMatch(/ NOT /i);
+      // ses-agpq (has gritql, no comby, not ses-all) should appear via OR gritql
+      expect(result.stdout).toContain("ses_AG_GQ");
+    });
+
+    test("empty_parentheses_are_handled_gracefully", async () => {
+      // "()" alone is a parse error — CLI should not crash
+      const result = await runSearchCommand({
+        text: "()",
+        config: baseConfig,
+        searchSessions: buildBooleanAwareMock(allSessions),
+      });
+
+      // Should be graceful — either exitCode 0 with empty results, or exitCode 1
+      // with a clear parse error. Must NOT throw.
+      expect(result.exitCode).toBe(0);
+    });
+
+    test("nested_parentheses_multiple_levels", async () => {
+      // "((ast-grep))" — double nested term should parse correctly
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "((ast-grep))",
+        config: baseConfig,
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(capturedQuery!.text).not.toMatch(/\(/);
+      expect(capturedQuery!.text).toBe("ast-grep");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Zone 2: Boolean search with exclude flags
+  // -------------------------------------------------------------------------
+  describe("Zone 2 — boolean search + exclude flags combined", () => {
+
+    test("boolean_AND_with_exclude_current_filters_correctly", async () => {
+      // Boolean AND finds sessions; --exclude-current removes the current one
+      const CURRENT_ID = "ses_AG_CB";
+
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "ast-grep AND comby",
+        config: baseConfig,
+        currentSessionId: CURRENT_ID,
+        excludeCurrent: true,
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      // ses_AG_CB would match AND query, but excluded
+      expect(result.stdout).not.toContain("ses_AG_CB");
+      // ses_ALL also matches AND query (has both terms), but is NOT current → should appear
+      expect(result.stdout).toContain("ses_ALL");
+    });
+
+    test("boolean_OR_with_exclude_session_removes_specific_id", async () => {
+      const EXCLUDED_ID = "ses_AG";
+
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "ast-grep OR comby",
+        config: baseConfig,
+        excludeSession: [EXCLUDED_ID],
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      expectNoSession(result.stdout, "ses_AG");
+      expect(result.stdout).toContain("ses_CB");
+      expectSession(result.stdout, "ses_AG_CB");
+      expectSession(result.stdout, "ses_ALL");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Zone 3: Empty/nil inputs
+  // -------------------------------------------------------------------------
+  describe("Zone 3 — empty and nil inputs", () => {
+
+    test("empty_query_string_returns_empty_gracefully", async () => {
+      const result = await runSearchCommand({
+        text: "",
+        config: baseConfig,
+        searchSessions: buildBooleanAwareMock(allSessions),
+      });
+
+      // Empty text is treated as missing --text argument → exitCode 1
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Missing required argument: --text");
+    });
+
+    test("whitespace_only_query_is_treated_as_empty", async () => {
+      const result = await runSearchCommand({
+        text: "   ",
+        config: baseConfig,
+        searchSessions: buildBooleanAwareMock(allSessions),
+      });
+
+      // Whitespace-only text is treated as missing --text argument → exitCode 1
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Missing required argument: --text");
+    });
+
+    test("single_term_without_operators_uses_plain_search", async () => {
+      // Non-boolean single term — should call service once with normalized text
+      let callCount = 0;
+      let capturedQuery: SearchQuery | null = null;
+      const countingMock: SearchService = async (q) => {
+        callCount++;
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "ast-grep",
+        config: baseConfig,
+        searchSessions: countingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      // Single term: exactly one service call
+      expect(callCount).toBe(1);
+      // No operators in query text passed to service
+      expect(capturedQuery!.text).toBe("ast-grep");
+      expect(capturedQuery!.text).not.toMatch(/ AND | OR | NOT /i);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Zone 4: Cross-agent boolean search
+  // -------------------------------------------------------------------------
+  describe("Zone 4 — boolean search with mixed agent sessions", () => {
+
+    test("boolean_query_across_opencode_and_codex_agents", async () => {
+      // Boolean AND should work across sessions from different agents
+      let capturedQuery: SearchQuery | null = null;
+      const capturingMock: SearchService = async (q) => {
+        capturedQuery = q;
+        return buildBooleanAwareMock(allSessions)(q);
+      };
+
+      const result = await runSearchCommand({
+        text: "ast-grep AND comby",
+        config: baseConfig,
+        searchSessions: capturingMock,
+      });
+
+      expect(result.exitCode).toBe(0);
+      // Both opencode (ses_AG_CB) and codex (ses_ALL) sessions should appear
+      expect(result.stdout).toContain("ses_AG_CB"); // opencode:personal
+      expect(result.stdout).toContain("ses_ALL");   // codex:work
     });
   });
 });

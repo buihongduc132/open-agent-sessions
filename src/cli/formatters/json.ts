@@ -152,6 +152,7 @@ export function formatMessagesJson(
       updated_at: toISO8601UTC(detail.updated_at),
       ...(detail.clone !== undefined && { clone: detail.clone }),
       ...(detail.warning !== undefined && { warning: detail.warning }),
+      ...(detail.parentSessionId !== undefined && { parentSessionId: detail.parentSessionId }),
     },
     messages,
   };

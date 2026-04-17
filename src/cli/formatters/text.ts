@@ -92,9 +92,13 @@ export function formatSessionDetail(
 
   // Header
   const title = normalizeTitle(detail.title, detail.id);
-  lines.push(`Session [${target.agent}:${target.alias}]`);
+  const agentAlias = `[${detail.agent}:${detail.alias}]`;
+  lines.push(`Session ${agentAlias}`);
   lines.push(`id: ${detail.id}`);
   lines.push(`title: ${title}`);
+  if (detail.parentSessionId !== undefined) {
+    lines.push(`parent: ${detail.parentSessionId}`);
+  }
   lines.push(`created_at: ${formatLocalTimestamp(detail.created_at)}`);
   lines.push(`updated_at: ${formatLocalTimestamp(detail.updated_at)}`);
   lines.push(`message_count: ${detail.message_count}`);

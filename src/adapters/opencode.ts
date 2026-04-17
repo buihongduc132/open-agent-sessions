@@ -536,11 +536,32 @@ async function getSessionDetailFromDb(
   // Handle message selection options
   const selection = options.selection;
   if (selection) {
-    const { messages, warning } = getMessagesWithSelection(db, sessionId, selection, toolOptions, label, options.role);
+    const { messages, warning } = getMessagesWithSelection(
+      db,
+      sessionId,
+      { ...selection, userOnly: selection.userOnly || options.userOnly },
+      toolOptions,
+      label,
+      options.role
+    );
     return { ...baseSummary, messages, ...(warning && { warning }) };
   }
 
-  // Legacy behavior without selection options
+  // Legacy behavior without selection — check if userOnly is set at top level
+  if (options.userOnly) {
+    // Apply default last=10 + userOnly filter
+    const { messages, warning } = getMessagesWithSelection(
+      db,
+      sessionId,
+      { mode: "last", count: 10, userOnly: true },
+      toolOptions,
+      label,
+      options.role
+    );
+    return { ...baseSummary, messages, ...(warning && { warning }) };
+  }
+
+  // Legacy behavior without selection or userOnly
   const messages = getMessagesFromDb(db, sessionId, toolOptions, label, options.role);
   return { ...baseSummary, messages };
 }
@@ -670,10 +691,12 @@ function getMessagesFromDb(
 
 // Message selection options type
 type MessageSelectionOpts = {
-  mode: "first" | "last" | "all" | "range" | "user-only";
+  mode: "first" | "last" | "all" | "range";
   count?: number;
   start?: number;
   end?: number;
+  /** When true, filters to only user-role messages (additive with primary mode). */
+  userOnly?: boolean;
 };
 
 type ToolFilterOpts = {
@@ -790,6 +813,11 @@ function getMessagesWithSelection(
 
     default:
       throw new Error(`${label} unsupported selection mode: ${(selection as { mode: string }).mode}`);
+  }
+
+  // Apply userOnly filter (additive with primary mode)
+  if (selection.userOnly) {
+    selectedRows = selectedRows.filter((m) => m.role === "user");
   }
 
   // Apply role filter if specified

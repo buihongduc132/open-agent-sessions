@@ -29,7 +29,7 @@ Options:
   --last N        Last N messages (default: 10)
   --all           All messages
   --range S:E     Message range (1-indexed, inclusive)
-  --user-only     Show only user messages (exclude assistant/tool messages)
+  --user-only     Show only user messages (composable with --first/--last/--all/--range)
   --tools         Include tool messages (default: hide)
   --role R        Filter by role (user, assistant, system)
   --format F      Output format: text (default), json, csf, markdown, md
@@ -47,7 +47,7 @@ Output formats:
   markdown  Human-readable Markdown (alias: md)
 
 Either --session or all of --agent, --alias, --id must be specified.
-Only one of --first, --last, --all, --range, --user-only may be specified.`;
+One of --first, --last, --all, --range is required (--user-only is optional and additive).`;
 
 // ============================================================================
 // Types
@@ -130,6 +130,7 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
     mode: options.tools ? "all_with_tools" : "all_no_tools",
     selection: selectionResult.value,
     role,
+    userOnly: selectionResult.value.userOnly,
   };
 
   // Fetch session detail
@@ -371,21 +372,23 @@ function splitSpec(spec: string): ParseResult<string[]> {
 function parseSelectionOptions(
   options: ReadOptions
 ): ParseResult<MessageSelectionOptions> {
-  // Count how many selection modes are specified
+  // Count how many primary selection modes are specified
   const modes: string[] = [];
   if (options.first !== undefined) modes.push("--first");
   if (options.last !== undefined) modes.push("--last");
   if (options.all) modes.push("--all");
   if (options.range !== undefined) modes.push("--range");
-  if (options.userOnly) modes.push("--user-only");
 
-  // AC6: Error on conflicting flags
+  // AC6: Error on conflicting primary modes (--user-only is additive, not exclusive)
   if (modes.length > 1) {
     return {
       ok: false,
       error: `Cannot use ${modes.join(" and ")} together. Choose one. ${USAGE}`,
     };
   }
+
+  // Determine userOnly (additive flag, not a selection mode)
+  const userOnly = options.userOnly ? true : undefined;
 
   // AC1: Parse --first N
   if (options.first !== undefined) {
@@ -403,7 +406,7 @@ function parseSelectionOptions(
     }
     return {
       ok: true,
-      value: { mode: "first", count: options.first },
+      value: { mode: "first", count: options.first, userOnly },
     };
   }
 
@@ -423,7 +426,7 @@ function parseSelectionOptions(
     }
     return {
       ok: true,
-      value: { mode: "last", count: options.last },
+      value: { mode: "last", count: options.last, userOnly },
     };
   }
 
@@ -431,20 +434,20 @@ function parseSelectionOptions(
   if (options.all) {
     return {
       ok: true,
-      value: { mode: "all" },
+      value: { mode: "all", userOnly },
     };
   }
 
   // AC4: Parse --range START:END
   if (options.range !== undefined) {
-    return parseRange(options.range);
+    return parseRange(options.range, userOnly);
   }
 
-  // Parse --user-only
+  // Parse --user-only alone — defaults to last 10 user messages
   if (options.userOnly) {
     return {
       ok: true,
-      value: { mode: "user-only" },
+      value: { mode: "last", count: 10, userOnly: true },
     };
   }
 
@@ -455,7 +458,7 @@ function parseSelectionOptions(
   };
 }
 
-function parseRange(rangeStr: string): ParseResult<MessageSelectionOptions> {
+function parseRange(rangeStr: string, userOnly?: boolean): ParseResult<MessageSelectionOptions> {
   const parts = rangeStr.split(":");
   if (parts.length !== 2) {
     return {
@@ -508,7 +511,7 @@ function parseRange(rangeStr: string): ParseResult<MessageSelectionOptions> {
 
   return {
     ok: true,
-    value: { mode: "range", start, end },
+    value: { mode: "range", start, end, userOnly },
   };
 }
 
