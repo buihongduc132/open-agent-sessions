@@ -81,8 +81,9 @@ export function planFromQuery(query: string): SearchPlan {
     const ast = parse(query);
     const terms: string[] = [];
     const excludeTerms: string[] = [];
+    const orGroups: string[][] = [];
 
-    walkAst(ast, terms, excludeTerms);
+    walkAst(ast, terms, excludeTerms, orGroups);
 
     const hasBoolean =
       terms.length > 1 || // implicit AND
@@ -95,7 +96,7 @@ export function planFromQuery(query: string): SearchPlan {
     const booleanOp = detectBooleanOp(query, terms.length);
 
     // REQ-22: Build per-backend predicates
-    const fts5Query = buildFts5Query(terms, excludeTerms, booleanOp);
+    const fts5Query = buildFts5Query(terms, excludeTerms, booleanOp, orGroups);
     const jsonlFilter = buildJsonlFilter(terms, excludeTerms, booleanOp);
     // REQ-22: vectorTerms — normalized positive terms for vector similarity search.
     // Exclude NOT terms; normalize by stripping hyphens for embedding lookup.
@@ -134,30 +135,46 @@ export function planFromQuery(query: string): SearchPlan {
 }
 
 /**
+ * Collect terms from a subtree and push them onto the excludeTerms list.
+ * Used by all NOT patterns (explicit, implicit, legacy) to DRY the
+ * "walk subtree → collect → push to excludes" sequence.
+ */
+function collectAndExclude(node: any, excludeTerms: string[]): void {
+  const collected: string[] = [];
+  walkAst(node, collected, []);
+  for (const t of collected) {
+    excludeTerms.push(t);
+  }
+}
+
+/**
  * Walk the liqe AST, extracting search terms and NOT terms.
  * Handles liqe's actual node types: Tag, LogicalExpression, LiteralExpression, etc.
  */
-function walkAst(node: any, terms: string[], excludeTerms: string[]): void {
+function walkAst(node: any, terms: string[], excludeTerms: string[], orGroups?: string[][]): void {
   if (!node) return;
+
+  // ParenthesizedExpression: unwrap and recurse into the inner expression
+  if (node.type === "ParenthesizedExpression") {
+    walkAst(node.expression, terms, excludeTerms, orGroups);
+    return;
+  }
 
   // Tag node: contains an expression (LiteralExpression, etc.) under .expression
   // and optionally a field under .field
   if (node.type === "Tag") {
-    walkAst(node.expression, terms, excludeTerms);
-    return;
-  }
-
-  // LiteralExpression: leaf node with .value
-  if (node.type === "LiteralExpression") {
-    const term = node.value;
-    if (term && typeof term === "string" && term.length > 0) {
-      terms.push(term);
+    // Named fields (e.g., agent:opencode) are filters, not search terms.
+    // Only recurse for ImplicitField tags (bare search terms).
+    if (node.field?.type === "Field") {
+      return; // skip named field values from search terms
     }
+    // ImplicitField: treat as regular search term
+    walkAst(node.expression, terms, excludeTerms, orGroups);
     return;
   }
 
-  // Legacy: TermExpression (older liqe versions)
-  if (node.type === "TermExpression") {
+  // Leaf nodes: LiteralExpression (current liqe) or TermExpression (legacy)
+  if (node.type === "LiteralExpression" || node.type === "TermExpression") {
     const term = node.value;
     if (term && typeof term === "string" && term.length > 0) {
       terms.push(term);
@@ -174,30 +191,36 @@ function walkAst(node: any, terms: string[], excludeTerms: string[]): void {
     // Check for NOT: either explicit "NOT" or ImplicitBooleanOperator with NOT on right
     if (opType === "BooleanOperator" && opValue === "NOT") {
       // "X NOT Y" → Y is excluded
-      const rightTerms: string[] = [];
-      walkAst(node.right, rightTerms, []);
-      for (const t of rightTerms) {
-        excludeTerms.push(t);
-      }
-      walkAst(node.left, terms, excludeTerms);
+      collectAndExclude(node.right, excludeTerms);
+      walkAst(node.left, terms, excludeTerms, orGroups);
       return;
     }
 
     // liqe parses "ast-grep NOT comby" as:
     //   LogicalExpression { operator: ImplicitBooleanOperator("AND"), right: UnaryOperator(NOT) }
     if (opType === "ImplicitBooleanOperator" && node.right?.type === "UnaryOperator" && node.right?.operator === "NOT") {
-      const rightTerms: string[] = [];
-      walkAst(node.right.operand, rightTerms, []);
-      for (const t of rightTerms) {
-        excludeTerms.push(t);
-      }
-      walkAst(node.left, terms, excludeTerms);
+      collectAndExclude(node.right.operand, excludeTerms);
+      walkAst(node.left, terms, excludeTerms, orGroups);
       return;
     }
 
-    // AND or OR: recurse into both sides
-    walkAst(node.left, terms, excludeTerms);
-    walkAst(node.right, terms, excludeTerms);
+    // OR: collect terms into a group so FTS5 can preserve grouping
+    if (opType === "BooleanOperator" && opValue === "OR") {
+      const groupTerms: string[] = [];
+      walkAst(node.left, groupTerms, []);
+      walkAst(node.right, groupTerms, []);
+      for (const t of groupTerms) {
+        terms.push(t);
+      }
+      if (orGroups) {
+        orGroups.push([...groupTerms]);
+      }
+      return;
+    }
+
+    // AND or implicit AND: recurse into both sides
+    walkAst(node.left, terms, excludeTerms, orGroups);
+    walkAst(node.right, terms, excludeTerms, orGroups);
     return;
   }
 
@@ -211,33 +234,25 @@ function walkAst(node: any, terms: string[], excludeTerms: string[]): void {
     };
 
     if (bin.operator === "NOT") {
-      const rightTerms: string[] = [];
-      walkAst(bin.right, rightTerms, []);
-      for (const t of rightTerms) {
-        excludeTerms.push(t);
-      }
-      walkAst(bin.left, terms, excludeTerms);
+      collectAndExclude(bin.right, excludeTerms);
+      walkAst(bin.left, terms, excludeTerms, orGroups);
       return;
     }
 
-    walkAst(bin.left, terms, excludeTerms);
-    walkAst(bin.right, terms, excludeTerms);
+    walkAst(bin.left, terms, excludeTerms, orGroups);
+    walkAst(bin.right, terms, excludeTerms, orGroups);
     return;
   }
 
   // GroupExpression: wrapper around an inner expression
   if (node.type === "GroupExpression") {
-    walkAst((node as { expression: Node }).expression, terms, excludeTerms);
+    walkAst((node as { expression: Node }).expression, terms, excludeTerms, orGroups);
     return;
   }
 
   // UnaryOperator: NOT prefix
   if (node.type === "UnaryOperator" && node.operator === "NOT") {
-    const rightTerms: string[] = [];
-    walkAst(node.operand, rightTerms, []);
-    for (const t of rightTerms) {
-      excludeTerms.push(t);
-    }
+    collectAndExclude(node.operand, excludeTerms);
     return;
   }
 }
@@ -269,13 +284,55 @@ function detectBooleanOp(query: string, termCount: number): "AND" | "OR" | "NONE
  * FTS5 syntax: "term1 AND term2", "term1 OR term2", "term1 NOT term2"
  * Hyphens are stripped since FTS5 tokenizes on them.
  */
-function buildFts5Query(terms: string[], excludeTerms: string[], op: "AND" | "OR" | "NONE"): string {
+function buildFts5Query(terms: string[], excludeTerms: string[], op: "AND" | "OR" | "NONE", orGroups?: string[][]): string {
   const normalized = terms.map(normalizeTerm).filter((t) => t.length > 0);
   const normalizedExclude = excludeTerms.map(normalizeTerm).filter((t) => t.length > 0);
 
   if (normalized.length === 0) return "";
 
-  // Build positive part
+  // If we have OR groups with remaining terms outside, build structured query
+  if (orGroups && orGroups.length > 0) {
+    const normalizedOrGroups = orGroups
+      .map((group) => group.map(normalizeTerm).filter((t) => t.length > 0))
+      .filter((group) => group.length > 0);
+
+    // Track which terms belong to OR groups
+    const orGroupTerms = new Set(orGroups.flat());
+    const remainingTerms = terms
+      .filter((t) => !orGroupTerms.has(t))
+      .map(normalizeTerm)
+      .filter((t) => t.length > 0);
+
+    // Single OR group with no remaining terms → flat OR (no parens)
+    if (normalizedOrGroups.length === 1 && remainingTerms.length === 0) {
+      let positive = normalizedOrGroups[0].join(" OR ");
+      if (normalizedExclude.length > 0) {
+        positive += " NOT " + normalizedExclude.join(" NOT ");
+      }
+      return positive;
+    }
+
+    // Multiple groups or remaining terms → structured with parens
+    const parts: string[] = [];
+    for (const group of normalizedOrGroups) {
+      if (group.length === 1) {
+        parts.push(group[0]);
+      } else {
+        parts.push("(" + group.join(" OR ") + ")");
+      }
+    }
+    for (const term of remainingTerms) {
+      parts.push(term);
+    }
+
+    let positive = parts.join(" AND ");
+    if (normalizedExclude.length > 0) {
+      positive += " NOT " + normalizedExclude.join(" NOT ");
+    }
+    return positive;
+  }
+
+  // Build positive part (no OR groups)
   let positive: string;
   if (op === "OR") {
     positive = normalized.join(" OR ");
