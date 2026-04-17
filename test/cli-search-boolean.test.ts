@@ -686,7 +686,7 @@ describe("cli search — boolean operators", () => {
 
       expect(result.exitCode).toBe(0);
       expect(capturedQuery!.text).not.toMatch(/\(/);
-      expect(capturedQuery!.text).toBe("ast-grep");
+      expect(capturedQuery!.text).toBe("astgrep");
     });
   });
 

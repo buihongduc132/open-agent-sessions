@@ -1,13 +1,14 @@
-import { AgentEntry, AgentKind, Config } from "../config/types";
+import { AgentEntry, AgentKind } from "../config/types";
 import { SessionListQuery, SessionListResult } from "../core/list";
 import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
+import { type ConfigOptions, type ParseResult, resolveConfig, errorResult, errorMessage } from "./utils/config";
 
 const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>] [--limit <n>] [--after <cursor>]";
 
 export type ListService = (query: SessionListQuery) => Promise<SessionListResult>;
 
-export async function runListCommand(options: {
+export type ListOptions = {
   agent?: string;
   alias?: string;
   q?: string;
@@ -15,14 +16,15 @@ export async function runListCommand(options: {
   after?: string;
   /** Filter to only root sessions (sessions with no parent). */
   rootsOnly?: boolean;
+  /** Filter to only sub-agent sessions (sessions with a parent). */
+  subOnly?: boolean;
   /** Filter to only sessions that are direct children of this parent session ID. */
   childrenOf?: string;
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
   list: ListService;
-}): Promise<CliResult> {
-  const configResult = resolveConfig(options);
+} & ConfigOptions;
+
+export async function runListCommand(options: ListOptions): Promise<CliResult> {
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }
@@ -30,6 +32,10 @@ export async function runListCommand(options: {
   // Validate mutually exclusive flags
   if (options.rootsOnly && options.childrenOf !== undefined) {
     return errorResult("Cannot use --roots-only and --children-of together: they are mutually exclusive.");
+  }
+
+  if (options.rootsOnly && options.subOnly) {
+    return errorResult("Cannot use --roots-only and --sub-only together: they are mutually exclusive.");
   }
 
   const enabledEntries = configResult.value.agents.filter((entry) => entry.enabled);
@@ -69,6 +75,11 @@ export async function runListCommand(options: {
     sessions = sessions.filter((s) => s.parentSessionId === options.childrenOf);
   }
 
+  // Apply subOnly filter: only sessions with a parentSessionId
+  if (options.subOnly) {
+    sessions = sessions.filter((s) => !!s.parentSessionId);
+  }
+
   const stderr = formatErrors(result.errors);
   if (sessions.length === 0) {
     return {
@@ -85,30 +96,6 @@ export async function runListCommand(options: {
     stderr,
   };
 }
-
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
-
-function resolveConfig(options: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (options.config) {
-    return { ok: true, value: options.config };
-  }
-
-  if (options.configPath && options.loadConfig) {
-    try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
-    }
-  }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
-}
-
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
 function parseAgent(
   agentValue: string | undefined,
@@ -186,11 +173,12 @@ function normalizeQuery(query: string | undefined): string | undefined {
 
 function formatSessionRow(session: SessionSummary): string {
   const label = `[${session.agent}:${session.alias}]`;
+  const roleTag = session.parentSessionId ? "[sub]" : "[main]";
   const title = session.title.trim().length > 0 ? session.title : session.id;
   if (title === session.id) {
-    return `${label} ${session.id}`;
+    return `${label} ${roleTag} ${session.id}`;
   }
-  return `${label} ${title} (${session.id})`;
+  return `${label} ${roleTag} ${title} (${session.id})`;
 }
 
 function formatErrors(errors: SessionListResult["errors"]): string {
@@ -220,22 +208,4 @@ function formatList(values: string[]): string {
 
 function isAgentKind(agent: string): agent is AgentKind {
   return agent === "opencode" || agent === "codex" || agent === "claude";
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
 }

@@ -8,6 +8,8 @@ import {
   EvalContext,
 } from "./search-boolean";
 import type { SimilarSessionResult } from "../similarity/search";
+import { resolveConfig, errorResult } from "./utils/config";
+import { formatErrors as formatErrorsShared } from "./formatters/text";
 
 const USAGE = `Usage: oas search --text <query>
 
@@ -56,7 +58,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
     return { exitCode: 1, stdout: "", stderr: "Missing required argument: --text\n" };
   }
 
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }
@@ -116,7 +118,8 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
             }
           }
 
-          const query: SearchQuery = { cwd: process.cwd(), text: searchText };
+          const normalizedSearchText = normalizeFuzzyQuery(searchText);
+          const query: SearchQuery = { cwd: process.cwd(), text: normalizedSearchText };
           const result = await options.searchSessions(query);
           if (term !== "*") {
             ctx.recordTerm(term, result.sessions);
@@ -188,7 +191,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
           if (excludedIds.size > 0) {
             filteredSessions = filteredSessions.filter((s) => !excludedIds.has(s.id));
           }
-          const stderr = formatErrors(resultErrors);
+          const stderr = formatErrorsShared(resultErrors);
           if (filteredSessions.length === 0) {
             return { exitCode: 0, stdout: "No sessions found.\n", stderr };
           }
@@ -214,35 +217,13 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
     filteredSessions = filteredSessions.filter((s) => !excludedIds.has(s.id));
   }
 
-  const stderr = formatErrors(resultErrors);
+  const stderr = formatErrorsShared(resultErrors);
   if (filteredSessions.length === 0) {
     return { exitCode: 0, stdout: "No sessions found.\n", stderr };
   }
 
   const stdout = filteredSessions.map(formatSessionRow).join("\n") + "\n";
   return { exitCode: 0, stdout, stderr };
-}
-
-// ============================================================================
-// Config Resolution
-// ============================================================================
-
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
-
-function resolveConfig(opts: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (opts.config) return { ok: true, value: opts.config };
-  if (opts.configPath && opts.loadConfig) {
-    try {
-      return { ok: true, value: opts.loadConfig(opts.configPath) };
-    } catch (e) {
-      return { ok: false, error: String(e instanceof Error ? e.message : e) };
-    }
-  }
-  return { ok: false, error: "Missing config. " + USAGE };
 }
 
 // ============================================================================
@@ -254,20 +235,6 @@ function formatSessionRow(session: SessionSummary): string {
   const title = session.title.trim().length > 0 ? session.title : session.id;
   if (title === session.id) return label + " " + session.id;
   return label + " " + title + " (" + session.id + ")";
-}
-
-function formatErrors(errors: SearchError[]): string {
-  if (errors.length === 0) return "";
-  const lines = errors.map((e) => {
-    const label = "[" + e.agent + ":" + e.alias + "]";
-    if (e.message.includes(label)) return e.message;
-    return label + " " + e.message;
-  });
-  return lines.join("\n") + "\n";
-}
-
-function errorResult(message: string): CliResult {
-  return { exitCode: 1, stdout: "", stderr: message + "\n" };
 }
 
 // ============================================================================
