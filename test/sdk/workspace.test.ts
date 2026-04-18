@@ -407,7 +407,7 @@ describe("createWorkspaceSession — git-root auto-discovery", () => {
   });
 
   test("falls back to cwd when no git root is found", async () => {
-    const { mkdirSync, rmdirSync } = await import("node:fs");
+    const { mkdirSync, rmSync } = await import("node:fs");
     const { join } = await import("node:path");
     const { randomUUID } = await import("node:crypto");
 
@@ -421,10 +421,15 @@ describe("createWorkspaceSession — git-root auto-discovery", () => {
     });
 
     try {
-      const session = createWorkspaceSession({ agent: "opencode" });
+      // Pass a fake existsSync that always returns false so findGitRoot finds nothing.
+      // This is necessary because /tmp may contain a .git directory on this machine.
+      const session = createWorkspaceSession({
+        agent: "opencode",
+        _existsSyncFn: () => false,
+      } as any);
       expect(session.scope).toBe(tmpDir);
     } finally {
-      rmdirSync(tmpDir);
+      rmSync(tmpDir, { recursive: true, force: true });
       // Restore cwd
       Object.defineProperty(process, "cwd", {
         value: () => REAL_REPO_ROOT,

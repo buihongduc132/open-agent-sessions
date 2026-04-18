@@ -3,6 +3,7 @@ import { SessionSummary, TimeRangeOptions } from "../core/types";
 import { CliResult } from "./types";
 import { parseLastDuration, parseTimestamp, ParseResult } from "./utils/time-parser";
 import { formatSessionRow, formatSessionsJson, formatErrors } from "./formatters/text";
+import { resolveConfig, errorResult, errorMessage } from "./utils/config";
 
 const USAGE = `Usage: oas sessions [options]
 
@@ -118,31 +119,7 @@ export async function runSessionsCommand(options: SessionsOptions): Promise<CliR
   };
 }
 
-// ============================================================================
-// Config Resolution
-// ============================================================================
-
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
-
-function resolveConfig(options: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (options.config) {
-    return { ok: true, value: options.config };
-  }
-
-  if (options.configPath && options.loadConfig) {
-    try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
-    }
-  }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
-}
+// Config resolution: imported from ./utils/config
 
 // ============================================================================
 // Time Range Parsing
@@ -233,20 +210,4 @@ function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions>
 // Helpers
 // ============================================================================
 
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
-}
+// Error/formatting helpers: imported from ./utils/config

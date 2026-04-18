@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { AgentKind } from "../config/types";
+import { errorMessage } from "./utils";
 
 export type CloneRequest = {
   source: {
@@ -274,14 +275,4 @@ function findUnsupportedContent(messages: CloneMessage[]): string | null {
     }
   }
   return null;
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
 }

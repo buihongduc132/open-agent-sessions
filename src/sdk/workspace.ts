@@ -21,6 +21,7 @@ import { AgentKind } from "../config/types";
 import type { AgentEntry, OpenCodeAgentEntry } from "../config/types";
 import { Adapter, AdapterFactories, AdapterRegistry } from "../core/types";
 import { createAdapter } from "../core/registry";
+import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -45,6 +46,8 @@ export interface WorkspaceConfig {
     db_path?: string;
     jsonl_path?: string;
   };
+  /** @internal Test-only: override existsSync for findGitRoot */
+  _existsSyncFn?: (path: string | URL | Buffer) => boolean;
 }
 
 export interface WorkspaceSession {
@@ -130,7 +133,7 @@ export function createWorkspaceSession(config: WorkspaceConfig): WorkspaceSessio
   }
 
   // ── 2. Resolve scope ─────────────────────────────────────────────────────
-  const scope = resolveScope(config.scope);
+  const scope = resolveScope(config.scope, config._existsSyncFn);
 
   // ── 3. Build canonical alias ──────────────────────────────────────────────
   const alias = buildCanonicalAlias(config.agent, scope, config.name);
@@ -177,7 +180,10 @@ export function createWorkspaceSession(config: WorkspaceConfig): WorkspaceSessio
  * - If omitted, discover the nearest git-root from process.cwd().
  * - Falls back to process.cwd() if no git root is found.
  */
-export function resolveScope(given?: string): string {
+export function resolveScope(
+  given?: string,
+  existsSyncFn?: (path: string | URL | Buffer) => boolean
+): string {
   if (given !== undefined) {
     if (!isAbsolute(given)) {
       throw new Error(
@@ -188,7 +194,7 @@ export function resolveScope(given?: string): string {
   }
 
   const cwd = process.cwd();
-  const gitRoot = findGitRoot(cwd);
+  const gitRoot = findGitRoot(cwd, existsSyncFn);
   return gitRoot ?? cwd;
 }
 
@@ -368,7 +374,7 @@ function buildHandle(
         return sessions;
       } catch (error) {
         throw new Error(
-          `[${agent}:${alias}] listSessions: ${error instanceof Error ? error.message : String(error)}`
+          `[${agent}:${alias}] listSessions: ${errorMessage(error)}`
         );
       }
     },

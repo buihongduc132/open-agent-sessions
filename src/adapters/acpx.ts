@@ -28,6 +28,7 @@ import { join, resolve } from "node:path";
 import { Adapter, SearchQuery, SessionDetail, SessionMessage, SessionReadOptions, SessionSummary } from "../core/types";
 import { AgentKind } from "../config/types";
 import type { SimilarSessionResult } from "../similarity/search";
+import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -170,7 +171,7 @@ export function createAcpxAdapter(
     // R-31: getSessionDetail — full acpx adapter
     getSessionDetail: async (
       sessionId: string,
-      _options: SessionReadOptions
+      options: SessionReadOptions
     ): Promise<SessionDetail> => {
       const sessionsDir = join(basePath, "sessions");
 
@@ -191,7 +192,46 @@ export function createAcpxAdapter(
         try {
           const session = parseAcpxSessionFile(filePath);
           if (session.sessionId === sessionId) {
-            return mapToSessionDetail(session);
+            let detail = mapToSessionDetail(session);
+
+            // Apply selection mode first (first / last / all / range), then userOnly filter
+            const selection = options.selection;
+            let msgs = detail.messages ?? [];
+            if (selection) {
+              switch (selection.mode) {
+                case "first":
+                  msgs = msgs.slice(0, selection.count);
+                  break;
+                case "last":
+                  msgs = msgs.slice(-(selection.count ?? 10));
+                  break;
+                case "range": {
+                  const start = (selection.start ?? 1) - 1; // 1-indexed → 0-indexed
+                  const end = selection.end ?? start + 1;
+                  msgs = msgs.slice(start, end);
+                  break;
+                }
+                case "all":
+                default:
+                  // No slicing needed
+                  break;
+              }
+            }
+
+            // Apply userOnly filter if set (role=assistant conflicts with userOnly → empty)
+            const effectiveUserOnly = options.userOnly || options.selection?.userOnly;
+            if (effectiveUserOnly) {
+              // If role is set to something other than 'user', userOnly constraint is impossible
+              if (options.role && options.role !== "user") {
+                msgs = [];
+              } else {
+                msgs = msgs.filter((m) => m.role === "user");
+              }
+            }
+
+            detail = { ...detail, messages: msgs };
+
+            return detail;
           }
         } catch {
           // Skip malformed files
@@ -246,7 +286,7 @@ function parseAcpxSessionFile(filePath: string): AcpxSession {
   try {
     raw = readFileSync(filePath, "utf8");
   } catch (error) {
-    throw new Error(`acpx: failed to read session file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`acpx: failed to read session file ${filePath}: ${errorMessage(error)}`);
   }
 
   let data: Record<string, unknown>;

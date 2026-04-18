@@ -12,6 +12,8 @@ export interface SessionSummary {
   updated_at: string;
   message_count: number;
   storage: SessionStorageKind;
+  /** Present when this session was forked from a parent session. */
+  parentSessionId?: string;
 }
 
 export interface SessionCloneMetadata {
@@ -31,8 +33,6 @@ export interface SessionDetail extends SessionSummary {
   clone?: SessionCloneMetadata;
   messages?: SessionMessage[];
   warning?: string;
-  /** Set when this session was forked from another session (R-39 / R-18). */
-  parentSessionId?: string;
 }
 
 export interface SessionMessage {
@@ -65,19 +65,23 @@ export interface ToolSearchQuery {
 
 export type SessionReadMode = "last_message" | "all_no_tools" | "all_with_tools";
 
-export type MessageSelectionMode = "first" | "last" | "all" | "range" | "user-only";
+export type MessageSelectionMode = "first" | "last" | "all" | "range";
 
 export interface MessageSelectionOptions {
   mode: MessageSelectionMode;
   count?: number; // for first/last (default 10 for last)
   start?: number; // for range (1-indexed)
   end?: number; // for range (1-indexed, inclusive)
+  /** When true, filters messages to only user role after selection is applied. */
+  userOnly?: boolean;
 }
 
 export interface SessionReadOptions {
   mode?: SessionReadMode; // tool filtering mode (defaults to all_no_tools)
   selection?: MessageSelectionOptions; // message selection options
   role?: "user" | "assistant" | "system"; // filter messages by role
+  /** When true, filters messages to only user role (additive with selection mode). */
+  userOnly?: boolean;
 }
 
 export interface TimeRangeOptions {

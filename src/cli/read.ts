@@ -13,6 +13,18 @@ import {
   type TextFormatterOptions,
 } from "./formatters/text";
 import type { ReadQuery } from "./formatters/text";
+import { resolveConfig, errorResult, errorMessage, type ParseResult, wrapLargeOutput } from "./utils/config";
+import {
+  isAgentKind,
+  formatList,
+  validateAlias,
+  listAgents,
+  aliasesForAgent,
+  compareAgents,
+  unknownAgentError,
+  withLabel,
+  normalizeTitle,
+} from "./utils/agents";
 
 // Re-export ReadQuery for external use
 export type { ReadQuery };
@@ -29,7 +41,7 @@ Options:
   --last N        Last N messages (default: 10)
   --all           All messages
   --range S:E     Message range (1-indexed, inclusive)
-  --user-only     Show only user messages (exclude assistant/tool messages)
+  --user-only     Show only user messages (composable with --first/--last/--all/--range)
   --tools         Include tool messages (default: hide)
   --role R        Filter by role (user, assistant, system)
   --format F      Output format: text (default), json, csf, markdown, md
@@ -47,7 +59,7 @@ Output formats:
   markdown  Human-readable Markdown (alias: md)
 
 Either --session or all of --agent, --alias, --id must be specified.
-Only one of --first, --last, --all, --range, --user-only may be specified.`;
+One of --first, --last, --all, --range is required (--user-only is optional and additive).`;
 
 // ============================================================================
 // Types
@@ -130,6 +142,7 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
     mode: options.tools ? "all_with_tools" : "all_no_tools",
     selection: selectionResult.value,
     role,
+    userOnly: selectionResult.value.userOnly,
   };
 
   // Fetch session detail
@@ -175,58 +188,21 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
         stderr: `Output written to: ${outputPath}\n`,
       };
     } catch (error) {
-      return errorResult(`Failed to write to file: ${error instanceof Error ? error.message : String(error)}`);
+      return errorResult(`Failed to write to file: ${errorMessage(error)}`);
     }
   }
   
   // Warn if output is large and might be truncated by subprocess buffer
-  if (stdout.length > 60000) {
-    const stderr = `Warning: Large output (${stdout.length} bytes). For reliable piping, use --output flag.\n`;
-    return {
-      exitCode: 0,
-      stdout,
-      stderr,
-    };
-  }
-  
-  return {
-    exitCode: 0,
-    stdout,
-    stderr: "",
-  };
+  return wrapLargeOutput(stdout);
 }
 
-// ============================================================================
-// Config Resolution
-// ============================================================================
-
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
-
-function resolveConfig(options: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (options.config) {
-    return { ok: true, value: options.config };
-  }
-
-  if (options.configPath && options.loadConfig) {
-    try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
-    }
-  }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
-}
+// Config resolution: imported from ./utils/config
 
 // ============================================================================
 // Target Resolution
 // ============================================================================
 
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
+// ParseResult: imported from ./utils/config
 
 function resolveTarget(
   options: {
@@ -371,21 +347,23 @@ function splitSpec(spec: string): ParseResult<string[]> {
 function parseSelectionOptions(
   options: ReadOptions
 ): ParseResult<MessageSelectionOptions> {
-  // Count how many selection modes are specified
+  // Count how many primary selection modes are specified
   const modes: string[] = [];
   if (options.first !== undefined) modes.push("--first");
   if (options.last !== undefined) modes.push("--last");
   if (options.all) modes.push("--all");
   if (options.range !== undefined) modes.push("--range");
-  if (options.userOnly) modes.push("--user-only");
 
-  // AC6: Error on conflicting flags
+  // AC6: Error on conflicting primary modes (--user-only is additive, not exclusive)
   if (modes.length > 1) {
     return {
       ok: false,
       error: `Cannot use ${modes.join(" and ")} together. Choose one. ${USAGE}`,
     };
   }
+
+  // Determine userOnly (additive flag, not a selection mode)
+  const userOnly = options.userOnly ? true : undefined;
 
   // AC1: Parse --first N
   if (options.first !== undefined) {
@@ -403,7 +381,7 @@ function parseSelectionOptions(
     }
     return {
       ok: true,
-      value: { mode: "first", count: options.first },
+      value: { mode: "first", count: options.first, userOnly },
     };
   }
 
@@ -423,7 +401,7 @@ function parseSelectionOptions(
     }
     return {
       ok: true,
-      value: { mode: "last", count: options.last },
+      value: { mode: "last", count: options.last, userOnly },
     };
   }
 
@@ -431,20 +409,20 @@ function parseSelectionOptions(
   if (options.all) {
     return {
       ok: true,
-      value: { mode: "all" },
+      value: { mode: "all", userOnly },
     };
   }
 
   // AC4: Parse --range START:END
   if (options.range !== undefined) {
-    return parseRange(options.range);
+    return parseRange(options.range, userOnly);
   }
 
-  // Parse --user-only
+  // Parse --user-only alone — defaults to last 10 user messages
   if (options.userOnly) {
     return {
       ok: true,
-      value: { mode: "user-only" },
+      value: { mode: "last", count: 10, userOnly: true },
     };
   }
 
@@ -455,7 +433,7 @@ function parseSelectionOptions(
   };
 }
 
-function parseRange(rangeStr: string): ParseResult<MessageSelectionOptions> {
+function parseRange(rangeStr: string, userOnly?: boolean): ParseResult<MessageSelectionOptions> {
   const parts = rangeStr.split(":");
   if (parts.length !== 2) {
     return {
@@ -508,7 +486,7 @@ function parseRange(rangeStr: string): ParseResult<MessageSelectionOptions> {
 
   return {
     ok: true,
-    value: { mode: "range", start, end },
+    value: { mode: "range", start, end, userOnly },
   };
 }
 
@@ -516,88 +494,4 @@ function parseRange(rangeStr: string): ParseResult<MessageSelectionOptions> {
 // Helpers
 // ============================================================================
 
-function validateAlias(
-  agent: AgentKind,
-  alias: string,
-  entries: AgentEntry[]
-): ParseResult<string> {
-  const aliases = aliasesForAgent(agent, entries);
-  if (!aliases.includes(alias)) {
-    return {
-      ok: false,
-      error: `Unknown alias "${alias}" for ${agent}. Available aliases: ${formatList(aliases)}`,
-    };
-  }
-  return { ok: true, value: alias };
-}
-
-function listAgents(entries: AgentEntry[]): AgentKind[] {
-  const seen = new Set<AgentKind>();
-  for (const entry of entries) {
-    seen.add(entry.agent);
-  }
-  return Array.from(seen).sort(compareAgents);
-}
-
-function aliasesForAgent(agent: AgentKind, entries: AgentEntry[]): string[] {
-  return entries
-    .filter((entry) => entry.agent === agent)
-    .map((entry) => entry.alias)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-function compareAgents(a: AgentKind, b: AgentKind): number {
-  const order: Record<AgentKind, number> = {
-    opencode: 0,
-    codex: 1,
-    claude: 2,
-  };
-  return order[a] - order[b];
-}
-
-function unknownAgentError(agent: string, entries: AgentEntry[]): string {
-  const available = listAgents(entries);
-  return `Unknown agent "${agent}". Available agents: ${formatList(available)}`;
-}
-
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "(none)";
-  }
-  return values.join(", ");
-}
-
-function normalizeTitle(title: string, id: string): string {
-  const trimmed = title.trim();
-  return trimmed.length > 0 ? trimmed : id;
-}
-
-function withLabel(target: ReadQuery, message: string): string {
-  const label = `[${target.agent}:${target.alias}]`;
-  if (message.includes(label)) {
-    return message;
-  }
-  return `${label} ${message}`;
-}
-
-function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
-}
+// Helpers: imported from ./utils/config and ./utils/agents

@@ -1,0 +1,147 @@
+# =============================================================================
+# ast-grep DRY rules — open-agent-sessions
+#
+# Run:  ast-grep scan --config ast-grep/rules/dry-rules.yml src/
+#
+# These patterns detect duplicated code that should use shared utilities.
+# See also: references/rules.md (R-05 through R-09 for bash equivalents).
+#
+# ⚠️  DRY rules are WARN-only — they guide refactoring, not block commits.
+#     The pre-commit hook issues warnings; use the ast-grep output to find
+#     and fix violations before they accumulate.
+#
+# =============================================================================
+
+rules:
+  # --------------------------------------------------------------------------
+  # R-05 equivalent: readFileSync("utf-8") should use fs-utils helpers
+  # --------------------------------------------------------------------------
+  - id: DRY-R05-readFileSync-utf8
+    message: |
+      readFileSync with "utf-8" encoding found. Use fs-utils.ts helpers instead:
+        - readJsonFile(path)   → JSON.parse(readFileSync(path, "utf-8")) + error handling
+        - readTextFile(path)   → readFileSync(path, "utf-8") + error handling
+      Exception: src/config/load.ts (own YAML parser), bin/oas (CLI bootstrapping)
+    severity: WARN
+    languages:
+      - TypeScript
+    paths:
+      - src/adapters/*.ts
+      - test/**/*.ts
+    ruleShorthand: |
+      readFileSync($PATH, "utf-8")
+    catchAll: false
+
+  # --------------------------------------------------------------------------
+  # R-06 equivalent: readdirSync + filter(".json") should use listJsonFiles
+  # --------------------------------------------------------------------------
+  - id: DRY-R06-readdirSync-json
+    message: |
+      Inline readdirSync with .json filtering found. Use fs-utils.ts:
+        - listJsonFiles(dir)  → readdirSync(dir).filter(f => f.endsWith(".json")) + error handling
+      Exception: adapters/acpx.ts (own AcpxSession JSON schema, not generic JSON)
+    severity: WARN
+    languages:
+      - TypeScript
+    paths:
+      - src/adapters/*.ts
+    ruleShorthand: |
+      readdirSync($DIR, { withFileTypes: true }).filter($$$)
+    catchAll: false
+
+  # --------------------------------------------------------------------------
+  # R-07 equivalent: statSync + isFile guard should use safeStat
+  # --------------------------------------------------------------------------
+  - id: DRY-R07-statSync-isFile
+    message: |
+      Inline statSync with isFile/isDirectory guard found. Use fs-utils.ts:
+        - safeStat(path)  → null on error, no throws needed
+        - assertFile(path) → throws ENOENT if not a file (for validation paths)
+      Exception: opencode.ts lines ~244-252 (retry loop around Database open — retry-specific)
+    severity: WARN
+    languages:
+      - TypeScript
+    paths:
+      - src/adapters/*.ts
+    ruleShorthand: |
+      statSync($PATH)
+    catchAll: false
+
+  # --------------------------------------------------------------------------
+  # R-08 equivalent: inline Date.parse for sorting should use minIso/maxIso
+  # --------------------------------------------------------------------------
+  - id: DRY-R08-date-parse-sort
+    message: |
+      Inline Date.parse() for timestamp comparison found. Use fs-utils.ts:
+        - minIso(a, b)  → returns earlier ISO timestamp string
+        - maxIso(a, b)  → returns later ISO timestamp string
+        - sortByIso(arr, keyFn) → sorts array of ISO timestamps
+    severity: WARN
+    languages:
+      - TypeScript
+    paths:
+      - src/adapters/*.ts
+    ruleShorthand: |
+      Date.parse($A) <= Date.parse($B)
+    catchAll: false
+
+  # --------------------------------------------------------------------------
+  # R-09 equivalent: toLowerCase().includes() should use fs-utils helpers
+  # --------------------------------------------------------------------------
+  - id: DRY-R09-tolowercase-includes
+    message: |
+      Inline toLowerCase().includes() found. Use fs-utils.ts:
+        - containsIgnoreCase(text, needle)  → case-insensitive string match
+        - contentContains(filePath, needle)  → case-insensitive file content match
+      Exception: src/search/planner.ts (query normalization), src/cli/** (output formatting)
+    severity: WARN
+    languages:
+      - TypeScript
+    paths:
+      - src/adapters/*.ts
+    ruleShorthand: |
+      $$$.toLowerCase().includes($$$)
+    catchAll: false
+
+  # --------------------------------------------------------------------------
+  # Adapter-level: any new adapter should NOT import raw node:fs directly
+  # (except the backends/ layer itself)
+  # --------------------------------------------------------------------------
+  - id: DRY-ADAPTER-raw-fs
+    message: |
+      New adapter has raw node:fs imports. Adapters must use the storage backend
+      abstraction:
+        - StorageBackend interface: list(), read(), search()
+        - backends/sqlite.ts   → SQLite databases
+        - backends/jsonl.ts    → JSONL files
+        - backends/json.ts     → JSON files
+        - backends/lmdb.ts     → LMDB databases (Zed, etc.)
+      Exception: backends/*.ts (the backend layer itself)
+    severity: WARN
+    languages:
+      - TypeScript
+    paths:
+      - src/adapters/cursor.ts
+      - src/adapters/zed.ts
+      - src/adapters/aider.ts
+    ruleShorthand: |
+      from "node:fs"
+    catchAll: false
+
+  # --------------------------------------------------------------------------
+  # Adapter-level: SQLite Database instantiation without using backend helper
+  # --------------------------------------------------------------------------
+  - id: DRY-ADAPTER-sqlite-direct
+    message: |
+      New adapter creates SQLite Database directly. Use backends/sqlite.ts:
+        createSqliteBackend() → returns StorageBackend with list(), read(), search()
+      This ensures consistent retry logic, lock handling, and schema mapping.
+    severity: WARN
+    languages:
+      - TypeScript
+    paths:
+      - src/adapters/cursor.ts
+      - src/adapters/zed.ts
+    ruleShorthand: |
+      new Database($$$)
+    catchAll: false

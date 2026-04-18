@@ -23,6 +23,7 @@ import {
 import { initializeSimilarity, type SimilarityConfig } from "../similarity/config";
 import { indexSessionEmbeddings } from "../similarity/storage";
 import { findSimilarSessions, type SimilarSessionResult } from "../similarity/search";
+import { errorMessage } from "../core/utils";
 
 // Expected schema for validation
 const EXPECTED_SCHEMA = {
@@ -45,6 +46,7 @@ type OpenCodeAdapterOptions = {
 type SessionRow = {
   id: string;
   project_id: string;
+  parent_id: string | null;
   directory: string;
   title: string;
   time_created: number;
@@ -347,7 +349,7 @@ function listSessionsFromDb(
   // R-23: Fix N+1 — fetch all sessions WITH message counts in a single query
   const rows = db
     .query<SessionRow & { message_count: number }, [string]>(
-      `SELECT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated,
+      `SELECT s.id, s.project_id, s.parent_id, s.directory, s.title, s.time_created, s.time_updated,
               COUNT(m.id) AS message_count
        FROM session s
        LEFT JOIN message m ON m.session_id = s.id
@@ -366,6 +368,7 @@ function listSessionsFromDb(
     updated_at: formatTimestamp(row.time_updated),
     message_count: row.message_count,
     storage: "db",
+    parentSessionId: row.parent_id ?? undefined,
   }));
 }
 
@@ -423,7 +426,7 @@ function listSessionsByTimeRangeFromDb(
     rows = db.query<SessionRow & { message_count: number }, (string | number)[]>(sql).all(...params);
   } catch (error) {
     throw new Error(
-      `${label} failed to query sessions by time range: ${error instanceof Error ? error.message : String(error)}`
+      `${label} failed to query sessions by time range: ${errorMessage(error)}`
     );
   }
 
@@ -536,11 +539,32 @@ async function getSessionDetailFromDb(
   // Handle message selection options
   const selection = options.selection;
   if (selection) {
-    const { messages, warning } = getMessagesWithSelection(db, sessionId, selection, toolOptions, label, options.role);
+    const { messages, warning } = getMessagesWithSelection(
+      db,
+      sessionId,
+      { ...selection, userOnly: selection.userOnly || options.userOnly },
+      toolOptions,
+      label,
+      options.role
+    );
     return { ...baseSummary, messages, ...(warning && { warning }) };
   }
 
-  // Legacy behavior without selection options
+  // Legacy behavior without selection — check if userOnly is set at top level
+  if (options.userOnly) {
+    // Apply default last=10 + userOnly filter
+    const { messages, warning } = getMessagesWithSelection(
+      db,
+      sessionId,
+      { mode: "last", count: 10, userOnly: true },
+      toolOptions,
+      label,
+      options.role
+    );
+    return { ...baseSummary, messages, ...(warning && { warning }) };
+  }
+
+  // Legacy behavior without selection or userOnly
   const messages = getMessagesFromDb(db, sessionId, toolOptions, label, options.role);
   return { ...baseSummary, messages };
 }
@@ -576,7 +600,7 @@ function findProjectId(db: Database, cwd: string, label: string): string | null 
 
     return null;
   } catch (error) {
-    throw new Error(`${label} failed to query project: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query project: ${errorMessage(error)}`);
   }
 }
 
@@ -589,7 +613,7 @@ function countMessages(db: Database, sessionId: string, label: string): number {
       .get(sessionId);
     return result?.count ?? 0;
   } catch (error) {
-    throw new Error(`${label} failed to count messages: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to count messages: ${errorMessage(error)}`);
   }
 }
 
@@ -621,7 +645,7 @@ function getMessagesFromDb(
   try {
     messages = db.query<MessageRow, [string]>(query).all(sessionId);
   } catch (error) {
-    throw new Error(`${label} failed to query messages: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query messages: ${errorMessage(error)}`);
   }
 
   if (options.lastOnly && messages.length > 0) {
@@ -643,7 +667,7 @@ function getMessagesFromDb(
         model?: { modelID?: string };
       };
     } catch (error) {
-      throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`${label} failed to parse message data for ${row.id}: ${errorMessage(error)}`);
     }
     const parts = getPartsFromDb(db, row.id, options, label);
 
@@ -670,10 +694,12 @@ function getMessagesFromDb(
 
 // Message selection options type
 type MessageSelectionOpts = {
-  mode: "first" | "last" | "all" | "range" | "user-only";
+  mode: "first" | "last" | "all" | "range";
   count?: number;
   start?: number;
   end?: number;
+  /** When true, filters to only user-role messages (additive with primary mode). */
+  userOnly?: boolean;
 };
 
 type ToolFilterOpts = {
@@ -707,7 +733,7 @@ function getMessagesWithSelection(
       )
       .all(sessionId);
   } catch (error) {
-    throw new Error(`${label} failed to query messages: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query messages: ${errorMessage(error)}`);
   }
 
   // Parse roles for filtering
@@ -726,7 +752,7 @@ function getMessagesWithSelection(
         model?: { modelID?: string };
       };
     } catch (error) {
-      throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`${label} failed to parse message data for ${row.id}: ${errorMessage(error)}`);
     }
     // Extract modelID with fallback: nested model.modelID takes precedence
     const modelID = data.model?.modelID || data.modelID;
@@ -792,6 +818,11 @@ function getMessagesWithSelection(
       throw new Error(`${label} unsupported selection mode: ${(selection as { mode: string }).mode}`);
   }
 
+  // Apply userOnly filter (additive with primary mode)
+  if (selection.userOnly) {
+    selectedRows = selectedRows.filter((m) => m.role === "user");
+  }
+
   // Apply role filter if specified
   if (roleFilter) {
     selectedRows = selectedRows.filter((m) => m.role === roleFilter);
@@ -832,7 +863,7 @@ function getPartsFromDb(
       )
       .all(messageId);
   } catch (error) {
-    throw new Error(`${label} failed to query parts: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query parts: ${errorMessage(error)}`);
   }
 
   return parts
@@ -841,7 +872,7 @@ function getPartsFromDb(
       try {
         data = JSON.parse(row.data) as Record<string, unknown>;
       } catch (error) {
-        throw new Error(`${label} failed to parse part data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`${label} failed to parse part data for ${row.id}: ${errorMessage(error)}`);
       }
       const type = (data.type as string) ?? "unknown";
 
@@ -1018,7 +1049,7 @@ function parseJsonlFile(jsonlPath: string, label: string): JsonlSessionRow[] {
   try {
     content = readFileSync(jsonlPath, "utf-8");
   } catch (error) {
-    throw new Error(`${label} failed to read JSONL file: ${jsonlPath} - ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to read JSONL file: ${jsonlPath} - ${errorMessage(error)}`);
   }
 
   // Handle empty file
@@ -1043,7 +1074,7 @@ function parseJsonlFile(jsonlPath: string, label: string): JsonlSessionRow[] {
       sessions.push(parsed);
     } catch (error) {
       throw new Error(
-        `${label} malformed JSONL at line ${lineNum}: ${error instanceof Error ? error.message : String(error)}`
+        `${label} malformed JSONL at line ${lineNum}: ${errorMessage(error)}`
       );
     }
   }
@@ -1081,6 +1112,7 @@ function listSessionsFromJsonl(
     updated_at: formatTimestamp(row.timeUpdated),
     message_count: 0, // JSONL doesn't have message counts in session rows
     storage: "jsonl",
+    parentSessionId: row.clone?.src?.session_id ?? undefined,
   }));
 }
 
@@ -1416,7 +1448,7 @@ async function forkSessionDb(
   } catch (error) {
     throw new Error(
       `${label} failed to create forked session row: ` +
-        `${error instanceof Error ? error.message : String(error)}`
+        `${errorMessage(error)}`
     );
   }
 
@@ -1491,7 +1523,7 @@ async function forkSessionJsonl(
   } catch (error) {
     throw new Error(
       `${label} failed to write forked session to JSONL: ` +
-        `${error instanceof Error ? error.message : String(error)}`
+        `${errorMessage(error)}`
     );
   }
 
@@ -1592,7 +1624,7 @@ export function createOpenCodeCloneDestinationAdapter(
           }
         } else {
           throw new Error(
-            `${label} failed to append to JSONL file: ${jsonlPath} - ${error instanceof Error ? error.message : String(error)}`
+            `${label} failed to append to JSONL file: ${jsonlPath} - ${errorMessage(error)}`
           );
         }
       }

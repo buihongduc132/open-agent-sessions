@@ -1,5 +1,6 @@
 import { AgentKind } from "../config/types";
 import { AdapterRegistry, SessionSummary } from "./types";
+import { errorMessage } from "./utils";
 import QuickLRU from "quick-lru";
 
 const AGENT_ORDER: Record<AgentKind, number> = {
@@ -343,14 +344,4 @@ async function collectSessions(
   }
 
   return { sessions, errors };
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
 }

@@ -12,6 +12,9 @@
 
 import { SessionSummary, SessionDetail, SessionMessage, SessionPart } from "../../core/types";
 import { formatRoleBadge, formatMetadata } from "../utils/colors";
+import { normalizeTitle } from "../utils/agents";
+import { sanitizeTitle } from "../utils/format";
+import { formatMessagesJson } from "./json";
 
 // ============================================================================
 // Types
@@ -41,6 +44,7 @@ export interface TextFormatterOptions {
  */
 export function formatSessionRow(session: SessionSummary): string {
   const label = `[${session.agent}:${session.alias}]`.padEnd(25);
+  const roleTag = session.parentSessionId ? "[sub]" : "[main]";
   const title = session.title.trim().length > 0 ? session.title : session.id;
   const sessionId = truncateId(session.id, 20);
   const messageCount = session.message_count.toString().padStart(4, " ");
@@ -48,12 +52,12 @@ export function formatSessionRow(session: SessionSummary): string {
   
   if (title === session.id) {
     // No title - show session ID prominently
-    return `${label} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
+    return `${label} ${roleTag} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
   }
   
   // Has title - show title with session ID
   const displayTitle = truncateText(title, 40);
-  return `${label} ${displayTitle.padEnd(40)} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
+  return `${label} ${roleTag} ${displayTitle.padEnd(40)} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
 }
 
 /**
@@ -92,9 +96,13 @@ export function formatSessionDetail(
 
   // Header
   const title = normalizeTitle(detail.title, detail.id);
-  lines.push(`Session [${target.agent}:${target.alias}]`);
+  const agentAlias = `[${detail.agent}:${detail.alias}]`;
+  lines.push(`Session ${agentAlias}`);
   lines.push(`id: ${detail.id}`);
   lines.push(`title: ${title}`);
+  if (detail.parentSessionId !== undefined) {
+    lines.push(`parent: ${detail.parentSessionId}`);
+  }
   lines.push(`created_at: ${formatLocalTimestamp(detail.created_at)}`);
   lines.push(`updated_at: ${formatLocalTimestamp(detail.updated_at)}`);
   lines.push(`message_count: ${detail.message_count}`);
@@ -132,8 +140,6 @@ export function formatSessionDetailJson(
   detail: SessionDetail,
   options?: TextFormatterOptions
 ): string {
-  // Import dynamically to avoid circular dependency
-  const { formatMessagesJson } = require("./json");
   return formatMessagesJson(detail, { includeTools: options?.showTools });
 }
 
@@ -297,16 +303,30 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 // ============================================================================
-// Helper Functions
+// Simple Session Row Formatting (shared across CLI commands)
 // ============================================================================
 
 /**
- * Normalize title - return ID if title is empty
+ * Format a session as a single-line summary: `[agent:alias] title (id)`
+ *
+ * When title is empty/missing, shows only the ID: `[agent:alias] id`
+ *
+ * Used by search.ts, children.ts, and tree.ts (whereas the table-formatted
+ * `formatSessionRow` above is used by list.ts and sessions.ts).
  */
-function normalizeTitle(title: string, id: string): string {
-  const trimmed = title.trim();
-  return trimmed.length > 0 ? trimmed : id;
+export function formatSessionRowSimple(session: { agent: string; alias: string; id: string; title: string }): string {
+  const label = `[${session.agent}:${session.alias}]`;
+  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
+  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
+  if (title === session.id) {
+    return `${label} ${session.id}`;
+  }
+  return `${label} ${title} (${session.id})`;
 }
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
 /**
  * Format errors for display

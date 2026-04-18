@@ -316,19 +316,26 @@ export interface ForkChainNode {
 /**
  * Build the fork chain from a session up to the root.
  * Returns array from newest (starting session) to oldest (root).
+ *
+ * Safety: Stops after `maxDepth` iterations even if no cycle is detected,
+ * preventing runaway traversal in degenerate data.
  */
 export function buildForkChain(
   session: { id: string; parentSessionId?: string; agent: string; alias: string; title?: string; forkedAt?: string },
-  resolveParent: (sessionId: string) => typeof session | null
+  resolveParent: (sessionId: string) => typeof session | null,
+  maxDepth: number = 100
 ): ForkChainNode[] {
   const chain: ForkChainNode[] = [];
   let current: typeof session | null = session;
   let depth = 0;
 
-  while (current) {
+  const visited = new Set<string>();
+  while (current && depth < maxDepth) {
+    if (visited.has(current.id)) break;
+    visited.add(current.id);
     chain.unshift({
       sessionId: current.id,
-      title: current.title ?? current.id,
+      title: current.title?.trim() || current.id,
       agent: current.agent,
       alias: current.alias,
       forkedAt: current.forkedAt,

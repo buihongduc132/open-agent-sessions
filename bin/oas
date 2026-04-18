@@ -600,6 +600,10 @@ async function handleListNewCommand(parsed: ParsedArgs): Promise<void> {
     agent: parsed.options["agent"] as string | undefined,
     alias: parsed.options["alias"] as string | undefined,
     q: parsed.options["q"] as string | undefined,
+    rootsOnly: parsed.options["roots-only"] === true,
+    subOnly: parsed.options["sub-only"] === true,
+    childrenOf: parsed.options["children-of"] as string | undefined,
+    includeSubagents: parsed.options["include-subagents"] === true,
     config,
     list,
   });
@@ -746,6 +750,10 @@ console.log("    export [options]       Export session in CSF/Markdown/Text form
   console.log("    --agent NAME           Filter by agent (OpenCode-only in CLI)");
   console.log("    --alias NAME           Filter by agent alias");
   console.log("    --q QUERY              Filter by session ID or title");
+  console.log("    --roots-only            Show only root/main sessions (no parent)");
+  console.log("    --sub-only              Show only sub-agent sessions (has parent)");
+  console.log("    --children-of ID        Show only direct children of specified session");
+  console.log("    --include-subagents     Include sub-agent sessions in output");
   console.log("");
   console.log("Detail Command Options:");
   console.log("    <session-id>           Positional session spec (agent:alias:session_id)");

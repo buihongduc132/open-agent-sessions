@@ -219,3 +219,168 @@ Each translator is isolated, tested independently, parser never changes.
 - **Fuse**: existing `applyRrfFusion` (already there)
 - **Result**: unified ranked list across all 3 backends
 
+---
+
+## GAP 7 — `parentSessionId` never populated in `SessionSummary` by any adapter
+
+### Root Cause
+
+`SessionSummary` has an optional `parentSessionId?: string` field (`src/core/types.ts:16`) which is the backbone of all sub-agent filtering (`--roots-only`, `--sub-only`, `--children-of`, GAP 6's default root-only filter). However, **zero adapters populate this field** when building `SessionSummary` objects from their respective backends:
+
+| Adapter | Storage | Sets `parentSessionId` on `SessionSummary`? |
+|---|---|---|
+| `opencode.ts` — DB path | `opencode.db` (SQLite) | ❌ No — `listSessionsFromDb` never reads parent info |
+| `opencode.ts` — JSONL path | `opencode.jsonl` | ❌ No — `listSessionsFromJsonl` never reads `session.clone.src.session_id` |
+| `codex.ts` | `~/.codex/sessions/*.jsonl` | ❌ No |
+| `claude.ts` | `~/.claude/transcripts/*.jsonl` | ❌ No |
+
+The only place `parentSessionId` exists is in `ForkResult` (return value of `forkSession()`), which is ephemeral — not persisted.
+
+### Why This Matters
+
+Without `parentSessionId` on `SessionSummary`:
+- `--roots-only` / `--sub-only` / `--children-of` always return empty or wrong results
+- GAP 6's default root-only filter produces meaningless `+0` / `-` badges on every row
+- The tree view (`src/tui/tree-model.ts`) shows all sessions as isolated roots — no hierarchy
+- Fork chains cannot be traced without loading full `SessionDetail` for every session
+
+### Requirement
+
+**Each adapter MUST populate `parentSessionId` on `SessionSummary` during list operations.**
+
+Sources of truth per adapter:
+
+#### OpenCode DB (`opencode.db`)
+The `opencode.db` SQLite schema does **NOT** store parent session IDs. There is no `parent_session_id` column in the `session` table. Two paths forward:
+
+1. **Preferred**: Store `parent_session_id TEXT` in the `session` table (requires migration). When a session is forked, write the parent's ID into this column. Then read it during `listSessionsFromDb`.
+2. **Fallback**: Cross-reference the `clone` field in `opencode.jsonl` entries to build a parent map, then join it in the DB path. This requires reading JSONL on every DB list call — expensive but requires no schema change.
+
+#### OpenCode JSONL (`opencode.jsonl`)
+Each session JSONL entry has:
+```json
+{ "id": "ses_001", "clone": { "src": { "session_id": "ses_parent" } } }
+```
+The `clone.src.session_id` is the parent. The adapter must read this field for every session and propagate it to `SessionSummary.parentSessionId`.
+
+#### Codex (`~/.codex/sessions/*.jsonl`)
+Codex JSONL does not store parent session IDs natively. Parent info must be inferred from the **session directory structure** or session filename patterns — if a session is a sub-agent, its path may embed the parent's ID (e.g. `~/.codex/sessions/parent-id/sub-id/`), or it may need to be stored in a separate metadata file. **This GAP requires investigating the actual Codex storage format** to determine if and how parent information is stored.
+
+#### Claude (`~/.claude/transcripts/*.jsonl`)
+Same as Codex — investigate whether Claude stores parent session information in its JSONL files or session directories. If not, this is a known limitation until Claude's storage format supports it.
+
+### Open Questions
+
+- [ ] Does Codex store parent session IDs anywhere? What is the exact JSONL schema?
+- [ ] Does Claude store parent session IDs anywhere? What is the exact directory/file schema?
+- [ ] Should `opencode.db` be migrated to add a `parent_session_id` column?
+- [ ] Is the JSONL `clone.src.session_id` field populated at fork time for OpenCode?
+
+### Implementation Notes
+
+1. **OpenCode JSONL** — simplest fix: in `listSessionsFromJsonl`, read `session.clone?.src?.session_id` and set `parentSessionId`.
+2. **OpenCode DB** — add `parent_session_id TEXT` column to `session` table via migration. Update `forkSession` implementations to write the parent's ID into this column.
+3. **Codex / Claude** — first investigate storage format, then determine feasibility.
+4. ** GAP 6 interaction**: GAP 6's default filter and child-count badges are meaningless until this GAP is fixed.
+
+---
+
+## GAP 8 — `SessionDetail` also missing `parentSessionId` in adapters
+
+### Root Cause
+
+`SessionDetail` (which extends `SessionSummary`) also has `parentSessionId?: string` (`src/core/types.ts:37`), but it is also never set by `getSessionDetail` implementations:
+
+```typescript
+// opencode.ts:1438 — getSessionDb clones full summary but drops parentSessionId
+return {
+  newSessionId,
+  parentSessionId: sourceSessionId,  // ForkResult sets it
+  ...
+};
+// BUT getSessionDetail in opencode.ts NEVER sets parentSessionId on the returned SessionDetail
+```
+
+Even when a session has `clone.src.session_id` in JSONL, `getSessionDetail` doesn't propagate it to `SessionDetail.parentSessionId`.
+
+### Requirement
+
+Both `listSessions` (returns `SessionSummary[]`) and `getSessionDetail` (returns `SessionDetail`) adapters must set `parentSessionId` when the information is available from the storage backend.
+
+### Test Strategy (RED)
+
+GAP 7 tests mock `ListService` to return `SessionSummary[]` with `parentSessionId` pre-populated, then verify `runListCommand` filters correctly. GAP 8 tests go one layer deeper: verify that **each adapter** sets `parentSessionId` when listing sessions with parent information available.
+
+> **Note**: GAP 8 tests should live in `test/adapters/` and mock the filesystem/SQLite directly. GAP 7 tests (in `cli-gaps-edge-cases-4.test.ts`) test the CLI layer only.
+
+---
+
+## DRY Hook Infrastructure (committed 2026-04-18)
+
+### Problem
+
+Multiple code duplication patterns were accumulating across adapter files (codex.ts, claude.ts, opencode.ts) with no automated detection. Previous refactoring removed ~46 lines of duplication but had no gate to prevent recurrence.
+
+### Solution
+
+Pre-commit hook (`.githooks/pre-commit`) with 13 rules:
+
+```
+.githooks/pre-commit        — bash hook, git config core.hooksPath=.githooks
+references/rules.md         — human-readable rule registry
+ast-grep/rules/dry-rules.yml — structural ast-grep patterns
+scripts/pre-commit-ast-dry.sh — ast-grep scanner for staged files
+```
+
+**Rule summary:**
+
+| Rule | Severity | What it catches |
+|---|---|---|
+| R-01 | fail | hook not executable |
+| R-02 | fail | staged .env files |
+| R-03 | warn | staged binary files |
+| R-04 | warn | ast-grep DRY violations |
+| R-05 | warn | `readFileSync("utf-8")` in adapters → use fs-utils |
+| R-06 | warn | `readdirSync` + `.json` filter → use listJsonFiles |
+| R-07 | warn | `statSync` + isFile guard → use safeStat |
+| R-08 | warn | inline `Date.parse` for sorting → use minIso/maxIso |
+| R-09 | warn | inline `toLowerCase().includes()` → use containsIgnoreCase |
+| R-10 | warn | inline `split(/\r?\n/)` for JSONL → use jsonl-utils |
+| R-11 | warn | inline content extraction → use content-utils |
+| R-12 | warn | duplicate expandTilde in config/load.ts → import from fs-utils |
+| R-13 | warn | duplicate label construction → use createLabel helper |
+
+**All rules are warn-only** (except R-01/R-02) — they guide refactoring, never block commits.
+
+### Duplication inventory (17 known patterns)
+
+| Pattern | Locations | Suggested utility |
+|---|---|---|
+| `readFileSync("utf-8")` | 10 files | `fs-utils.ts: readTextFile/readJsonFile` |
+| `readdirSync + .json filter` | 3× acpx.ts | `fs-utils.ts: listJsonFiles` |
+| `statSync + isFile` guard | 4 adapters | `fs-utils.ts: safeStat` |
+| `Date.parse(a) - Date.parse(b)` | acpx.ts, opencode.ts | `fs-utils.ts: sortByIso` |
+| `toLowerCase().includes()` | 17 files | `fs-utils.ts: containsIgnoreCase` |
+| `split(/\r?\n/)` | 10+ lines | `jsonl-utils.ts: splitJsonlLines` |
+| `extractContentText/Parts` | codex.ts, claude.ts | `content-utils.ts` |
+| `expandTilde` duplicate | config/load.ts | import from fs-utils.ts |
+| `${entry.agent}:${entry.alias}` label | 4 adapters | `label.ts: createLabel` |
+| `normalizeTimestamp` | 3 adapters | already in normalize.ts ✅ |
+| `errorMessage()` | 4 adapters | already in core/utils.ts ✅ |
+| `minIso/maxIso` | 2 adapters | already in fs-utils.ts ✅ |
+
+### Adding new rules
+
+1. Add `### R-XX` block to `references/rules.md` (follow format exactly)
+2. Rule auto-parsed by hook — no other changes needed
+3. Add ast-grep pattern to `ast-grep/rules/dry-rules.yml` for structural detection
+4. Run `bash scripts/pre-commit-ast-dry.sh` to verify pattern catches intended violations
+
+### New adapter checklist
+
+When adding cursor.ts, zed.ts, or aider.ts (REQ-29/30/31):
+- [ ] Adapter uses `createSqliteBackend()` or `createJsonlBackend()`, not raw `Database`/`readFileSync`
+- [ ] Path resolution uses `fs-utils.ts` helpers, not inline `expandTilde`/`homedir()`
+- [ ] Label construction uses shared helper, not `${agent}:${alias}` literals
+- [ ] All 13 pre-commit rules pass before commit
+
