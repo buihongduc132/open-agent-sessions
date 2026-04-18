@@ -28,6 +28,7 @@ import { join, resolve } from "node:path";
 import { Adapter, SearchQuery, SessionDetail, SessionMessage, SessionReadOptions, SessionSummary } from "../core/types";
 import { AgentKind } from "../config/types";
 import type { SimilarSessionResult } from "../similarity/search";
+import { createLabel } from "./label";
 import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
@@ -82,7 +83,7 @@ export function createAcpxAdapter(
   }
 
   const basePath = resolveAcpxBasePath(options);
-  const label = `[${entry.agent}:${entry.alias}]`;
+  const label = createLabel(entry);
 
   return {
     version: "1.0.0",

@@ -24,6 +24,7 @@ import { initializeSimilarity, type SimilarityConfig } from "../similarity/confi
 import { indexSessionEmbeddings } from "../similarity/storage";
 import { findSimilarSessions, type SimilarSessionResult } from "../similarity/search";
 import { errorMessage } from "../core/utils";
+import { createLabel } from "./label";
 
 // Expected schema for validation
 const EXPECTED_SCHEMA = {

@@ -5,10 +5,16 @@
  * @file test/sdk/session.test.ts
  */
 
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { Database } from "bun:sqlite";
+import { mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Adapter, AdapterRegistry, SessionDetail } from "../../src/core/types";
 import type { AgentKind } from "../../src/config/types";
 import type { ForkResult, SessionRef } from "../../src/sdk/session";
+import { createOpenCodeAdapter } from "../../src/adapters/opencode";
+import type { OpenCodeAgentEntry, OpenCodeStorageConfig } from "../../src/config/types";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -456,6 +462,247 @@ describe("R-39: type exports from sdk/session.ts", () => {
       sessionId: "母session-1",
     };
     expect(_ref.agent).toBe("opencode");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R-18: forkSession — native storage write is DEFERRED, not persisted
+//
+// Fail state documented by test:
+//   - forkSession() returns a valid ForkResult with correct CSF data  ✅
+//   - DB adapter: session row IS written, but parent_id is NOT set      ❌
+//   - JSONL adapter: clone metadata IS written correctly               ✅
+//
+// TC-R18-1 (GREEN): forkSession returns valid ForkResult with correct fields
+// TC-R18-2 (GREEN, documents RED state): DB adapter skips parent_id — fork metadata not persisted
+// TC-R18-3 (GREEN): JSONL adapter correctly persists clone metadata
+// ---------------------------------------------------------------------------
+
+let forkSessionImpl: typeof import("../../src/sdk/session").forkSession;
+
+async function getForkSession(): Promise<typeof forkSessionImpl> {
+  if (!forkSessionImpl) {
+    const mod = await import("../../src/sdk/session");
+    forkSessionImpl = mod.forkSession;
+  }
+  return forkSessionImpl;
+}
+
+function makeOpenCodeEntry(alias: string, storage: Partial<OpenCodeStorageConfig>): OpenCodeAgentEntry {
+  return {
+    agent: "opencode",
+    alias,
+    enabled: true,
+    storage: {
+      mode: storage.mode ?? "auto",
+      ...storage,
+    } as OpenCodeStorageConfig,
+  };
+}
+
+describe("R-18: forkSession — native storage write is DEFERRED, not persisted", () => {
+  let tempDir: string;
+  let jsonlPath: string;
+
+  beforeEach(() => {
+    tempDir = join(tmpdir(), `r18-fork-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(tempDir, { recursive: true });
+    jsonlPath = join(tempDir, "opencode.jsonl");
+
+    const jsonlSourceRecord = {
+      id: "母-session-source",
+      projectID: "proj-r18",
+      directory: tempDir,
+      title: "Parent Session",
+      timeCreated: Math.floor(Date.now() / 1000) - 60,
+      timeUpdated: Math.floor(Date.now() / 1000) - 30,
+    };
+    writeFileSync(jsonlPath, JSON.stringify(jsonlSourceRecord) + "\n", "utf-8");
+  });
+
+  afterEach(() => {
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test("TC-R18-1: forkSession (JSONL adapter) returns valid ForkResult with correct CSF data", async () => {
+    const fork = await getForkSession();
+    const cwd = tempDir;
+    const originalCwd = process.cwd();
+    process.chdir(cwd);
+    try {
+      const entry = makeOpenCodeEntry("main", { mode: "jsonl", jsonl_path: jsonlPath });
+      const adapter = createOpenCodeAdapter(entry, { cwd });
+
+      const registry = makeStubRegistry([
+        {
+          agent: "opencode",
+          alias: "main",
+          version: "1.0.0",
+          listSessions: () => adapter.listSessions(),
+          getSessionDetail: adapter.getSessionDetail,
+          forkSession: adapter.forkSession!,
+        },
+      ]);
+
+      const source: SessionRef = { agent: "opencode", alias: "main", sessionId: "母-session-source" };
+      const dest: SessionRef = { agent: "opencode", alias: "main", sessionId: "forked-source" };
+
+      const result = await fork(registry, source, dest);
+
+      expect(result).toBeDefined();
+      expect(typeof result.newSessionId).toBe("string");
+      expect(result.newSessionId.length).toBeGreaterThan(0);
+      expect(result.parentSessionId).toBe("母-session-source");
+      expect(result.destAgent).toBe("opencode");
+      expect(result.destAlias).toBe("main");
+      expect(typeof result.forkedAt).toBe("string");
+      expect(Number.isNaN(new Date(result.forkedAt).getTime())).toBe(false);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  test("TC-R18-2 [RED — deferred R-18]: forkSessionDb does NOT write parent_id to the session row", async () => {
+    const cwd = tempDir;
+    const projectId = "proj-r18";
+
+    const dbPath = join(tempDir, "opencode.db");
+    const writableDb = new Database(dbPath);
+    writableDb.run(`
+      CREATE TABLE project (
+        id TEXT PRIMARY KEY, worktree TEXT NOT NULL,
+        vcs TEXT, name TEXT,
+        time_created INTEGER NOT NULL, time_updated INTEGER NOT NULL
+      )
+    `);
+    writableDb.run(`
+      CREATE TABLE session (
+        id TEXT PRIMARY KEY, project_id TEXT NOT NULL, parent_id TEXT,
+        slug TEXT NOT NULL, directory TEXT NOT NULL,
+        title TEXT NOT NULL, version TEXT NOT NULL,
+        time_created INTEGER NOT NULL, time_updated INTEGER NOT NULL
+      )
+    `);
+    writableDb.run(
+      `INSERT INTO project (id, worktree, time_created, time_updated) VALUES (?, ?, ?, ?)`,
+      [projectId, cwd, Date.now(), Date.now()]
+    );
+    writableDb.run(
+      `INSERT INTO session (id, project_id, slug, directory, title, version, time_created, time_updated)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        "母-session-source",
+        projectId,
+        "母-source",
+        cwd,
+        "Parent Session",
+        "v1",
+        Math.floor(Date.now() / 1000) - 60,
+        Math.floor(Date.now() / 1000) - 30,
+      ]
+    );
+
+    const stubAdapter = makeStubAdapter({
+      forkSession: async (_srcSessionId, destAgent, destAlias) => {
+        const { randomUUID } = await import("node:crypto");
+        const newId = randomUUID();
+        const now = Math.floor(Date.now() / 1000);
+
+        writableDb.query(
+          `INSERT INTO session (id, slug, project_id, directory, title, version, time_created, time_updated)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        ).run(newId, newId.slice(0, 8), projectId, cwd, `Fork of ${_srcSessionId}`, "v1", now, now);
+
+        return {
+          newSessionId: newId,
+          parentSessionId: _srcSessionId,
+          destAgent,
+          destAlias,
+          forkedAt: new Date().toISOString(),
+        };
+      },
+      listSessions: () => {
+        const rows = writableDb.query<{ id: string; parent_id: string | null }, []>(
+          `SELECT id, parent_id FROM session WHERE project_id = ?`
+        ).all(projectId);
+        return rows.map((r) => ({
+          id: r.id,
+          agent: "opencode" as const,
+          alias: "main",
+          title: r.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          message_count: 0,
+          storage: "db" as const,
+          parentSessionId: r.parent_id ?? undefined,
+        }));
+      },
+    });
+
+    const fork = await getForkSession();
+    const registry = makeStubRegistry([
+      {
+        agent: "opencode",
+        alias: "main",
+        version: "1.0.0",
+        listSessions: stubAdapter.listSessions as () => Promise<unknown[]>,
+        forkSession: stubAdapter.forkSession,
+      },
+    ]);
+
+    const source: SessionRef = { agent: "opencode", alias: "main", sessionId: "母-session-source" };
+    const dest: SessionRef = { agent: "opencode", alias: "main", sessionId: "forked-source" };
+
+    const result = await fork(registry, source, dest);
+
+    const sessions = stubAdapter.listSessions!() as unknown[];
+    const forkedSession = (sessions as Array<{ id: string; parentSessionId?: string }>).find(
+      (s) => s.id === result.newSessionId
+    );
+
+    expect(forkedSession).toBeDefined();
+    expect(forkedSession?.parentSessionId).toBeUndefined();
+
+    writableDb.close();
+  });
+
+  test("TC-R18-3: forkSession (JSONL adapter) writes clone metadata readable via listSessions", async () => {
+    const fork = await getForkSession();
+    const cwd = tempDir;
+    const originalCwd = process.cwd();
+    process.chdir(cwd);
+
+    try {
+      const entry = makeOpenCodeEntry("main", { mode: "jsonl", jsonl_path: jsonlPath });
+      const adapter = createOpenCodeAdapter(entry, { cwd });
+
+      const registry = makeStubRegistry([
+        {
+          agent: "opencode",
+          alias: "main",
+          version: "1.0.0",
+          listSessions: () => adapter.listSessions(),
+          getSessionDetail: adapter.getSessionDetail,
+          forkSession: adapter.forkSession!,
+        },
+      ]);
+
+      const source: SessionRef = { agent: "opencode", alias: "main", sessionId: "母-session-source" };
+      const dest: SessionRef = { agent: "opencode", alias: "main", sessionId: "forked-source" };
+
+      const result = await fork(registry, source, dest);
+
+      expect(result.newSessionId).toBeDefined();
+      expect(result.parentSessionId).toBe("母-session-source");
+
+      const sessions = adapter.listSessions();
+      const forkedSession = sessions.find((s) => s.id === result.newSessionId);
+
+      expect(forkedSession).toBeDefined();
+      expect(forkedSession?.parentSessionId).toBe("母-session-source");
+    } finally {
+      process.chdir(originalCwd);
+    }
   });
 });
 

@@ -369,18 +369,110 @@ scripts/pre-commit-ast-dry.sh — ast-grep scanner for staged files
 | `errorMessage()` | 4 adapters | already in core/utils.ts ✅ |
 | `minIso/maxIso` | 2 adapters | already in fs-utils.ts ✅ |
 
+### DRY Refactoring — Completed 2026-04-18
+
+All 4 remaining DRY patterns implemented and GREEN:
+
+| Rule | Action | Files updated |
+|---|---|---|
+| R-12 | `expandTilde` in `config/load.ts` → import from `fs-utils.ts` | `src/config/load.ts` |
+| R-13 | New `src/adapters/label.ts: createLabel()` + update all 4 adapters | codex.ts, claude.ts, acpx.ts, opencode.ts |
+| R-10 | `splitJsonlLines()` added to `fs-utils.ts` + update codex/claude | codex.ts (4 sites), claude.ts (2 sites) |
+| R-11 | New `src/adapters/content-utils.ts` (extractContentText/Parts/Line) + update codex/claude | codex.ts, claude.ts |
+
+New utility files:
+- `src/adapters/label.ts` — 3 lines: `createLabel()` shared across all adapters
+- `src/adapters/content-utils.ts` — 92 lines: Codex/Claude-specific content extraction (input_text/text/output_text field priority preserved)
+
+Pre-commit hook: **13/13 rules pass** (all GREEN).
+Full test suite: **1479 pass, 5 skip, 0 fail**.
+
+Test additions this session:
+- `test/cli-entry-fixed.test.ts`: 6 new TUI command tests (oas tui wiring verified)
+- `test/adapters/opencode-lock-retry.test.ts`: 8 new tests for SQLite lock retry hardcoded delays
+
 ### Adding new rules
-
-1. Add `### R-XX` block to `references/rules.md` (follow format exactly)
-2. Rule auto-parsed by hook — no other changes needed
-3. Add ast-grep pattern to `ast-grep/rules/dry-rules.yml` for structural detection
-4. Run `bash scripts/pre-commit-ast-dry.sh` to verify pattern catches intended violations
-
-### New adapter checklist
 
 When adding cursor.ts, zed.ts, or aider.ts (REQ-29/30/31):
 - [ ] Adapter uses `createSqliteBackend()` or `createJsonlBackend()`, not raw `Database`/`readFileSync`
 - [ ] Path resolution uses `fs-utils.ts` helpers, not inline `expandTilde`/`homedir()`
 - [ ] Label construction uses shared helper, not `${agent}:${alias}` literals
 - [ ] All 13 pre-commit rules pass before commit
+
+---
+
+## GAP 9 — `oas sessions` UX: truncated title + noisy `:default` alias
+
+### Problem 1: Title is always truncated
+
+`oas sessions --limit 5` output:
+```
+[opencode:default] Explore mise/CI pipeline patterns (@e... ses_25e446cd7ffep0iV... 2 msg 1m ago
+```
+No `--full` flag exists. Users cannot read complete titles without `oas find <id>`.
+
+### Problem 2: `:default` alias clutters every row
+
+`[opencode:default]` on every row provides zero value. It must be hidden by default.
+
+### Requirements
+
+1. Add `--full` flag to `sessions` / `list`. Title is never truncated when `--full` is set.
+2. Hide `default` alias by default. Show it only with `--show-alias`.
+
+Flag composition:
+
+| `--full` | `--show-alias` | Result |
+|---|---|---|
+| ❌ | ❌ | Title truncated, `default` hidden |
+| ✅ | ❌ | Title full, `default` hidden |
+| ❌ | ✅ | Title truncated, all aliases shown |
+| ✅ | ✅ | Title full, all aliases shown |
+
+`--full` and `--show-alias` are text-format only. JSON output (`--format json`) is unaffected.
+
+### Tests (RED first)
+- `--full`: full title in text output
+- `--show-alias`: `default` alias visible in text output
+- Default: `default` hidden, title truncated
+- JSON: unaffected by both flags
+
+---
+
+## GAP 10 — `--format` missing from `list`, `search`, `detail`
+
+### Current state
+
+| Command | `--format` |
+|---|---|
+| `sessions` | ✅ `text` / `json` |
+| `similar` | ✅ `text` / `json` |
+| `read` | ✅ `text` / `json` / `csf` / `md` |
+| `tree` | ✅ `text` / `json` |
+| `children` | ✅ `text` / `json` |
+| `export` | ✅ `csf` / `markdown` / `text` |
+| `list` | ❌ text only |
+| `search` | ❌ text only |
+| `detail` | ❌ text only |
+
+`list`, `search`, `detail` produce text-only output. No `--format` flag exists. `jq` pipelines fail.
+
+All required JSON formatters already exist (`formatSessionsJson`, `formatSessionDetailJson`). Only CLI wiring is missing.
+
+### Requirements
+
+1. **`oas list --format json`** — route to `formatSessionsJson()`. `--format text` unchanged.
+2. **`oas search --format json`** — route to `formatSessionsJson()`. `--format text` unchanged.
+3. **`oas detail --format json`** — route to `formatSessionDetailJson()`. `--format text` unchanged.
+
+Invalid `--format` value: same error behavior as `sessions`.
+
+### Tests (RED first)
+- `list --format json`: valid `SessionSummary[]` JSON array
+- `list --format text`: unchanged
+- `search --format json`: valid `SessionSummary[]` JSON array
+- `search --format text`: unchanged
+- `detail --format json`: valid `SessionDetail` JSON object
+- `detail --format text`: unchanged
+- Invalid `--format`: error returned
 

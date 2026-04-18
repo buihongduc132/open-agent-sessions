@@ -72,13 +72,14 @@ export function walkDir(dir: string, files: string[]): void {
   }
 }
 
+export function splitJsonlLines(content: string): string[] {
+  return content.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+}
+
 // ============================================================================
 // File Content Search
 // ============================================================================
 
-/**
- * Search file content for a case-insensitive text match.
- */
 export function contentContains(filePath: string, needle: string): boolean {
   try {
     return readFileSync(filePath, "utf8").toLowerCase().includes(needle);
