@@ -18,7 +18,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { type Config } from "../src/config/types";
-import { type SessionDetail } from "../src/core/types";
+import { type SessionDetail, type SessionSummary } from "../src/core/types";
 import { type ForkChainNode } from "../src/core/subagents";
 // Static type-only import -- erased at runtime, no runtime cost.
 // Allows TypeScript to resolve the ListService type for annotations.
@@ -93,13 +93,8 @@ const GRANDCHILD_FORK_CHAIN: ForkChainNode[] = [
   },
 ];
 
-// Infer the session item type from ListService return so fixture types stay
-// in sync with whatever the service returns (includes parentSessionId once added).
-type SessionItem = ListService extends (q: unknown) => Promise<infer R>
-  ? R extends { sessions: (infer S)[] } ? S : never
-  : never;
-
-const ROOT_DIRECT_CHILDREN: SessionItem[] = [
+// Use SessionSummary directly which already includes parentSessionId
+const ROOT_DIRECT_CHILDREN: SessionSummary[] = [
   {
     id: "child-001",
     agent: "codex" as const,
@@ -124,7 +119,7 @@ const ROOT_DIRECT_CHILDREN: SessionItem[] = [
   },
 ];
 
-const MIXED_SESSIONS: SessionItem[] = [
+const MIXED_SESSIONS: SessionSummary[] = [
   {
     id: "root-sess-001",
     agent: "opencode" as const,
@@ -186,7 +181,7 @@ const MIXED_SESSIONS: SessionItem[] = [
 //     }): Promise<CliResult>
 //
 //   src/cli/children.ts
-//     export type ChildrenService = (parentSessionId: string) => Promise<SessionItem[]>;
+//     export type ChildrenService = (parentSessionId: string) => Promise<SessionSummary[]>;
 //     export async function runChildrenCommand(opts: {
 //       parentSessionId: string;
 //       config?: Config;
@@ -326,7 +321,7 @@ describe("oas children command", () => {
 
   test("test_children_command_lists_direct_children", async () => {
     const { runChildrenCommand } = await import("../src/cli/children");
-    const getChildren = async (): Promise<SessionItem[]> => ROOT_DIRECT_CHILDREN;
+    const getChildren = async (): Promise<SessionSummary[]> => ROOT_DIRECT_CHILDREN;
 
     const result = await runChildrenCommand({
       parentSessionId: "root-sess-001",
@@ -345,7 +340,7 @@ describe("oas children command", () => {
 
   test("test_children_command_empty_when_no_children", async () => {
     const { runChildrenCommand } = await import("../src/cli/children");
-    const getChildren = async (): Promise<SessionItem[]> => [];
+    const getChildren = async (): Promise<SessionSummary[]> => [];
 
     const result = await runChildrenCommand({
       parentSessionId: "leaf-session-no-kids",
@@ -359,7 +354,7 @@ describe("oas children command", () => {
 
   test("test_children_command_shows_agent_alias_and_title_for_each_child", async () => {
     const { runChildrenCommand } = await import("../src/cli/children");
-    const getChildren = async (): Promise<SessionItem[]> => ROOT_DIRECT_CHILDREN;
+    const getChildren = async (): Promise<SessionSummary[]> => ROOT_DIRECT_CHILDREN;
 
     const result = await runChildrenCommand({
       parentSessionId: "root-sess-001",
@@ -376,7 +371,7 @@ describe("oas children command", () => {
 
   test("test_children_command_returns_error_when_parent_not_found", async () => {
     const { runChildrenCommand } = await import("../src/cli/children");
-    const getChildren = async (): Promise<SessionItem[]> => {
+    const getChildren = async (): Promise<SessionSummary[]> => {
       throw new Error("Session not found");
     };
 
@@ -427,7 +422,7 @@ describe("oas list --roots-only", () => {
     const { runListCommand } = await import("../src/cli/list");
     // FIX: mixed roots AND children — this ensures rootsOnly actually filters.
     // Previous test had only roots (no children) so unfiltered==filtered (false pass).
-    const mixed: SessionItem[] = [
+    const mixed: SessionSummary[] = [
       {
         id: "root-a", agent: "opencode" as const, alias: "main" as const,
         title: "Session A (root)",
@@ -460,7 +455,7 @@ describe("oas list --roots-only", () => {
 
   test("test_list_roots_only_empty_when_all_are_subagents", async () => {
     const { runListCommand } = await import("../src/cli/list");
-    const allSubagents: SessionItem[] = [
+    const allSubagents: SessionSummary[] = [
       {
         id: "child-x", agent: "codex" as const, alias: "work" as const,
         title: "Child X",
@@ -531,7 +526,7 @@ describe("oas list --children-of", () => {
 
   test("test_list_children_of_returns_only_direct_children_not_grandchildren", async () => {
     const { runListCommand } = await import("../src/cli/list");
-    const allSessions: SessionItem[] = [
+    const allSessions: SessionSummary[] = [
       { id: "root-001", agent: "opencode" as const, alias: "main" as const,
         title: "Root",
         created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z",
@@ -642,7 +637,7 @@ describe("oas read shows parent info when present", () => {
 
 // ============================================================================
 // Tests -- SessionSummary needs parentSessionId field
-// The SessionItem type alias above is the source of truth for what the
+// The SessionSummary type alias above is the source of truth for what the
 // ListService returns. If parentSessionId is not on SessionSummary,
 // TypeScript will error (TS(2322)) on the fixture assignments, which is
 // the correct RED signal -- the field must be added first.
@@ -651,7 +646,7 @@ describe("SessionSummary type needs parentSessionId for fork awareness", () => {
 
   test("test_session_summary_type_has_optional_parent_session_id", () => {
     // Runtime sanity check that the inferred type includes parentSessionId
-    const item: SessionItem = {
+    const item: SessionSummary = {
       id: "test-001",
       agent: "opencode" as const,
       alias: "main" as const,
@@ -666,7 +661,7 @@ describe("SessionSummary type needs parentSessionId for fork awareness", () => {
   });
 
   test("test_session_summary_parent_session_id_is_optional", () => {
-    const item: SessionItem = {
+    const item: SessionSummary = {
       id: "root-001",
       agent: "opencode" as const,
       alias: "main" as const,
@@ -911,7 +906,7 @@ describe("oas children — edge cases (Zone 2)", () => {
 
   test("test_children_command_shows_parent_agent_and_alias", async () => {
     const { runChildrenCommand } = await import("../src/cli/children");
-    const children: SessionItem[] = [
+    const children: SessionSummary[] = [
       {
         id: "child-001",
         agent: "codex" as const,
@@ -924,7 +919,7 @@ describe("oas children — edge cases (Zone 2)", () => {
         parentSessionId: "root-sess-001",
       },
     ];
-    const getChildren = async (): Promise<SessionItem[]> => children;
+    const getChildren = async (): Promise<SessionSummary[]> => children;
 
     const result = await runChildrenCommand({
       parentSessionId: "root-sess-001",
@@ -939,7 +934,7 @@ describe("oas children — edge cases (Zone 2)", () => {
 
   test("test_children_command_json_format", async () => {
     const { runChildrenCommand } = await import("../src/cli/children");
-    const children: SessionItem[] = [
+    const children: SessionSummary[] = [
       {
         id: "child-x",
         agent: "opencode" as const,
@@ -952,7 +947,7 @@ describe("oas children — edge cases (Zone 2)", () => {
         parentSessionId: "root-001",
       },
     ];
-    const getChildren = async (): Promise<SessionItem[]> => children;
+    const getChildren = async (): Promise<SessionSummary[]> => children;
 
     // @ts-ignore -- json format may not be implemented
     const result = await runChildrenCommand({
@@ -971,7 +966,7 @@ describe("oas children — edge cases (Zone 2)", () => {
 
   test("test_children_command_large_number_of_children", async () => {
     const { runChildrenCommand } = await import("../src/cli/children");
-    const manyChildren: SessionItem[] = Array.from({ length: 50 }, (_, i) => ({
+    const manyChildren: SessionSummary[] = Array.from({ length: 50 }, (_, i) => ({
       id: `child-${String(i).padStart(3, "0")}`,
       agent: "opencode" as const,
       alias: "main" as const,
@@ -982,7 +977,7 @@ describe("oas children — edge cases (Zone 2)", () => {
       storage: "db" as const,
       parentSessionId: "root-001",
     }));
-    const getChildren = async (): Promise<SessionItem[]> => manyChildren;
+    const getChildren = async (): Promise<SessionSummary[]> => manyChildren;
 
     const result = await runChildrenCommand({
       parentSessionId: "root-001",
@@ -1034,7 +1029,7 @@ describe("fork hierarchy cross-feature interactions (Zone 3)", () => {
 
   test("test_list_roots_only_with_mixed_storage_types", async () => {
     const { runListCommand } = await import("../src/cli/list");
-    const mixedStorage: SessionItem[] = [
+    const mixedStorage: SessionSummary[] = [
       {
         id: "root-db", agent: "opencode" as const, alias: "main" as const,
         title: "DB root", created_at: "2024-01-01T00:00:00Z",

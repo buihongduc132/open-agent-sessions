@@ -7,6 +7,7 @@ import {
   type SessionSummary,
 } from "../src/index";
 import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
+import type { AgentKind } from "../src/types";
 import type { TimeRangeOptions } from "../src/core/types";
 
 // ============================================================================
@@ -165,7 +166,7 @@ async function collectSessionsFromRegistry(
 
 function makeSessionsService(
   sessions: SessionSummary[],
-  errors: { agent: string; alias: string; message: string }[] = []
+  errors: { agent: AgentKind; alias: string; message: string }[] = []
 ): SessionsService {
   return async () => ({ sessions, errors });
 }
