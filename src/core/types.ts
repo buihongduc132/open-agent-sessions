@@ -33,8 +33,6 @@ export interface SessionDetail extends SessionSummary {
   clone?: SessionCloneMetadata;
   messages?: SessionMessage[];
   warning?: string;
-  /** Set when this session was forked from another session (R-39 / R-18). */
-  parentSessionId?: string;
 }
 
 export interface SessionMessage {
