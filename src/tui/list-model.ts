@@ -263,11 +263,15 @@ function handleListInput(
     };
   }
 
-  // t: jump directly to timeline (shortcut, same as cycling via Tab)
+  // t: open-detail for selected session (prevents timeline freeze when detailState is null)
   if (name === "t") {
+    const selected = getSelectedSession(next);
+    if (selected) {
+      return { state: next, effects: [{ type: "open-detail", session: selected }] };
+    }
     return {
-      state: { ...next, mode: "timeline" as TuiMode },
-      effects: [{ type: "switch-view", view: "timeline" }],
+      state: { ...next, statusMessage: "Open a session first (press Enter to open a session, then t for timeline)" },
+      effects: [],
     };
   }
 
