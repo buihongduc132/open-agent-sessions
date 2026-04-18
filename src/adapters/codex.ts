@@ -231,7 +231,7 @@ export function createCodexAdapter(
 }
 
 function resolveCodexPath(entry: OtherAgentEntry, options: CodexAdapterOptions): string {
-  const rawPath = (entry as Record<string, unknown>).path;
+  const rawPath = entry.path;
   if (rawPath !== undefined && typeof rawPath !== "string") {
     throw new Error(`Codex path must be a non-empty string`);
   }

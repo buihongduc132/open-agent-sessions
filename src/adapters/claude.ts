@@ -134,7 +134,7 @@ export function createClaudeAdapter(
 }
 
 function resolveClaudePath(entry: OtherAgentEntry, options: ClaudeAdapterOptions): string {
-  const rawPath = (entry as Record<string, unknown>).path;
+  const rawPath = entry.path;
   if (rawPath !== undefined && typeof rawPath !== "string") {
     throw new Error(`Claude path must be a non-empty string`);
   }
