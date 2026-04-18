@@ -55,7 +55,7 @@ const sessionNone = makeSession("ses_NONE", "opencode", "personal", "General deb
 
 function makeSession(
   id: string,
-  agent: string,
+  agent: "opencode" | "codex" | "claude",
   alias: string,
   title: string,
 ): SessionSummary {

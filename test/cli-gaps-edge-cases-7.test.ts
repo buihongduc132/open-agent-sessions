@@ -418,7 +418,7 @@ describe("GAP 4A: Additional composable read flag edge cases", () => {
 
     return {
       getSessionDetail: async (_id: string, opts: SessionReadOptions) => {
-        let msgs = [...detail.messages];
+        let msgs = [...(detail.messages ?? [])];
 
         const sel = opts.selection;
         if (sel) {

@@ -27,7 +27,7 @@
  * See _16apr_gaps.md for the full architecture decision.
  */
 
-import { parse, type Node } from "liqe";
+import { parse, type LiqeQuery } from "liqe";
 
 export interface SearchPlan {
   /** Individual search terms to query each backend with (AND semantics). */
@@ -229,8 +229,8 @@ function walkAst(node: any, terms: string[], excludeTerms: string[], orGroups?: 
     const bin = node as {
       type: "BinaryExpression";
       operator: string;
-      left: Node;
-      right: Node;
+      left: LiqeQuery;
+      right: LiqeQuery;
     };
 
     if (bin.operator === "NOT") {

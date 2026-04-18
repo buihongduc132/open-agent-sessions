@@ -305,7 +305,6 @@ describe("GAP 2 — --sub-only flag missing", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — subOnly doesn't exist on the type yet (GAP 2)
       subOnly: true,
     });
 
@@ -331,7 +330,6 @@ describe("GAP 2 — --sub-only flag missing", () => {
       config: baseConfig,
       list: listService,
       rootsOnly: true,
-      // @ts-expect-error — subOnly doesn't exist on the type yet (GAP 2)
       subOnly: true,
     });
 
@@ -689,7 +687,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — subOnly doesn't exist yet (also GAP 2)
       subOnly: true,
     });
 
@@ -778,7 +775,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — subOnly doesn't exist yet (also GAP 2)
       subOnly: true,
       childrenOf: "ses_001",
     });
@@ -795,7 +791,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — includeSubagents doesn't exist yet
       includeSubagents: true,
     });
 
@@ -821,7 +816,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
       config: baseConfig,
       list: listService,
       rootsOnly: true,
-      // @ts-expect-error — includeSubagents doesn't exist yet
       includeSubagents: true,
     });
 
