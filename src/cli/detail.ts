@@ -1,6 +1,17 @@
 import { AgentEntry, AgentKind, Config } from "../config/types";
 import { SessionDetail } from "../core/types";
 import { CliResult } from "./types";
+import { resolveConfig, errorResult, errorMessage, type ParseResult } from "./utils/config";
+import {
+  isAgentKind,
+  formatList,
+  listAgents,
+  aliasesForAgent,
+  compareAgents,
+  unknownAgentError,
+  withLabel,
+  normalizeTitle,
+} from "./utils/agents";
 
 const USAGE =
   "Usage: oas detail --session <agent:alias:session_id|agent:session_id> | oas detail --agent <agent> --alias <alias> --id <session_id>";
@@ -23,7 +34,7 @@ export async function runDetailCommand(options: {
   loadConfig?: (path: string) => Config;
   getSession: DetailService;
 }): Promise<CliResult> {
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }
@@ -57,29 +68,9 @@ export async function runDetailCommand(options: {
   };
 }
 
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
+// Config/target resolution: imported from ./utils/config and ./utils/agents
 
-function resolveConfig(options: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (options.config) {
-    return { ok: true, value: options.config };
-  }
-
-  if (options.configPath && options.loadConfig) {
-    try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
-    }
-  }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
-}
-
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
+// ParseResult: imported from ./utils/config
 
 function resolveTarget(
   options: {
@@ -234,41 +225,7 @@ function validateAlias(
   return { ok: true, value: alias };
 }
 
-function listAgents(entries: AgentEntry[]): AgentKind[] {
-  const seen = new Set<AgentKind>();
-  for (const entry of entries) {
-    seen.add(entry.agent);
-  }
-  return Array.from(seen).sort(compareAgents);
-}
-
-function aliasesForAgent(agent: AgentKind, entries: AgentEntry[]): string[] {
-  return entries
-    .filter((entry) => entry.agent === agent)
-    .map((entry) => entry.alias)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-function compareAgents(a: AgentKind, b: AgentKind): number {
-  const order: Record<AgentKind, number> = {
-    opencode: 0,
-    codex: 1,
-    claude: 2,
-  };
-  return order[a] - order[b];
-}
-
-function unknownAgentError(agent: string, entries: AgentEntry[]): string {
-  const available = listAgents(entries);
-  return `Unknown agent "${agent}". Available agents: ${formatList(available)}`;
-}
-
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "(none)";
-  }
-  return values.join(", ");
-}
+// Helpers: imported from ./utils/config and ./utils/agents
 
 function formatDetail(detail: SessionDetail, target: DetailQuery): string {
   const title = normalizeTitle(detail.title, detail.id);
@@ -309,10 +266,7 @@ function formatCloneMetadata(
   ];
 }
 
-function normalizeTitle(title: string, id: string): string {
-  const trimmed = title.trim();
-  return trimmed.length > 0 ? trimmed : id;
-}
+// Title/label/agent helpers: imported from ./utils/agents
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) {
@@ -323,34 +277,4 @@ function formatValue(value: unknown): string {
     return trimmed.length > 0 ? trimmed : "-";
   }
   return String(value);
-}
-
-function withLabel(target: DetailQuery, message: string): string {
-  const label = `[${target.agent}:${target.alias}]`;
-  if (message.includes(label)) {
-    return message;
-  }
-  return `${label} ${message}`;
-}
-
-function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
 }

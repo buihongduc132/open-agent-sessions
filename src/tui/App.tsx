@@ -128,14 +128,9 @@ export function TuiAppView({
     async (query: SessionListQuery) => {
       const t0 = Date.now();
       try {
-        const result = await Promise.race([
-          list(query),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`List timed out after ${LIST_TIMEOUT_MS}ms`)), LIST_TIMEOUT_MS)
-          ),
-        ]);
+        const result = await list(query);
         const ms = Date.now() - t0;
-        if (DEBUG_PERF) console.log(`[PERF] list: ${ms}ms`);
+        console.log(`[PERF] list: ${ms}ms`);
         if (ms > 5000) {
           console.error(`[PERF SLOW] list took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
@@ -146,7 +141,7 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        if (DEBUG_PERF) console.error(`[PERF] list error after ${ms}ms:`, err);
+        console.error(`[PERF] list error after ${ms}ms:`, err);
         throw err;
       }
     },
@@ -160,7 +155,7 @@ export function TuiAppView({
       try {
         const result = await getSession(query);
         const ms = Date.now() - t0;
-        if (DEBUG_PERF) console.log(`[PERF] getSession: ${ms}ms`);
+        console.log(`[PERF] getSession: ${ms}ms`);
         if (ms > 5000) {
           console.error(`[PERF SLOW] getSession took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
@@ -171,7 +166,7 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        if (DEBUG_PERF) console.error(`[PERF] getSession error after ${ms}ms:`, err);
+        console.error(`[PERF] getSession error after ${ms}ms:`, err);
         throw err;
       }
     },
@@ -607,7 +602,11 @@ export async function runTuiApp(options: {
   const root = createRoot(renderer);
 
   await new Promise<void>((resolve) => {
-    renderer.on("destroy", resolve);
+    const handleExit = () => {
+      renderer.destroy();
+      resolve();
+    };
+    // Wrap render in flushSync so all useEffect-triggered re-renders commit synchronously
     flushSync(() => {
       root.render(
         <TuiApp
@@ -615,7 +614,7 @@ export async function runTuiApp(options: {
           list={options.list}
           getSession={options.getSession}
           cloneSession={options.cloneSession}
-          onExit={() => resolve()}
+          onExit={handleExit}
         />
       );
     });

@@ -1,5 +1,15 @@
 import { AgentEntry, AgentKind, Config } from "../config/types";
 import { CliResult, CloneDestination, CloneRequest, CloneService, CloneSource } from "./types";
+import { errorResult, errorMessage } from "./utils/config";
+import {
+  isAgentKind,
+  formatList,
+  validateAlias,
+  aliasesForAgent,
+  unknownAgentError,
+  inferAlias,
+  splitSpec,
+} from "./utils/agents";
 
 const USAGE =
   "Usage: oas clone --from <agent:session_id|agent:alias:session_id> --to <agent:alias>";
@@ -47,7 +57,7 @@ export async function runCloneCommand(options: {
   }
 }
 
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
+import type { ParseResult } from "./utils/config";
 
 function parseCloneSource(spec: string, entries: AgentEntry[]): ParseResult<CloneSource> {
   const parts = splitSpec(spec);
@@ -102,75 +112,4 @@ function parseCloneDestination(
   return { ok: true, value: { agent, alias } };
 }
 
-function splitSpec(spec: string): string[] {
-  return spec.split(":").filter((part) => part.length > 0);
-}
-
-function inferAlias(agent: AgentKind, entries: AgentEntry[]): ParseResult<string> {
-  const aliases = aliasesForAgent(agent, entries);
-  if (aliases.length === 1) {
-    return { ok: true, value: aliases[0] };
-  }
-
-  return {
-    ok: false,
-    error: `Alias required for ${agent}. Available aliases: ${formatList(aliases)}`,
-  };
-}
-
-function validateAlias(
-  agent: AgentKind,
-  alias: string,
-  entries: AgentEntry[]
-): ParseResult<string> {
-  const aliases = aliasesForAgent(agent, entries);
-  if (!aliases.includes(alias)) {
-    return {
-      ok: false,
-      error: `Unknown alias "${alias}" for ${agent}. Available aliases: ${formatList(
-        aliases
-      )}`,
-    };
-  }
-  return { ok: true, value: alias };
-}
-
-function aliasesForAgent(agent: AgentKind, entries: AgentEntry[]): string[] {
-  return entries.filter((entry) => entry.agent === agent).map((entry) => entry.alias);
-}
-
-function unknownAgentError(agent: string, entries: AgentEntry[]): string {
-  const available = Array.from(
-    new Set(entries.map((entry) => entry.agent))
-  ) as AgentKind[];
-  return `Unknown agent "${agent}". Available agents: ${formatList(available)}`;
-}
-
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "(none)";
-  }
-  return values.join(", ");
-}
-
-function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
-}
+// Helpers: imported from ./utils/config and ./utils/agents

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { cursorDecode, cursorEncode, listSessions, type SessionListQuery } from "../src/core/list";
-import { type AdapterRegistry, type SessionSummary, type TimeRangeOptions } from "../src/core/types";
+import { type AdapterRegistry, type SessionSummary } from "../src/core/types";
 
 function makeSession(overrides: Partial<SessionSummary>): SessionSummary {
   return {
@@ -214,12 +214,12 @@ describe("core list sessions", () => {
             // sessions so the pagination logic can slice the page itself.
             // Use >= since (not >) so the cursor session is included in the raw
             // adapter result; skipSessionId deduplicates it in post-filter.
-            listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => {
+            listSessionsByTimeRange: ({ since }) => {
               const filtered = sessions.filter(
                 (s) => since === undefined || Date.parse(s.updated_at) >= since
               );
               filtered.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
-              return Promise.resolve(filtered);
+              return filtered;
             },
             listSessions: async () => sessions,
           },
@@ -328,15 +328,15 @@ describe("core list sessions", () => {
             agent: "codex",
             alias: "work",
             version: "1.0.0",
-            listSessionsByTimeRange: (opts: TimeRangeOptions): Promise<SessionSummary[]> => {
+            listSessions: async () => [],
+            listSessionsByTimeRange: (opts) => {
               receivedOptions = opts;
               const filtered = sessions.filter(
                 (s) => opts.since === undefined || Date.parse(s.updated_at) >= opts.since
               );
               filtered.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
-              return Promise.resolve(filtered);
+              return filtered;
             },
-            listSessions: async () => [],
           },
         ],
       };
@@ -395,8 +395,8 @@ describe("core list sessions", () => {
             agent: "codex",
             alias: "work",
             version: "1.0.0",
-            listSessionsByTimeRange: (_opts: TimeRangeOptions): Promise<SessionSummary[]> => {
-              return Promise.reject(new Error("db unavailable"));
+            listSessionsByTimeRange: () => {
+              throw new Error("db unavailable");
             },
             listSessions: async () => {
               throw new Error("db unavailable");
@@ -488,21 +488,21 @@ describe("core list sessions", () => {
           alias: "default",
           version: "1.0.0",
           listSessions: async () => { calls.push("opencode:default"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("opencode:default:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("opencode:default:tr"); return []; },
         },
         {
           agent: "codex",
           alias: "work",
           version: "1.0.0",
           listSessions: async () => { calls.push("codex:work"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("codex:work:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("codex:work:tr"); return []; },
         },
         {
           agent: "opencode",
           alias: "personal",
           version: "1.0.0",
           listSessions: async () => { calls.push("opencode:personal"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("opencode:personal:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("opencode:personal:tr"); return []; },
         },
       ],
     };
@@ -560,14 +560,14 @@ describe("core list sessions", () => {
           alias: "default",
           version: "1.0.0",
           listSessions: async () => { calls.push("opencode"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("opencode:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("opencode:tr"); return []; },
         },
         {
           agent: "codex",
           alias: "work",
           version: "1.0.0",
           listSessions: async () => { calls.push("codex"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("codex:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("codex:tr"); return []; },
         },
       ],
     };
@@ -591,21 +591,21 @@ describe("core list sessions", () => {
           alias: "default",
           version: "1.0.0",
           listSessions: async () => { calls.push("oc:default"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("oc:default:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("oc:default:tr"); return []; },
         },
         {
           agent: "opencode",
           alias: "personal",
           version: "1.0.0",
           listSessions: async () => { calls.push("oc:personal"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("oc:personal:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("oc:personal:tr"); return []; },
         },
         {
           agent: "codex",
           alias: "work",
           version: "1.0.0",
           listSessions: async () => { calls.push("cx:work"); return []; },
-          listSessionsByTimeRange: ({ since }: TimeRangeOptions): Promise<SessionSummary[]> => { calls.push("cx:work:tr"); return Promise.resolve([]); },
+          listSessionsByTimeRange: ({ since }) => { calls.push("cx:work:tr"); return []; },
         },
       ],
     };

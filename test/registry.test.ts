@@ -11,12 +11,12 @@ import {
 } from "../src/index";
 import { createCodexAdapter } from "../src/adapters/codex";
 import { createClaudeAdapter } from "../src/adapters/claude";
+import type { AdapterFactory, SessionSummary } from "../src/core/types";
 
-const baseFactories: AdapterFactories = {
-  opencode: () => ({ version: "1.0.0", listSessions: () => [] }),
-  codex: () => ({ version: "1.0.0", listSessions: () => [] }),
-  claude: () => ({ version: "1.0.0", listSessions: () => [] }),
-};
+const emptyFactory: AdapterFactory = () => ({ version: "1.0.0", listSessions: async () => [] } as unknown as import("../src/core/types").Adapter);
+const emptyOpenCodeFactory: AdapterFactory = () => ({ version: "1.0.0", listSessions: async () => [] } as unknown as import("../src/core/types").Adapter);
+const emptyClaudeFactory: AdapterFactory = () => ({ version: "1.0.0", listSessions: async () => [] } as unknown as import("../src/core/types").Adapter);
+const baseFactories = { opencode: emptyOpenCodeFactory, codex: emptyFactory, claude: emptyClaudeFactory };
 
 function makeConfig(agents: Config["agents"]): Config {
   return { agents };
@@ -551,17 +551,17 @@ describe("F4: list result cache", () => {
 
   test("cache hit returns cached result without calling adapter", async () => {
     let listCallCount = 0;
-    const factory = () => {
+    const factory: AdapterFactory = () => {
       listCallCount++;
       return {
         version: "1.0.0",
         listSessions: async () => [makeSession()],
-      };
+      } as unknown as import("../src/core/types").Adapter;
     };
 
     const registry = createAdapterRegistry(
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
-      { codex: factory as any, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude } as unknown as Partial<AdapterFactories>
+      { codex: factory, opencode: emptyOpenCodeFactory, claude: emptyClaudeFactory }
     );
     const listService = createListService(registry);
 
@@ -582,19 +582,19 @@ describe("F4: list result cache", () => {
     // registry adapter reuses the same adapter instance).
     let listCallCount = 0;
 
-    const factory = () => {
+    const factory: AdapterFactory = () => {
       return {
         version: "1.0.0",
         listSessions: async () => {
           listCallCount++;
           return [makeSession("codex", "work")];
         },
-      };
+      } as unknown as import("../src/core/types").Adapter;
     };
 
     const registry = createAdapterRegistry(
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
-      { codex: factory as any, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude } as unknown as Partial<AdapterFactories>
+      { codex: factory, opencode: emptyOpenCodeFactory, claude: emptyClaudeFactory }
     );
     const listService = createListService(registry);
 
@@ -621,17 +621,17 @@ describe("F4: list result cache", () => {
 
   test("limit and after are NOT included in cache key (same base set)", async () => {
     let listCallCount = 0;
-    const factory = () => {
+    const factory: AdapterFactory = () => {
       listCallCount++;
       return {
         version: "1.0.0",
         listSessions: async () => [makeSession()],
-      };
+      } as unknown as import("../src/core/types").Adapter;
     };
 
     const registry = createAdapterRegistry(
       makeConfig([{ agent: "codex", alias: "work", enabled: true }]),
-      { codex: factory as any, opencode: () => ({ version: "1.0.0", listSessions: async () => [] }), claude: baseFactories.claude } as unknown as Partial<AdapterFactories>
+      { codex: factory, opencode: emptyOpenCodeFactory, claude: emptyClaudeFactory }
     );
     const listService = createListService(registry);
 

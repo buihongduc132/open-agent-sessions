@@ -1,6 +1,6 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { join } from "node:path";
 import { Database } from "bun:sqlite";
 import { OtherAgentEntry } from "../config/types";
 import {
@@ -13,7 +13,16 @@ import {
   TimeRangeOptions,
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
+import { errorMessage } from "../core/utils";
 import type { CloneSourceAdapter, CloneSession, CloneMessage } from "../core/clone";
+import type { SimilarSessionResult } from "../similarity/search";
+import {
+  collectJsonlFiles,
+  contentContains,
+  maxIso,
+  resolvePath,
+  safeStat,
+} from "./fs-utils";
 
 type CodexAdapterOptions = {
   defaultPath?: string;
@@ -180,6 +189,13 @@ export function createCodexAdapter(
     ): Promise<SessionDetail> => {
       const label = `[${entry.agent}:${entry.alias}]`;
       const rootPath = resolveCodexPath(entry, options);
+
+      // ── SQLite backend: use DB to resolve JSONL path, then parse messages ──
+      if (rootPath.endsWith(".sqlite")) {
+        return getSessionDetailFromSqlite(rootPath, sessionId, entry, _options, label);
+      }
+
+      // ── JSONL backend: scan files directly ──
       const files = collectJsonlFiles(rootPath);
 
       for (const filePath of files) {
@@ -199,11 +215,23 @@ export function createCodexAdapter(
 
       throw new Error(`${label} session not found: ${sessionId}`);
     },
+    // REQ-SIM-03: Similarity search not yet supported for Codex adapter
+    findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [
+      {
+        sessionId: "",
+        title: "",
+        score: 0,
+        rank: 0,
+        matchType: "none",
+        matchedChunks: 0,
+        note: "Not yet supported",
+      },
+    ],
   };
 }
 
 function resolveCodexPath(entry: OtherAgentEntry, options: CodexAdapterOptions): string {
-  const rawPath = (entry as Record<string, unknown>).path;
+  const rawPath = entry.path;
   if (rawPath !== undefined && typeof rawPath !== "string") {
     throw new Error(`Codex path must be a non-empty string`);
   }
@@ -225,33 +253,6 @@ function resolveCodexPath(entry: OtherAgentEntry, options: CodexAdapterOptions):
   return resolved;
 }
 
-function collectJsonlFiles(rootPath: string): string[] {
-  const stat = statSync(rootPath);
-  if (stat.isFile()) {
-    return [rootPath];
-  }
-  if (!stat.isDirectory()) {
-    return [];
-  }
-
-  const files: string[] = [];
-  walkDir(rootPath, files);
-  return files.sort((a, b) => a.localeCompare(b));
-}
-
-function walkDir(dir: string, files: string[]): void {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      walkDir(fullPath, files);
-      continue;
-    }
-    if (entry.isFile() && entry.name.endsWith(".jsonl")) {
-      files.push(fullPath);
-    }
-  }
-}
-
 function parseCodexSession(filePath: string, entry: OtherAgentEntry): SessionSummary {
   try {
     return parseCodexSessionInner(filePath, entry);
@@ -259,9 +260,9 @@ function parseCodexSession(filePath: string, entry: OtherAgentEntry): SessionSum
     // Only skip files with JSON parse errors (corrupt lines).
     // Semantic errors (invalid timestamps, missing session_meta, etc.)
     // must still propagate so the caller knows the session data is bad.
-    const message = error instanceof Error ? error.message : String(error);
+    const message = errorMessage(error);
     if (message.includes("JSONL parse error")) {
-      return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
+      return { ...EMPTY_CODEX_SESSION };
     }
     throw error;
   }
@@ -275,10 +276,10 @@ function parseCodexSessionForTimeRange(filePath: string, entry: OtherAgentEntry)
   try {
     return parseCodexSessionForTimeRangeInner(filePath, entry);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = errorMessage(error);
     if (message.includes("JSONL parse error")) {
       // Return empty sentinel — listSessionsByTimeRange will skip empty ids
-      return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
+      return { ...EMPTY_CODEX_SESSION };
     }
     throw error;
   }
@@ -291,12 +292,13 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
   // and their associated timestamps, then pair them: each session_meta's id is
   // matched with the latest timestamp from records AFTER that session_meta
   // but BEFORE the next session_meta with a different id.
-  type SessionRecord = { id: string; timestamp: string; maxTimestamp: string };
+  type SessionRecord = { id: string; timestamp: string; maxTimestamp: string; parentId?: string };
   const sessions: SessionRecord[] = [];
 
   let currentId: string | undefined;
   let currentCreatedAt: string | undefined;
   let currentMaxTs: string | undefined;
+  let currentParentId: string | undefined;
 
   for (const raw of lines) {
     if (raw.trim().length === 0) continue;
@@ -311,7 +313,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
     if (record.type === "session_meta") {
       // Flush the previous session if complete
       if (currentId !== undefined && currentCreatedAt !== undefined && currentMaxTs !== undefined) {
-        sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs });
+        sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs, parentId: currentParentId });
       }
       // Start a new session
       currentId = readString(record.payload?.id, `Codex session id missing in ${filePath}`);
@@ -320,6 +322,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
         `Codex created_at invalid for ${currentId} in ${filePath}`
       );
       currentMaxTs = currentCreatedAt; // initialize to created_at
+      currentParentId = readOptionalString(record.payload?.parent_id);
       continue;
     }
 
@@ -335,7 +338,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
 
   // Flush the final session
   if (currentId !== undefined && currentCreatedAt !== undefined && currentMaxTs !== undefined) {
-    sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs });
+    sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs, parentId: currentParentId });
   }
 
   if (sessions.length === 0) {
@@ -354,6 +357,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
       updated_at: s.maxTimestamp,
       message_count: 0,
       storage: "other",
+      parentSessionId: s.parentId,
     };
   }
 
@@ -374,6 +378,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
     updated_at: best.maxTimestamp,
     message_count: 0,
     storage: "other",
+    parentSessionId: best.parentId,
   };
 }
 
@@ -447,6 +452,7 @@ function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): Sessi
 
   const metaTitle = readOptionalString(sessionMeta.payload?.title);
   const resolvedTitle = preferTitle(metaTitle, title, resolvedSessionId);
+  const parentId = readOptionalString(sessionMeta.payload?.parent_id);
 
   return {
     id: resolvedSessionId,
@@ -457,6 +463,7 @@ function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): Sessi
     updated_at: maxTimestamp,
     message_count: messageCount,
     storage: "other",
+    parentSessionId: parentId,
   };
 }
 
@@ -502,10 +509,6 @@ function extractContentText(content: unknown): string | undefined {
   return undefined;
 }
 
-function maxIso(a: string, b: string): string {
-  return Date.parse(a) >= Date.parse(b) ? a : b;
-}
-
 function readString(value: unknown, context: string): string {
   if (typeof value === "string" && value.trim().length > 0) {
     return value;
@@ -521,6 +524,18 @@ function readOptionalString(value: unknown): string | undefined {
   return undefined;
 }
 
+/** Empty sentinel returned when a JSONL file has parse errors — callers skip empty ids. */
+const EMPTY_CODEX_SESSION: SessionSummary = Object.freeze({
+  id: "",
+  agent: "codex",
+  alias: "",
+  title: "",
+  created_at: "",
+  updated_at: "",
+  message_count: 0,
+  storage: "other",
+});
+
 function preferTitle(
   metaTitle: string | undefined,
   fallbackTitle: string | undefined,
@@ -529,56 +544,6 @@ function preferTitle(
   if (metaTitle && metaTitle.length > 0) return metaTitle;
   if (fallbackTitle && fallbackTitle.length > 0) return fallbackTitle;
   return sessionId;
-}
-
-function resolvePath(pathValue: string, baseDir?: string): string {
-  const expanded = expandTilde(pathValue);
-  if (isAbsolute(expanded)) {
-    return expanded;
-  }
-  const base = baseDir ?? process.cwd();
-  return resolve(base, expanded);
-}
-
-function expandTilde(pathValue: string): string {
-  if (pathValue === "~") {
-    return homedir();
-  }
-  if (pathValue.startsWith("~/") || pathValue.startsWith("~\\")) {
-    return join(homedir(), pathValue.slice(2));
-  }
-  return pathValue;
-}
-
-function safeStat(pathValue: string): ReturnType<typeof statSync> | null {
-  try {
-    return statSync(pathValue);
-  } catch (error) {
-    return null;
-  }
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-/**
- * Search file content for a case-insensitive text match.
- * Used by searchSessions to avoid fully parsing every file twice.
- */
-function contentContains(filePath: string, needle: string): boolean {
-  try {
-    const content = readFileSync(filePath, "utf8");
-    return content.toLowerCase().includes(needle);
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -721,7 +686,7 @@ function listSessionsByTimeRangeFromSqlite(
     db = new Database(dbPath, { readonly: true });
   } catch (error) {
     throw new Error(
-      `${label} failed to open SQLite DB ${dbPath}: ${error instanceof Error ? error.message : String(error)}`
+      `${label} failed to open SQLite DB ${dbPath}: ${errorMessage(error)}`
     );
   }
 
@@ -751,7 +716,7 @@ function listSessionsByTimeRangeFromSqlite(
       rows = db.query<SqliteThreadRow, (string | number)[]>(sql).all(...params);
     } catch (error) {
       throw new Error(
-        `${label} SQLite query failed: ${error instanceof Error ? error.message : String(error)}`
+        `${label} SQLite query failed: ${errorMessage(error)}`
       );
     }
 
@@ -768,6 +733,109 @@ function listSessionsByTimeRangeFromSqlite(
   } finally {
     db.close();
   }
+}
+
+/**
+ * F2: SQLite-backed session detail.
+ *
+ * Codex's state_5.sqlite stores sessions in the `threads` table, but the actual
+ * messages are in JSONL files referenced by the `rollout_path` column.
+ * This function:
+ *   1. Looks up the thread row by session ID to get title/timestamps/rollout_path
+ *   2. Falls back to a JSONL search if rollout_path is unavailable or invalid
+ *   3. Parses the JSONL for full message content
+ */
+async function getSessionDetailFromSqlite(
+  dbPath: string,
+  sessionId: string,
+  entry: OtherAgentEntry,
+  _options: SessionReadOptions,
+  label: string
+): Promise<SessionDetail> {
+  let db: Database;
+  try {
+    db = new Database(dbPath, { readonly: true });
+  } catch (error) {
+    throw new Error(
+      `${label} failed to open SQLite DB ${dbPath}: ${errorMessage(error)}`
+    );
+  }
+
+  try {
+    const sql = `SELECT id, title, created_at, updated_at, rollout_path
+                FROM threads WHERE id = ?`;
+    const rows = db.query<{
+      id: string;
+      title: string;
+      created_at: number;
+      updated_at: number;
+      rollout_path: string;
+    }, [string]>(sql).all(sessionId);
+
+    if (rows.length === 0) {
+      throw new Error(`${label} session not found: ${sessionId}`);
+    }
+
+    const row = rows[0];
+    const summary: SessionSummary = {
+      id: row.id,
+      agent: "codex",
+      alias: entry.alias,
+      title: row.title || row.id,
+      created_at: formatUnixSeconds(row.created_at),
+      updated_at: formatUnixSeconds(row.updated_at),
+      message_count: 0,
+      storage: "other",
+    };
+
+    // Try to load messages from the rollout_path JSONL file
+    const rolloutPath = row.rollout_path?.trim();
+    if (rolloutPath && rolloutPath.length > 0) {
+      try {
+        const messages = parseCodexMessages(rolloutPath, sessionId, label);
+        return { ...summary, messages, message_count: messages.length };
+      } catch {
+        // Rollout path exists but unreadable/parseable — fall through
+      }
+    }
+
+    // Fallback: search JSONL files if rollout_path is missing or failed
+    const fallback = await getSessionDetailFromJsonlFallback(
+      sessionId, entry, label
+    );
+    return { ...summary, message_count: fallback.messages.length, messages: fallback.messages };
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * Fallback JSONL search for SQLite-backed getSessionDetail.
+ * Used when rollout_path is empty or the JSONL file can't be read.
+ * Searches ~/.codex/sessions/ recursively for a matching session ID.
+ */
+async function getSessionDetailFromJsonlFallback(
+  sessionId: string,
+  entry: OtherAgentEntry,
+  label: string
+): Promise<{ messages: SessionMessage[] }> {
+  const fallbackRoot = join(homedir(), ".codex", "sessions");
+  const files = collectJsonlFiles(fallbackRoot);
+
+  for (const filePath of files) {
+    try {
+      const summary = parseCodexSession(filePath, entry);
+      if (summary.id === sessionId) {
+        const messages = parseCodexMessages(filePath, sessionId, label);
+        return { messages };
+      }
+    } catch {
+      // Skip files that fail to parse
+    }
+  }
+
+  // No messages found — return empty array (summary was built from DB)
+  return { messages: [] };
 }
 
 /**

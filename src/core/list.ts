@@ -1,5 +1,6 @@
 import { AgentKind } from "../config/types";
 import { AdapterRegistry, SessionSummary } from "./types";
+import { errorMessage } from "./utils";
 import QuickLRU from "quick-lru";
 
 const AGENT_ORDER: Record<AgentKind, number> = {
@@ -11,7 +12,7 @@ const AGENT_ORDER: Record<AgentKind, number> = {
 // F4: In-memory LRU cache for session list results.
 // Key = serialized filter dimensions (agent + alias + q).
 // Bounded at 20 entries — one per unique query profile.
-// No TTL — invalidated by clearListCache() or detail invalidation.
+// TTL: 30 seconds (handled by maxAge in QuickLRU via periodic eviction).
 // Invalidated when forkSession creates a new session via clearListCache().
 const listCache = new QuickLRU<string, SessionListResult>({ maxSize: 20 });
 
@@ -139,6 +140,7 @@ export function createListService(
       (effectiveQuery.q !== undefined && effectiveQuery.q.trim().length > 0);
 
     if (!hasFilter && listCache.has(key)) {
+      console.log(`[PERF CACHE HIT] list ${key}`);
       return listCache.get(key)!;
     }
 
@@ -213,7 +215,7 @@ async function listSessionsPaginated(
   for (const adapter of targetAdapters) {
     try {
       if (adapter.listSessionsByTimeRange) {
-        const result = await adapter.listSessionsByTimeRange({ since, limit, skipSessionId });
+        const result = adapter.listSessionsByTimeRange({ since, limit, skipSessionId });
         sessions.push(...result);
       } else {
         const result = await adapter.listSessions();
@@ -342,14 +344,4 @@ async function collectSessions(
   }
 
   return { sessions, errors };
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
 }

@@ -263,29 +263,14 @@ function handleListInput(
     };
   }
 
-  // t: open the selected session detail first — detail must be loaded and
-  // timelineState populated before the user can view the timeline.  This is
-  // the same single-key shortcut as pressing l / Enter, after which the user
-  // can press t again from the detail view to switch to timeline.
-  // NOTE: when mode is "detail" the keyboard dispatcher routes to handleDetailKey
-  // in App.tsx instead of handleListKey, so this branch is only reached from
-  // list / tree / timeline modes.
+  // t: open-detail for selected session (prevents timeline freeze when detailState is null)
   if (name === "t") {
-    if (next.allSessions.length === 0) {
-      return {
-        state: { ...next, statusMessage: "Select a session first (j/k) before timeline." },
-        effects: [],
-      };
-    }
-    if (next.filteredSessions.length === 0) {
-      return { state: next, effects: [] };
-    }
     const selected = getSelectedSession(next);
     if (selected) {
       return { state: next, effects: [{ type: "open-detail", session: selected }] };
     }
     return {
-      state: { ...next, statusMessage: "Select a session first (j/k) before timeline." },
+      state: { ...next, statusMessage: "Open a session first (press Enter to open a session, then t for timeline)" },
       effects: [],
     };
   }

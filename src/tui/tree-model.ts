@@ -81,8 +81,8 @@ export function buildForest(sessions: SessionSummary[]): TreeNode[] {
       children: [],
     });
     // parentSessionId may be in agent-specific data; we store parentId separately
-    if ("parentSessionId" in s && (s as Record<string, unknown>).parentSessionId) {
-      const parentId = String((s as Record<string, unknown>).parentSessionId);
+    if ("parentSessionId" in s && (s as unknown as Record<string, unknown>).parentSessionId) {
+      const parentId = String((s as unknown as Record<string, unknown>).parentSessionId);
       parentMap.set(s.id, parentId);
     }
   }

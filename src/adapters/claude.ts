@@ -1,6 +1,6 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, isAbsolute, join, resolve } from "node:path";
+import { basename, join } from "node:path";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
@@ -11,6 +11,16 @@ import {
   SessionSummary,
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
+import { errorMessage } from "../core/utils";
+import type { SimilarSessionResult } from "../similarity/search";
+import {
+  collectJsonlFiles,
+  contentContains,
+  maxIso,
+  minIso,
+  resolvePath,
+  safeStat,
+} from "./fs-utils";
 
 type ClaudeAdapterOptions = {
   defaultPath?: string;
@@ -23,6 +33,7 @@ type ClaudeRecord = {
   type?: string;
   timestamp?: unknown;
   content?: unknown;
+  parent_session_id?: unknown;
 };
 
 export function createClaudeAdapter(
@@ -108,11 +119,23 @@ export function createClaudeAdapter(
 
       throw new Error(`${label} session not found: ${sessionId}`);
     },
+    // REQ-SIM-03: Similarity search not yet supported for Claude adapter
+    findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [
+      {
+        sessionId: "",
+        title: "",
+        score: 0,
+        rank: 0,
+        matchType: "none",
+        matchedChunks: 0,
+        note: "Not yet supported",
+      },
+    ],
   };
 }
 
 function resolveClaudePath(entry: OtherAgentEntry, options: ClaudeAdapterOptions): string {
-  const rawPath = (entry as Record<string, unknown>).path;
+  const rawPath = entry.path;
   if (rawPath !== undefined && typeof rawPath !== "string") {
     throw new Error(`Claude path must be a non-empty string`);
   }
@@ -139,33 +162,6 @@ function resolveClaudePath(entry: OtherAgentEntry, options: ClaudeAdapterOptions
   return resolved;
 }
 
-function collectJsonlFiles(rootPath: string): string[] {
-  const stat = statSync(rootPath);
-  if (stat.isFile()) {
-    return [rootPath];
-  }
-  if (!stat.isDirectory()) {
-    return [];
-  }
-
-  const files: string[] = [];
-  walkDir(rootPath, files);
-  return files.sort((a, b) => a.localeCompare(b));
-}
-
-function walkDir(dir: string, files: string[]): void {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      walkDir(fullPath, files);
-      continue;
-    }
-    if (entry.isFile() && entry.name.endsWith(".jsonl")) {
-      files.push(fullPath);
-    }
-  }
-}
-
 function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSummary {
   const sessionId = basename(filePath, ".jsonl");
   if (!sessionId || sessionId.trim().length === 0 || sessionId.startsWith(".")) {
@@ -176,6 +172,7 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
   let messageCount = 0;
   let minTimestamp: string | undefined;
   let maxTimestamp: string | undefined;
+  let parentSessionId: string | undefined;
 
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i].trim();
@@ -185,6 +182,11 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
 
     const record = parseJsonLine(raw, filePath, i + 1);
     const recordType = record.type;
+
+    // Collect parent_session_id from any record type (metadata, system, etc.)
+    if (!parentSessionId) {
+      parentSessionId = readOptionalString(record.parent_session_id);
+    }
     if (record.timestamp !== undefined && record.timestamp !== null) {
       const recordId = record.id;
       const context =
@@ -221,6 +223,7 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
     updated_at: maxTimestamp,
     message_count: messageCount,
     storage: "other",
+    parentSessionId,
   };
 }
 
@@ -230,6 +233,18 @@ function parseJsonLine(line: string, filePath: string, lineNumber: number): Clau
   } catch (error) {
     throw new Error(`Claude JSONL parse error in ${filePath} at line ${lineNumber}`);
   }
+}
+
+/**
+ * Safely coerce an unknown value to a non-empty string, or return undefined.
+ * Handles null, undefined, non-string types, and empty/whitespace-only strings.
+ */
+function readOptionalString(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
 }
 
 function extractContentLine(content: unknown): string | undefined {
@@ -263,62 +278,6 @@ function extractContentText(content: unknown): string | undefined {
     if (typeof record.text === "string") return record.text;
   }
   return undefined;
-}
-
-function minIso(a: string, b: string): string {
-  return Date.parse(a) <= Date.parse(b) ? a : b;
-}
-
-function maxIso(a: string, b: string): string {
-  return Date.parse(a) >= Date.parse(b) ? a : b;
-}
-
-function resolvePath(pathValue: string, baseDir?: string): string {
-  const expanded = expandTilde(pathValue);
-  if (isAbsolute(expanded)) {
-    return expanded;
-  }
-  const base = baseDir ?? process.cwd();
-  return resolve(base, expanded);
-}
-
-function expandTilde(pathValue: string): string {
-  if (pathValue === "~") {
-    return homedir();
-  }
-  if (pathValue.startsWith("~/") || pathValue.startsWith("~\\")) {
-    return join(homedir(), pathValue.slice(2));
-  }
-  return pathValue;
-}
-
-function safeStat(pathValue: string): ReturnType<typeof statSync> | null {
-  try {
-    return statSync(pathValue);
-  } catch (error) {
-    return null;
-  }
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-/**
- * Search file content for a case-insensitive text match.
- */
-function contentContains(filePath: string, needle: string): boolean {
-  try {
-    return readFileSync(filePath, "utf8").toLowerCase().includes(needle);
-  } catch {
-    return false;
-  }
 }
 
 /**

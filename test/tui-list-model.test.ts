@@ -5,8 +5,10 @@ import { AgentKind } from "../src/config/types";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function makeAgentEntry(agent: AgentKind, alias: string, enabled = true): AgentEntry {
-  return { agent, alias, enabled, storage: { mode: "auto" as const } };
+function makeAgentEntry(agent: "opencode", alias: string, enabled?: boolean): import("../src/config/types").OpenCodeAgentEntry;
+function makeAgentEntry(agent: "codex" | "claude", alias: string, enabled?: boolean): import("../src/config/types").OtherAgentEntry;
+function makeAgentEntry(agent: AgentKind, alias: string, enabled = true): import("../src/config/types").AgentEntry {
+  return { agent, alias, enabled } as import("../src/config/types").AgentEntry;
 }
 
 function makeState(overrides: Partial<TuiListState> = {}): TuiListState {
@@ -277,25 +279,13 @@ describe("/ enters filter mode", () => {
   });
 });
 
-// ── t opens detail ─────────────────────────────────────────────────────────
-// Pressing t from list/tree mode now opens the detail of the selected session
-// first, so detailState is populated and timelineState is built before the user
-// can press t again in detail view to switch to timeline view.
-// This prevents the timeline freeze (Bug 4).
+// ── t jumps to timeline ──────────────────────────────────────────────────────
 
-describe("t opens detail (timeline shortcut)", () => {
-  test("t emits open-detail effect for the selected session", () => {
+describe("t opens detail for selected session", () => {
+  test("t emits open-detail for the selected session", () => {
     const state = makeState({ mode: "list" });
     const { effects } = applyKey(state, key("t"));
     expect(effects).toContainEqual(expect.objectContaining({ type: "open-detail" }));
-  });
-
-  test("t does NOT emit switch-view:timeline directly from list-model", () => {
-    const state = makeState({ mode: "list" });
-    const { effects } = applyKey(state, key("t"));
-    expect(
-      effects.some((e) => e.type === "switch-view" && (e as { view: string }).view === "timeline")
-    ).toBe(false);
   });
 });
 

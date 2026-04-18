@@ -1,26 +1,54 @@
-import { AgentEntry, AgentKind, Config } from "../config/types";
+import { AgentEntry, AgentKind } from "../config/types";
 import { SessionListQuery, SessionListResult } from "../core/list";
 import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
+import { type ConfigOptions, type ParseResult, resolveConfig, errorResult, errorMessage } from "./utils/config";
+import { sanitizeTitle } from "./utils/format";
+import { formatErrors } from "./formatters/text";
+import { isAgentKind, formatList, listAgents, listAliases, compareAgents } from "./utils/agents";
 
 const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>] [--limit <n>] [--after <cursor>]";
 
 export type ListService = (query: SessionListQuery) => Promise<SessionListResult>;
 
-export async function runListCommand(options: {
+export type ListOptions = {
   agent?: string;
   alias?: string;
   q?: string;
   limit?: number;
   after?: string;
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
+  /** Filter to only root sessions (sessions with no parent). */
+  rootsOnly?: boolean;
+  /** Filter to only sub-agent sessions (sessions with a parent). */
+  subOnly?: boolean;
+  /** Filter to only sessions that are direct children of this parent session ID. */
+  childrenOf?: string;
+  /** Include sub-agent sessions in output (overrides default hiding). */
+  includeSubagents?: boolean;
   list: ListService;
-}): Promise<CliResult> {
-  const configResult = resolveConfig(options);
+} & ConfigOptions;
+
+export async function runListCommand(options: ListOptions): Promise<CliResult> {
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
+  }
+
+  // Validate mutually exclusive flags
+  if (options.rootsOnly && options.childrenOf !== undefined) {
+    return errorResult("Cannot use --roots-only and --children-of together: they are mutually exclusive.");
+  }
+
+  if (options.rootsOnly && options.subOnly) {
+    return errorResult("Cannot use --roots-only and --sub-only together: they are mutually exclusive.");
+  }
+
+  if (options.subOnly && options.childrenOf !== undefined) {
+    return errorResult("Cannot use --sub-only and --children-of together: they are mutually exclusive.");
+  }
+
+  if (options.includeSubagents && options.rootsOnly) {
+    return errorResult("Cannot use --include-subagents and --roots-only together: they are mutually exclusive.");
   }
 
   const enabledEntries = configResult.value.agents.filter((entry) => entry.enabled);
@@ -49,8 +77,36 @@ export async function runListCommand(options: {
     return errorResult(errorMessage(error));
   }
 
+  // Apply rootsOnly filter: only sessions with no parentSessionId
+  let sessions = result.sessions;
+  if (options.rootsOnly) {
+    sessions = sessions.filter((s) => !s.parentSessionId);
+  }
+
+  // Apply childrenOf filter: only sessions whose parent is the specified ID
+  if (options.childrenOf !== undefined) {
+    sessions = sessions.filter((s) => s.parentSessionId === options.childrenOf);
+  }
+
+  // Apply subOnly filter: only sessions with a parentSessionId
+  if (options.subOnly) {
+    sessions = sessions.filter((s) => !!s.parentSessionId);
+  }
+
+  // Determine badge mode for formatting
+  // - includeSubagents: show all, no badges
+  // - childrenOf/subOnly: filtered view, no badges
+  // - default/rootsOnly: hide children, show +N badges
+  const showBadges = !options.includeSubagents && options.childrenOf === undefined && !options.subOnly;
+  const hideChildren = showBadges && !options.rootsOnly; // rootsOnly already filters them
+
+  if (hideChildren) {
+    // Default mode: hide child sessions, show only roots with child count badges
+    sessions = sessions.filter((s) => !s.parentSessionId);
+  }
+
   const stderr = formatErrors(result.errors);
-  if (result.sessions.length === 0) {
+  if (sessions.length === 0) {
     return {
       exitCode: 0,
       stdout: "No sessions found.\n",
@@ -58,37 +114,24 @@ export async function runListCommand(options: {
     };
   }
 
-  const stdout = result.sessions.map(formatSessionRow).join("\n") + "\n";
+  // Build child count map for badge display
+  let childCounts: Map<string, number> | undefined;
+  if (showBadges) {
+    childCounts = new Map<string, number>();
+    for (const s of result.sessions) {
+      if (s.parentSessionId) {
+        childCounts.set(s.parentSessionId, (childCounts.get(s.parentSessionId) ?? 0) + 1);
+      }
+    }
+  }
+
+  const stdout = sessions.map((s) => formatSessionRow(s, showBadges, childCounts)).join("\n") + "\n";
   return {
     exitCode: 0,
     stdout,
     stderr,
   };
 }
-
-type ConfigResult = { ok: true; value: Config } | { ok: false; error: string };
-
-function resolveConfig(options: {
-  config?: Config;
-  configPath?: string;
-  loadConfig?: (path: string) => Config;
-}): ConfigResult {
-  if (options.config) {
-    return { ok: true, value: options.config };
-  }
-
-  if (options.configPath && options.loadConfig) {
-    try {
-      return { ok: true, value: options.loadConfig(options.configPath) };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
-    }
-  }
-
-  return { ok: false, error: `Missing config. ${USAGE}` };
-}
-
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
 function parseAgent(
   agentValue: string | undefined,
@@ -131,30 +174,7 @@ function parseAlias(
   return { ok: true, value: trimmed };
 }
 
-function listAgents(entries: AgentEntry[]): AgentKind[] {
-  const seen = new Set<AgentKind>();
-  for (const entry of entries) {
-    seen.add(entry.agent);
-  }
-  return Array.from(seen).sort(compareAgents);
-}
-
-function listAliases(entries: AgentEntry[]): string[] {
-  const seen = new Set<string>();
-  for (const entry of entries) {
-    seen.add(entry.alias);
-  }
-  return Array.from(seen).sort((a, b) => a.localeCompare(b));
-}
-
-function compareAgents(a: AgentKind, b: AgentKind): number {
-  const order: Record<AgentKind, number> = {
-    opencode: 0,
-    codex: 1,
-    claude: 2,
-  };
-  return order[a] - order[b];
-}
+// Agent helpers: imported from ./utils/agents
 
 function normalizeQuery(query: string | undefined): string | undefined {
   if (query === undefined) {
@@ -164,58 +184,26 @@ function normalizeQuery(query: string | undefined): string | undefined {
   return trimmed.length === 0 ? undefined : trimmed;
 }
 
-function formatSessionRow(session: SessionSummary): string {
+function formatSessionRow(
+  session: SessionSummary,
+  showBadges = false,
+  childCounts?: Map<string, number>,
+): string {
   const label = `[${session.agent}:${session.alias}]`;
-  const title = session.title.trim().length > 0 ? session.title : session.id;
+  const roleTag = session.parentSessionId ? "[sub]" : "[main]";
+  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
+  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
+  const badge = showBadges && !session.parentSessionId
+    ? (() => {
+        const count = childCounts?.get(session.id) ?? 0;
+        return count > 0 ? `+${count}` : "-";
+      })()
+    : null;
   if (title === session.id) {
-    return `${label} ${session.id}`;
+    return badge ? `${label} ${roleTag} ${session.id} ${badge}` : `${label} ${roleTag} ${session.id}`;
   }
-  return `${label} ${title} (${session.id})`;
+  const base = `${label} ${roleTag} ${title} (${session.id})`;
+  return badge ? `${base} ${badge}` : base;
 }
 
-function formatErrors(errors: SessionListResult["errors"]): string {
-  if (errors.length === 0) {
-    return "";
-  }
-  return (
-    errors
-      .map((error) => {
-        const label = `[${error.agent}:${error.alias}]`;
-        const message = error.message;
-        if (message.includes(label)) {
-          return message;
-        }
-        return `${label} ${message}`;
-      })
-      .join("\n") + "\n"
-  );
-}
-
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "(none)";
-  }
-  return values.join(", ");
-}
-
-function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-function errorResult(message: string): CliResult {
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `${message}\n`,
-  };
-}
+// Formatting helpers: imported from ./utils/agents
