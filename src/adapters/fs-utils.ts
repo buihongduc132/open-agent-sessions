@@ -88,6 +88,20 @@ export function contentContains(filePath: string, needle: string): boolean {
   }
 }
 
+export function listJsonFiles(dir: string): string[] {
+  try {
+    return readdirSync(dir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => join(dir, f));
+  } catch {
+    return [];
+  }
+}
+
+export function containsIgnoreCase(text: string, needle: string): boolean {
+  return text.toLowerCase().includes(needle.toLowerCase());
+}
+
 // ============================================================================
 // ISO Timestamp Helpers
 // ============================================================================
@@ -98,4 +112,24 @@ export function minIso(a: string, b: string): string {
 
 export function maxIso(a: string, b: string): string {
   return Date.parse(a) >= Date.parse(b) ? a : b;
+}
+
+export function sortByIsoDesc<T>(arr: T[], key: keyof T): T[] {
+  return [...arr].sort((a, b) => {
+    const aVal = String(a[key] ?? "");
+    const bVal = String(b[key] ?? "");
+    return Date.parse(bVal) - Date.parse(aVal);
+  });
+}
+
+// ============================================================================
+// Safe Text File Read
+// ============================================================================
+
+export function readTextFile(path: string): string | null {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return null;
+  }
 }

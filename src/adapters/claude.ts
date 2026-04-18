@@ -22,6 +22,7 @@ import {
   minIso,
   resolvePath,
   safeStat,
+  sortByIsoDesc,
   splitJsonlLines,
 } from "./fs-utils";
 
@@ -86,9 +87,7 @@ export function createClaudeAdapter(
           }
         }
 
-        results.sort(
-          (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)
-        );
+        return sortByIsoDesc(results, "updated_at");
         return results;
       } catch (error) {
         const message = errorMessage(error);

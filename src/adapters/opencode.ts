@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -25,6 +25,7 @@ import { indexSessionEmbeddings } from "../similarity/storage";
 import { findSimilarSessions, type SimilarSessionResult } from "../similarity/search";
 import { errorMessage } from "../core/utils";
 import { createLabel } from "./label";
+import { readTextFile, sortByIsoDesc } from "./fs-utils";
 
 // Expected schema for validation
 const EXPECTED_SCHEMA = {
@@ -983,13 +984,8 @@ function toolSearchFromJsonl(
   query: ToolSearchQuery,
   _label: string
 ): SessionSummary[] {
-  let content: string;
-  try {
-    content = readFileSync(jsonlPath, "utf-8");
-  } catch {
-    return [];
-  }
-
+  const content = readTextFile(jsonlPath);
+  if (!content) return [];
   if (!content.trim()) return [];
 
   const toolNeedle = query.tool.toLowerCase();
@@ -1027,8 +1023,7 @@ function toolSearchFromJsonl(
     }
   }
 
-  results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
-  return results.slice(0, 100);
+  return sortByIsoDesc(results, "updated_at").slice(0, 100);
 }
 
 function hasToolMentionInJsonl(record: JsonlSessionRow, toolNeedle: string): boolean {
@@ -1046,11 +1041,9 @@ function matchesProjectIdForJsonl(projectID: string, cwd: string): boolean {
 // ============================================================================
 
 function parseJsonlFile(jsonlPath: string, label: string): JsonlSessionRow[] {
-  let content: string;
-  try {
-    content = readFileSync(jsonlPath, "utf-8");
-  } catch (error) {
-    throw new Error(`${label} failed to read JSONL file: ${jsonlPath} - ${errorMessage(error)}`);
+  const content = readTextFile(jsonlPath);
+  if (!content) {
+    return [];
   }
 
   // Handle empty file
