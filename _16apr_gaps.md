@@ -313,3 +313,74 @@ GAP 7 tests mock `ListService` to return `SessionSummary[]` with `parentSessionI
 
 > **Note**: GAP 8 tests should live in `test/adapters/` and mock the filesystem/SQLite directly. GAP 7 tests (in `cli-gaps-edge-cases-4.test.ts`) test the CLI layer only.
 
+---
+
+## DRY Hook Infrastructure (committed 2026-04-18)
+
+### Problem
+
+Multiple code duplication patterns were accumulating across adapter files (codex.ts, claude.ts, opencode.ts) with no automated detection. Previous refactoring removed ~46 lines of duplication but had no gate to prevent recurrence.
+
+### Solution
+
+Pre-commit hook (`.githooks/pre-commit`) with 13 rules:
+
+```
+.githooks/pre-commit        — bash hook, git config core.hooksPath=.githooks
+references/rules.md         — human-readable rule registry
+ast-grep/rules/dry-rules.yml — structural ast-grep patterns
+scripts/pre-commit-ast-dry.sh — ast-grep scanner for staged files
+```
+
+**Rule summary:**
+
+| Rule | Severity | What it catches |
+|---|---|---|
+| R-01 | fail | hook not executable |
+| R-02 | fail | staged .env files |
+| R-03 | warn | staged binary files |
+| R-04 | warn | ast-grep DRY violations |
+| R-05 | warn | `readFileSync("utf-8")` in adapters → use fs-utils |
+| R-06 | warn | `readdirSync` + `.json` filter → use listJsonFiles |
+| R-07 | warn | `statSync` + isFile guard → use safeStat |
+| R-08 | warn | inline `Date.parse` for sorting → use minIso/maxIso |
+| R-09 | warn | inline `toLowerCase().includes()` → use containsIgnoreCase |
+| R-10 | warn | inline `split(/\r?\n/)` for JSONL → use jsonl-utils |
+| R-11 | warn | inline content extraction → use content-utils |
+| R-12 | warn | duplicate expandTilde in config/load.ts → import from fs-utils |
+| R-13 | warn | duplicate label construction → use createLabel helper |
+
+**All rules are warn-only** (except R-01/R-02) — they guide refactoring, never block commits.
+
+### Duplication inventory (17 known patterns)
+
+| Pattern | Locations | Suggested utility |
+|---|---|---|
+| `readFileSync("utf-8")` | 10 files | `fs-utils.ts: readTextFile/readJsonFile` |
+| `readdirSync + .json filter` | 3× acpx.ts | `fs-utils.ts: listJsonFiles` |
+| `statSync + isFile` guard | 4 adapters | `fs-utils.ts: safeStat` |
+| `Date.parse(a) - Date.parse(b)` | acpx.ts, opencode.ts | `fs-utils.ts: sortByIso` |
+| `toLowerCase().includes()` | 17 files | `fs-utils.ts: containsIgnoreCase` |
+| `split(/\r?\n/)` | 10+ lines | `jsonl-utils.ts: splitJsonlLines` |
+| `extractContentText/Parts` | codex.ts, claude.ts | `content-utils.ts` |
+| `expandTilde` duplicate | config/load.ts | import from fs-utils.ts |
+| `${entry.agent}:${entry.alias}` label | 4 adapters | `label.ts: createLabel` |
+| `normalizeTimestamp` | 3 adapters | already in normalize.ts ✅ |
+| `errorMessage()` | 4 adapters | already in core/utils.ts ✅ |
+| `minIso/maxIso` | 2 adapters | already in fs-utils.ts ✅ |
+
+### Adding new rules
+
+1. Add `### R-XX` block to `references/rules.md` (follow format exactly)
+2. Rule auto-parsed by hook — no other changes needed
+3. Add ast-grep pattern to `ast-grep/rules/dry-rules.yml` for structural detection
+4. Run `bash scripts/pre-commit-ast-dry.sh` to verify pattern catches intended violations
+
+### New adapter checklist
+
+When adding cursor.ts, zed.ts, or aider.ts (REQ-29/30/31):
+- [ ] Adapter uses `createSqliteBackend()` or `createJsonlBackend()`, not raw `Database`/`readFileSync`
+- [ ] Path resolution uses `fs-utils.ts` helpers, not inline `expandTilde`/`homedir()`
+- [ ] Label construction uses shared helper, not `${agent}:${alias}` literals
+- [ ] All 13 pre-commit rules pass before commit
+
