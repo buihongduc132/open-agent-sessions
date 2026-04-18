@@ -1,6 +1,6 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { join } from "node:path";
 import { Database } from "bun:sqlite";
 import { OtherAgentEntry } from "../config/types";
 import {
@@ -13,8 +13,16 @@ import {
   TimeRangeOptions,
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
+import { errorMessage } from "../core/utils";
 import type { CloneSourceAdapter, CloneSession, CloneMessage } from "../core/clone";
 import type { SimilarSessionResult } from "../similarity/search";
+import {
+  collectJsonlFiles,
+  contentContains,
+  maxIso,
+  resolvePath,
+  safeStat,
+} from "./fs-utils";
 
 type CodexAdapterOptions = {
   defaultPath?: string;
@@ -243,33 +251,6 @@ function resolveCodexPath(entry: OtherAgentEntry, options: CodexAdapterOptions):
     throw new Error(`Codex path is not a file or directory: ${resolved}`);
   }
   return resolved;
-}
-
-function collectJsonlFiles(rootPath: string): string[] {
-  const stat = statSync(rootPath);
-  if (stat.isFile()) {
-    return [rootPath];
-  }
-  if (!stat.isDirectory()) {
-    return [];
-  }
-
-  const files: string[] = [];
-  walkDir(rootPath, files);
-  return files.sort((a, b) => a.localeCompare(b));
-}
-
-function walkDir(dir: string, files: string[]): void {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      walkDir(fullPath, files);
-      continue;
-    }
-    if (entry.isFile() && entry.name.endsWith(".jsonl")) {
-      files.push(fullPath);
-    }
-  }
 }
 
 function parseCodexSession(filePath: string, entry: OtherAgentEntry): SessionSummary {
@@ -522,10 +503,6 @@ function extractContentText(content: unknown): string | undefined {
   return undefined;
 }
 
-function maxIso(a: string, b: string): string {
-  return Date.parse(a) >= Date.parse(b) ? a : b;
-}
-
 function readString(value: unknown, context: string): string {
   if (typeof value === "string" && value.trim().length > 0) {
     return value;
@@ -549,56 +526,6 @@ function preferTitle(
   if (metaTitle && metaTitle.length > 0) return metaTitle;
   if (fallbackTitle && fallbackTitle.length > 0) return fallbackTitle;
   return sessionId;
-}
-
-function resolvePath(pathValue: string, baseDir?: string): string {
-  const expanded = expandTilde(pathValue);
-  if (isAbsolute(expanded)) {
-    return expanded;
-  }
-  const base = baseDir ?? process.cwd();
-  return resolve(base, expanded);
-}
-
-function expandTilde(pathValue: string): string {
-  if (pathValue === "~") {
-    return homedir();
-  }
-  if (pathValue.startsWith("~/") || pathValue.startsWith("~\\")) {
-    return join(homedir(), pathValue.slice(2));
-  }
-  return pathValue;
-}
-
-function safeStat(pathValue: string): ReturnType<typeof statSync> | null {
-  try {
-    return statSync(pathValue);
-  } catch (error) {
-    return null;
-  }
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
-
-/**
- * Search file content for a case-insensitive text match.
- * Used by searchSessions to avoid fully parsing every file twice.
- */
-function contentContains(filePath: string, needle: string): boolean {
-  try {
-    const content = readFileSync(filePath, "utf8");
-    return content.toLowerCase().includes(needle);
-  } catch {
-    return false;
-  }
 }
 
 /**

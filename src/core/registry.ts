@@ -1,5 +1,6 @@
 import { AgentEntry, AgentKind, Config } from "../config/types";
 import { normalizeSessionSummary } from "./normalize";
+import { errorMessage } from "./utils";
 import QuickLRU from "quick-lru";
 import {
   Adapter,
@@ -184,14 +185,4 @@ function formatAdapterLabel(entry: AgentEntry): string {
 function formatValidationContext(entry: AgentEntry, index?: number): string {
   const prefix = typeof index === "number" ? `agents[${index}]` : "agent";
   return `${prefix} (${entry.agent}:${entry.alias})`;
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
 }

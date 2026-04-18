@@ -6,6 +6,7 @@
  */
 
 import { Config } from "../../config/types";
+import { errorMessage as errorMessageBase } from "../../core/utils";
 import { CliResult } from "../types";
 
 // ============================================================================
@@ -46,15 +47,11 @@ export function resolveConfig(options: ConfigOptions, usageMessage: string): Con
 // Error Helpers
 // ============================================================================
 
-export function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "Unknown error";
-}
+/**
+ * Re-export errorMessage from core/utils for CLI consumers.
+ * Kept as re-export to avoid breaking existing import paths.
+ */
+export const errorMessage = errorMessageBase;
 
 export function errorResult(message: string): CliResult {
   return {
