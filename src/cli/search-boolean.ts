@@ -435,15 +435,28 @@ export async function executeBooleanSearch(options: BooleanSearchOptions): Promi
  * "alpha AND" → true  (real term + trailing operator)
  * "AND OR"    → false (no real terms, different gap)
  */
+/**
+ * Check if an AST node represents a trailing (empty) operand:
+ * - An empty term: "alpha AND" → right is term("")
+ * - A NOT wrapping an empty term: "alpha AND NOT" → right is not(term(""))
+ */
+function isTrailingOperand(node: AstNode): boolean {
+  if (node.type === "term") return !node.value.trim();
+  return node.type === "not" &&
+    node.operand?.type === "term" &&
+    !node.operand.value.trim();
+}
+
 function hasTrailingOperator(node: AstNode): boolean {
   if (node.type === "and" || node.type === "or") {
-    const rightIsEmpty = node.right.type === "term" && !node.right.value.trim();
-    if (rightIsEmpty && hasRealTerm(node.left)) {
+    if (isTrailingOperand(node.right) && hasRealTerm(node.left)) {
       return true;
     }
     return hasTrailingOperator(node.left) || hasTrailingOperator(node.right);
   }
   if (node.type === "not") {
+    // Detect standalone NOT with empty operand (e.g. query "NOT" alone)
+    if (isTrailingOperand(node)) return true;
     return hasTrailingOperator(node.operand);
   }
   return false;

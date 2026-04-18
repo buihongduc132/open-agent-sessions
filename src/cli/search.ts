@@ -192,7 +192,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
         const titleQuery: SearchQuery = { cwd: process.cwd(), text: rawQuery };
         const titleResult = await options.searchSessions(titleQuery);
 
-        let contentResults;
+        let contentResults: SimilarSessionResult[] | undefined;
         try {
           contentResults = await options.findSimilarSessions(normalizedQuery);
         } catch (simError) {
@@ -202,28 +202,23 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
           if (filteredSessions.length === 0) {
             return errorResult(simError instanceof Error ? simError.message : String(simError));
           }
-          if (excludedIds.size > 0) {
-            filteredSessions = filteredSessions.filter((s) => !excludedIds.has(s.id));
-          }
-          const stderr = formatErrorsShared(resultErrors);
-          if (filteredSessions.length === 0) {
-            return { exitCode: 0, stdout: "No sessions found.\n", stderr };
-          }
-  const stdout = filteredSessions.map(formatSessionRowSimple).join("\n") + "\n";
-          return { exitCode: 0, stdout, stderr };
+          // Skip content resolution — use title results; fall through to
+          // shared exclusion + formatting at the end of the function.
         }
 
-        if (contentResults.length === 0) {
-          // Content search found nothing — fall back to title-only results
-          filteredSessions = titleResult.sessions;
-          resultErrors = titleResult.errors;
-        } else {
-          // Resolve agent/alias from title results + config for content matches
-          filteredSessions = contentResultsToSessions(
-            contentResults,
-            titleResult.sessions,
-            configResult.value,
-          );
+        if (contentResults !== undefined) {
+          if (contentResults.length === 0) {
+            // Content search found nothing — fall back to title-only results
+            filteredSessions = titleResult.sessions;
+            resultErrors = titleResult.errors;
+          } else {
+            // Resolve agent/alias from title results + config for content matches
+            filteredSessions = contentResultsToSessions(
+              contentResults,
+              titleResult.sessions,
+              configResult.value,
+            );
+          }
         }
       } else {
         const query: SearchQuery = { cwd: process.cwd(), text: normalizeWhitespace(rawQuery) };
