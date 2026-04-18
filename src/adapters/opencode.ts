@@ -709,7 +709,7 @@ type ToolFilterOpts = {
 };
 
 /**
- * Get messages with selection options (first, last, all, range, user-only).
+ * Get messages with selection options (first, last, all, range) with optional userOnly filter.
  * Uses 1-indexed ranges for start/end parameters.
  * Returns messages and optional warning.
  */
@@ -806,11 +806,6 @@ function getMessagesWithSelection(
       const endIndex = end; // slice end is exclusive, so we use end directly
 
       selectedRows = messagesWithRoles.slice(startIndex, endIndex);
-      break;
-    }
-
-    case "user-only": {
-      selectedRows = messagesWithRoles.filter((m) => m.role === "user");
       break;
     }
 

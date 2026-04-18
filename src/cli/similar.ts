@@ -48,7 +48,7 @@ export async function runSimilarCommand(options: {
   findSimilar: SimilarService;
 }): Promise<CliResult> {
   // Resolve config
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }

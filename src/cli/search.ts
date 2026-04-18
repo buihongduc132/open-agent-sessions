@@ -75,8 +75,8 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
     }
   }
 
-  let filteredSessions: SessionSummary[];
-  let resultErrors: SearchError[] = [];
+  let filteredSessions: SessionSummary[] = [];
+  let resultErrors: Array<{ agent: string; alias: string; message: string }> = [];
 
   try {
     if (isBooleanQuery(rawQuery)) {
