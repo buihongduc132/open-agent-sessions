@@ -133,9 +133,8 @@ describe("GAP 8 — claude adapter must investigate and populate parentSessionId
 
     const session = sessions.find((s) => s.id === "ses_claude_child");
     expect(session).toBeDefined();
-    // GAP 8 RED: The adapter currently ignores parent_session_id metadata record
-    expect(session!.parentSessionId).toBeUndefined(); // ← RED until adapter is updated
-    // TODO after investigation: update to: expect(session!.parentSessionId).toBe("ses_claude_root");
+    // GAP 8: The adapter now correctly reads parent_session_id from metadata/system records
+    expect(session!.parentSessionId).toBe("ses_claude_root");
   });
 
   /**

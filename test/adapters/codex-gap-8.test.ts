@@ -139,10 +139,8 @@ describe("GAP 8 — codex adapter must investigate and populate parentSessionId"
 
     const session = sessions.find((s) => s.id === "cx-child-001");
     expect(session).toBeDefined();
-    // GAP 8 RED: The adapter currently ignores session_meta.payload.parent_id
-    // If Codex actually stores parent info here, the adapter should read it:
-    expect(session!.parentSessionId).toBeUndefined(); // ← RED until adapter is updated
-    // TODO after investigation: update to: expect(session!.parentSessionId).toBe("cx-root-001");
+    // GAP 8: The adapter now correctly reads session_meta.payload.parent_id
+    expect(session!.parentSessionId).toBe("cx-root-001");
   });
 
   /**

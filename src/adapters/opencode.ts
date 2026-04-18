@@ -46,6 +46,7 @@ type OpenCodeAdapterOptions = {
 type SessionRow = {
   id: string;
   project_id: string;
+  parent_id: string | null;
   directory: string;
   title: string;
   time_created: number;
@@ -348,7 +349,7 @@ function listSessionsFromDb(
   // R-23: Fix N+1 — fetch all sessions WITH message counts in a single query
   const rows = db
     .query<SessionRow & { message_count: number }, [string]>(
-      `SELECT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated,
+      `SELECT s.id, s.project_id, s.parent_id, s.directory, s.title, s.time_created, s.time_updated,
               COUNT(m.id) AS message_count
        FROM session s
        LEFT JOIN message m ON m.session_id = s.id
@@ -367,6 +368,7 @@ function listSessionsFromDb(
     updated_at: formatTimestamp(row.time_updated),
     message_count: row.message_count,
     storage: "db",
+    parentSessionId: row.parent_id ?? undefined,
   }));
 }
 
@@ -1110,6 +1112,7 @@ function listSessionsFromJsonl(
     updated_at: formatTimestamp(row.timeUpdated),
     message_count: 0, // JSONL doesn't have message counts in session rows
     storage: "jsonl",
+    parentSessionId: row.clone?.src?.session_id ?? undefined,
   }));
 }
 

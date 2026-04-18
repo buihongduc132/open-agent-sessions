@@ -33,6 +33,7 @@ type ClaudeRecord = {
   type?: string;
   timestamp?: unknown;
   content?: unknown;
+  parent_session_id?: unknown;
 };
 
 export function createClaudeAdapter(
@@ -171,6 +172,7 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
   let messageCount = 0;
   let minTimestamp: string | undefined;
   let maxTimestamp: string | undefined;
+  let parentSessionId: string | undefined;
 
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i].trim();
@@ -180,6 +182,11 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
 
     const record = parseJsonLine(raw, filePath, i + 1);
     const recordType = record.type;
+
+    // Collect parent_session_id from any record type (metadata, system, etc.)
+    if (!parentSessionId) {
+      parentSessionId = readOptionalString(record.parent_session_id);
+    }
     if (record.timestamp !== undefined && record.timestamp !== null) {
       const recordId = record.id;
       const context =
@@ -216,6 +223,7 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
     updated_at: maxTimestamp,
     message_count: messageCount,
     storage: "other",
+    parentSessionId,
   };
 }
 
@@ -225,6 +233,18 @@ function parseJsonLine(line: string, filePath: string, lineNumber: number): Clau
   } catch (error) {
     throw new Error(`Claude JSONL parse error in ${filePath} at line ${lineNumber}`);
   }
+}
+
+/**
+ * Safely coerce an unknown value to a non-empty string, or return undefined.
+ * Handles null, undefined, non-string types, and empty/whitespace-only strings.
+ */
+function readOptionalString(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
 }
 
 function extractContentLine(content: unknown): string | undefined {

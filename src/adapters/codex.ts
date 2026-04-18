@@ -262,7 +262,7 @@ function parseCodexSession(filePath: string, entry: OtherAgentEntry): SessionSum
     // must still propagate so the caller knows the session data is bad.
     const message = errorMessage(error);
     if (message.includes("JSONL parse error")) {
-      return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
+      return { ...EMPTY_CODEX_SESSION };
     }
     throw error;
   }
@@ -279,7 +279,7 @@ function parseCodexSessionForTimeRange(filePath: string, entry: OtherAgentEntry)
     const message = errorMessage(error);
     if (message.includes("JSONL parse error")) {
       // Return empty sentinel — listSessionsByTimeRange will skip empty ids
-      return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
+      return { ...EMPTY_CODEX_SESSION };
     }
     throw error;
   }
@@ -292,12 +292,13 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
   // and their associated timestamps, then pair them: each session_meta's id is
   // matched with the latest timestamp from records AFTER that session_meta
   // but BEFORE the next session_meta with a different id.
-  type SessionRecord = { id: string; timestamp: string; maxTimestamp: string };
+  type SessionRecord = { id: string; timestamp: string; maxTimestamp: string; parentId?: string };
   const sessions: SessionRecord[] = [];
 
   let currentId: string | undefined;
   let currentCreatedAt: string | undefined;
   let currentMaxTs: string | undefined;
+  let currentParentId: string | undefined;
 
   for (const raw of lines) {
     if (raw.trim().length === 0) continue;
@@ -312,7 +313,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
     if (record.type === "session_meta") {
       // Flush the previous session if complete
       if (currentId !== undefined && currentCreatedAt !== undefined && currentMaxTs !== undefined) {
-        sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs });
+        sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs, parentId: currentParentId });
       }
       // Start a new session
       currentId = readString(record.payload?.id, `Codex session id missing in ${filePath}`);
@@ -321,6 +322,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
         `Codex created_at invalid for ${currentId} in ${filePath}`
       );
       currentMaxTs = currentCreatedAt; // initialize to created_at
+      currentParentId = readOptionalString(record.payload?.parent_id);
       continue;
     }
 
@@ -336,7 +338,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
 
   // Flush the final session
   if (currentId !== undefined && currentCreatedAt !== undefined && currentMaxTs !== undefined) {
-    sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs });
+    sessions.push({ id: currentId, timestamp: currentCreatedAt, maxTimestamp: currentMaxTs, parentId: currentParentId });
   }
 
   if (sessions.length === 0) {
@@ -355,6 +357,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
       updated_at: s.maxTimestamp,
       message_count: 0,
       storage: "other",
+      parentSessionId: s.parentId,
     };
   }
 
@@ -375,6 +378,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
     updated_at: best.maxTimestamp,
     message_count: 0,
     storage: "other",
+    parentSessionId: best.parentId,
   };
 }
 
@@ -448,6 +452,7 @@ function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): Sessi
 
   const metaTitle = readOptionalString(sessionMeta.payload?.title);
   const resolvedTitle = preferTitle(metaTitle, title, resolvedSessionId);
+  const parentId = readOptionalString(sessionMeta.payload?.parent_id);
 
   return {
     id: resolvedSessionId,
@@ -458,6 +463,7 @@ function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): Sessi
     updated_at: maxTimestamp,
     message_count: messageCount,
     storage: "other",
+    parentSessionId: parentId,
   };
 }
 
@@ -517,6 +523,18 @@ function readOptionalString(value: unknown): string | undefined {
   }
   return undefined;
 }
+
+/** Empty sentinel returned when a JSONL file has parse errors — callers skip empty ids. */
+const EMPTY_CODEX_SESSION: SessionSummary = Object.freeze({
+  id: "",
+  agent: "codex",
+  alias: "",
+  title: "",
+  created_at: "",
+  updated_at: "",
+  message_count: 0,
+  storage: "other",
+});
 
 function preferTitle(
   metaTitle: string | undefined,
