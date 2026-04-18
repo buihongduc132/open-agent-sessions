@@ -5,6 +5,18 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import { Config } from "./types";
 import { validateConfig } from "./validate";
 
+/**
+ * Error thrown when YAML parsing fails with line/column metadata.
+ */
+class YamlParseError extends Error {
+  line?: number;
+  column?: number;
+  constructor(message: string) {
+    super(message);
+    this.name = "YamlParseError";
+  }
+}
+
 export function loadConfigFromFile(path: string): Config {
   if (!path || typeof path !== "string") {
     throw new Error("Config path must be a non-empty string");
@@ -160,9 +172,9 @@ except yaml.YAMLError as e:
   }
 
   if (!payload.ok) {
-    const err = new Error(payload.message ?? "YAML parse error");
-    (err as any).line = payload.line ?? undefined;
-    (err as any).column = payload.column ?? undefined;
+    const err = new YamlParseError(payload.message ?? "YAML parse error");
+    err.line = payload.line ?? undefined;
+    err.column = payload.column ?? undefined;
     throw err;
   }
 
