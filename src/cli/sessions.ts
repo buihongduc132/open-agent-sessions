@@ -70,7 +70,7 @@ export async function runSessionsCommand(options: SessionsOptions): Promise<CliR
   }
 
   // Resolve config
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }

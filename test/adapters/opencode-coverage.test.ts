@@ -510,7 +510,7 @@ describe("OpenCode Adapter Coverage Tests", () => {
 
         const detail = await adapter.getSessionDetail!("ses-13", {
           mode: "all_no_tools",
-          selection: { mode: "user-only" },
+          selection: { mode: "all", userOnly: true },
         });
 
         expect(detail.messages).toHaveLength(2);
@@ -527,7 +527,7 @@ describe("OpenCode Adapter Coverage Tests", () => {
 
         const detail = await adapter.getSessionDetail!("ses-14", {
           mode: "all_no_tools",
-          selection: { mode: "user-only" },
+          selection: { mode: "all", userOnly: true },
         });
 
         expect(detail.messages).toHaveLength(0);

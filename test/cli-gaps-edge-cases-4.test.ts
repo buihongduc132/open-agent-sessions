@@ -73,15 +73,18 @@ function makeSession(
 
 import { execSync } from "child_process";
 import { writeFileSync, readFileSync, unlinkSync } from "fs";
+import { resolve } from "path";
 
 const RESULT_FILE = "/tmp/oas-fork-chain-result.txt";
+// Resolve the project root so the subprocess can import source files regardless of cwd
+const PROJECT_ROOT = resolve(__dirname, "..");
 
 function runForkChainInSubprocess(
   sessionSetupCode: string,
   startSessionVar: string,
 ): { completed: boolean; chainLength: number | null; error: string | null } {
     const script = `
-import { buildForkChain } from "./src/core/subagents";
+import { buildForkChain } from "${PROJECT_ROOT}/src/core/subagents";
 
 ${sessionSetupCode}
 
@@ -302,7 +305,6 @@ describe("GAP 2 — --sub-only flag missing", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — subOnly doesn't exist on the type yet (GAP 2)
       subOnly: true,
     });
 
@@ -328,7 +330,6 @@ describe("GAP 2 — --sub-only flag missing", () => {
       config: baseConfig,
       list: listService,
       rootsOnly: true,
-      // @ts-expect-error — subOnly doesn't exist on the type yet (GAP 2)
       subOnly: true,
     });
 
@@ -686,7 +687,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — subOnly doesn't exist yet (also GAP 2)
       subOnly: true,
     });
 
@@ -775,7 +775,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — subOnly doesn't exist yet (also GAP 2)
       subOnly: true,
       childrenOf: "ses_001",
     });
@@ -792,7 +791,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
     const result = await runListCommand({
       config: baseConfig,
       list: listService,
-      // @ts-expect-error — includeSubagents doesn't exist yet
       includeSubagents: true,
     });
 
@@ -818,7 +816,6 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
       config: baseConfig,
       list: listService,
       rootsOnly: true,
-      // @ts-expect-error — includeSubagents doesn't exist yet
       includeSubagents: true,
     });
 

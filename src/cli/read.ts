@@ -104,7 +104,7 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
   }
 
   // Resolve config
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }

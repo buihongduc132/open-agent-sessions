@@ -5,7 +5,6 @@ import { resolveConfig, errorResult, errorMessage, type ParseResult } from "./ut
 import {
   isAgentKind,
   formatList,
-  validateAlias,
   listAgents,
   aliasesForAgent,
   compareAgents,
@@ -35,7 +34,7 @@ export async function runDetailCommand(options: {
   loadConfig?: (path: string) => Config;
   getSession: DetailService;
 }): Promise<CliResult> {
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }
