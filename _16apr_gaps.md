@@ -476,3 +476,42 @@ Invalid `--format` value: same error behavior as `sessions`.
 - `detail --format text`: unchanged
 - Invalid `--format`: error returned
 
+---
+
+## GAP 11 — `oas sessions` returns wrong project sessions (falls back to `global` catch-all)
+
+### Evidence
+
+Running in `/home/bhd/Documents/Projects/bhd/oas-16apr-gaps`:
+
+```bash
+$ ocxo session list -n 3
+ses_261ad802fffe6LyfVZAhw4faUc  Gaps implementation workflow
+ses_25e3d1c10ffeXzJVW0jXkHCPDq  OAS sessions UX requirements
+ses_25fee74dcffeWiugUIlqjLICyw  Session read verification
+
+$ oas sessions --limit 3
+ses_25df914dcffekqib...  File operation task (/tmp/e2e_context_.../e2e tasks)
+ses_25df9202bffeCJsn...  Directory setup and seed file creation
+ses_25e105ee9ffe1ZGm...  <promise>COMPLETE</promise>
+```
+
+Sessions differ completely. `ocxo` returns project-specific sessions. `oas` returns sessions from `/tmp` via `global` project.
+
+### Root Cause
+
+`findProjectId()` in `src/adapters/opencode.ts` walks up the directory tree when no exact project match is found. In `/home/bhd/Documents/Projects/bhd/oas-16apr-gaps`, no project entry exists → it walks up to `/home/bhd` → finds `global` project (`id=global`, `worktree=/home/bhd`) → returns ALL `global`-tagged sessions including `/tmp/e2e_context_*` workdirs.
+
+`ocxo session list` resolves the exact project for the current directory without walking up past the nearest git root. `oas` walks all the way to `global`.
+
+### Requirement
+
+When running `oas sessions` / `oas list` / `oas search` in a directory with an active OpenCode project, it MUST return sessions belonging to that project only — not the `global` catch-all.
+
+Session count in `oas` MUST match session count in `ocxo session list` for the same OpenCode agent in the same directory.
+
+### Tests (RED first)
+- `oas sessions` in a project directory returns sessions from that project's `project_id` only
+- `oas sessions` in a project directory returns same sessions as `ocxo session list` for same agent
+- `oas sessions` in a project directory does NOT return sessions from unrelated `global` worktrees like `/tmp`
+
