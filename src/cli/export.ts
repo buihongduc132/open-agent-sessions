@@ -118,7 +118,7 @@ export async function runExportCommand(options: ExportOptions): Promise<CliResul
     stdout = formatDetail(detail, format);
   } catch (error) {
     return errorResult(
-      `Export format error: ${error instanceof Error ? error.message : String(error)}`
+      `Export format error: ${errorMessage(error)}`
     );
   }
 
@@ -136,7 +136,7 @@ export async function runExportCommand(options: ExportOptions): Promise<CliResul
       };
     } catch (error) {
       return errorResult(
-        `Failed to write to file: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to write to file: ${errorMessage(error)}`
       );
     }
   }

@@ -23,6 +23,7 @@ import {
 import { initializeSimilarity, type SimilarityConfig } from "../similarity/config";
 import { indexSessionEmbeddings } from "../similarity/storage";
 import { findSimilarSessions, type SimilarSessionResult } from "../similarity/search";
+import { errorMessage } from "../core/utils";
 
 // Expected schema for validation
 const EXPECTED_SCHEMA = {
@@ -423,7 +424,7 @@ function listSessionsByTimeRangeFromDb(
     rows = db.query<SessionRow & { message_count: number }, (string | number)[]>(sql).all(...params);
   } catch (error) {
     throw new Error(
-      `${label} failed to query sessions by time range: ${error instanceof Error ? error.message : String(error)}`
+      `${label} failed to query sessions by time range: ${errorMessage(error)}`
     );
   }
 
@@ -597,7 +598,7 @@ function findProjectId(db: Database, cwd: string, label: string): string | null 
 
     return null;
   } catch (error) {
-    throw new Error(`${label} failed to query project: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query project: ${errorMessage(error)}`);
   }
 }
 
@@ -610,7 +611,7 @@ function countMessages(db: Database, sessionId: string, label: string): number {
       .get(sessionId);
     return result?.count ?? 0;
   } catch (error) {
-    throw new Error(`${label} failed to count messages: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to count messages: ${errorMessage(error)}`);
   }
 }
 
@@ -642,7 +643,7 @@ function getMessagesFromDb(
   try {
     messages = db.query<MessageRow, [string]>(query).all(sessionId);
   } catch (error) {
-    throw new Error(`${label} failed to query messages: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query messages: ${errorMessage(error)}`);
   }
 
   if (options.lastOnly && messages.length > 0) {
@@ -664,7 +665,7 @@ function getMessagesFromDb(
         model?: { modelID?: string };
       };
     } catch (error) {
-      throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`${label} failed to parse message data for ${row.id}: ${errorMessage(error)}`);
     }
     const parts = getPartsFromDb(db, row.id, options, label);
 
@@ -730,7 +731,7 @@ function getMessagesWithSelection(
       )
       .all(sessionId);
   } catch (error) {
-    throw new Error(`${label} failed to query messages: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query messages: ${errorMessage(error)}`);
   }
 
   // Parse roles for filtering
@@ -749,7 +750,7 @@ function getMessagesWithSelection(
         model?: { modelID?: string };
       };
     } catch (error) {
-      throw new Error(`${label} failed to parse message data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`${label} failed to parse message data for ${row.id}: ${errorMessage(error)}`);
     }
     // Extract modelID with fallback: nested model.modelID takes precedence
     const modelID = data.model?.modelID || data.modelID;
@@ -860,7 +861,7 @@ function getPartsFromDb(
       )
       .all(messageId);
   } catch (error) {
-    throw new Error(`${label} failed to query parts: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to query parts: ${errorMessage(error)}`);
   }
 
   return parts
@@ -869,7 +870,7 @@ function getPartsFromDb(
       try {
         data = JSON.parse(row.data) as Record<string, unknown>;
       } catch (error) {
-        throw new Error(`${label} failed to parse part data for ${row.id}: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`${label} failed to parse part data for ${row.id}: ${errorMessage(error)}`);
       }
       const type = (data.type as string) ?? "unknown";
 
@@ -1046,7 +1047,7 @@ function parseJsonlFile(jsonlPath: string, label: string): JsonlSessionRow[] {
   try {
     content = readFileSync(jsonlPath, "utf-8");
   } catch (error) {
-    throw new Error(`${label} failed to read JSONL file: ${jsonlPath} - ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} failed to read JSONL file: ${jsonlPath} - ${errorMessage(error)}`);
   }
 
   // Handle empty file
@@ -1071,7 +1072,7 @@ function parseJsonlFile(jsonlPath: string, label: string): JsonlSessionRow[] {
       sessions.push(parsed);
     } catch (error) {
       throw new Error(
-        `${label} malformed JSONL at line ${lineNum}: ${error instanceof Error ? error.message : String(error)}`
+        `${label} malformed JSONL at line ${lineNum}: ${errorMessage(error)}`
       );
     }
   }
@@ -1444,7 +1445,7 @@ async function forkSessionDb(
   } catch (error) {
     throw new Error(
       `${label} failed to create forked session row: ` +
-        `${error instanceof Error ? error.message : String(error)}`
+        `${errorMessage(error)}`
     );
   }
 
@@ -1519,7 +1520,7 @@ async function forkSessionJsonl(
   } catch (error) {
     throw new Error(
       `${label} failed to write forked session to JSONL: ` +
-        `${error instanceof Error ? error.message : String(error)}`
+        `${errorMessage(error)}`
     );
   }
 
@@ -1620,7 +1621,7 @@ export function createOpenCodeCloneDestinationAdapter(
           }
         } else {
           throw new Error(
-            `${label} failed to append to JSONL file: ${jsonlPath} - ${error instanceof Error ? error.message : String(error)}`
+            `${label} failed to append to JSONL file: ${jsonlPath} - ${errorMessage(error)}`
           );
         }
       }

@@ -188,7 +188,7 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
         stderr: `Output written to: ${outputPath}\n`,
       };
     } catch (error) {
-      return errorResult(`Failed to write to file: ${error instanceof Error ? error.message : String(error)}`);
+      return errorResult(`Failed to write to file: ${errorMessage(error)}`);
     }
   }
   

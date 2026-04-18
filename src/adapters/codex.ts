@@ -260,7 +260,7 @@ function parseCodexSession(filePath: string, entry: OtherAgentEntry): SessionSum
     // Only skip files with JSON parse errors (corrupt lines).
     // Semantic errors (invalid timestamps, missing session_meta, etc.)
     // must still propagate so the caller knows the session data is bad.
-    const message = error instanceof Error ? error.message : String(error);
+    const message = errorMessage(error);
     if (message.includes("JSONL parse error")) {
       return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
     }
@@ -276,7 +276,7 @@ function parseCodexSessionForTimeRange(filePath: string, entry: OtherAgentEntry)
   try {
     return parseCodexSessionForTimeRangeInner(filePath, entry);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = errorMessage(error);
     if (message.includes("JSONL parse error")) {
       // Return empty sentinel — listSessionsByTimeRange will skip empty ids
       return { id: "", agent: "codex", alias: "", title: "", created_at: "", updated_at: "", message_count: 0, storage: "other" };
@@ -668,7 +668,7 @@ function listSessionsByTimeRangeFromSqlite(
     db = new Database(dbPath, { readonly: true });
   } catch (error) {
     throw new Error(
-      `${label} failed to open SQLite DB ${dbPath}: ${error instanceof Error ? error.message : String(error)}`
+      `${label} failed to open SQLite DB ${dbPath}: ${errorMessage(error)}`
     );
   }
 
@@ -698,7 +698,7 @@ function listSessionsByTimeRangeFromSqlite(
       rows = db.query<SqliteThreadRow, (string | number)[]>(sql).all(...params);
     } catch (error) {
       throw new Error(
-        `${label} SQLite query failed: ${error instanceof Error ? error.message : String(error)}`
+        `${label} SQLite query failed: ${errorMessage(error)}`
       );
     }
 
@@ -739,7 +739,7 @@ async function getSessionDetailFromSqlite(
     db = new Database(dbPath, { readonly: true });
   } catch (error) {
     throw new Error(
-      `${label} failed to open SQLite DB ${dbPath}: ${error instanceof Error ? error.message : String(error)}`
+      `${label} failed to open SQLite DB ${dbPath}: ${errorMessage(error)}`
     );
   }
 

@@ -28,6 +28,7 @@ import { join, resolve } from "node:path";
 import { Adapter, SearchQuery, SessionDetail, SessionMessage, SessionReadOptions, SessionSummary } from "../core/types";
 import { AgentKind } from "../config/types";
 import type { SimilarSessionResult } from "../similarity/search";
+import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -285,7 +286,7 @@ function parseAcpxSessionFile(filePath: string): AcpxSession {
   try {
     raw = readFileSync(filePath, "utf8");
   } catch (error) {
-    throw new Error(`acpx: failed to read session file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`acpx: failed to read session file ${filePath}: ${errorMessage(error)}`);
   }
 
   let data: Record<string, unknown>;

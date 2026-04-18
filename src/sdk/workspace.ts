@@ -21,6 +21,7 @@ import { AgentKind } from "../config/types";
 import type { AgentEntry, OpenCodeAgentEntry } from "../config/types";
 import { Adapter, AdapterFactories, AdapterRegistry } from "../core/types";
 import { createAdapter } from "../core/registry";
+import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -368,7 +369,7 @@ function buildHandle(
         return sessions;
       } catch (error) {
         throw new Error(
-          `[${agent}:${alias}] listSessions: ${error instanceof Error ? error.message : String(error)}`
+          `[${agent}:${alias}] listSessions: ${errorMessage(error)}`
         );
       }
     },
