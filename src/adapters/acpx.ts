@@ -175,7 +175,7 @@ export function createAcpxAdapter(
                   msgs = msgs.slice(0, selection.count);
                   break;
                 case "last":
-                  msgs = msgs.slice(-(selection.count ?? 10));
+                  msgs = selection.count === 0 ? [] : msgs.slice(-(selection.count ?? 10));
                   break;
                 case "range": {
                   const start = (selection.start ?? 1) - 1; // 1-indexed → 0-indexed
