@@ -388,8 +388,8 @@ function parseRegex(query: string): RegExp | null {
     // Strip 'g' flag — it is harmful in boolean .test() filter loops.
     // 'g' is only useful for matchAll/exec loops, which we never use.
     const rawFlags = match[2].replace(/g/g, "");
-    // Default to case-insensitive if no 'i' flag specified
-    const flags = rawFlags.includes("i") ? rawFlags : rawFlags + "i";
+    // Respect user-provided flags. If no flags specified, default to case-insensitive.
+    const flags = rawFlags.length > 0 ? rawFlags : "i";
     return new RegExp(pattern, flags);
   } catch {
     return null;
