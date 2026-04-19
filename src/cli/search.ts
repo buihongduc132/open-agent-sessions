@@ -9,7 +9,7 @@ import {
 } from "./search-boolean";
 import type { SimilarSessionResult } from "../similarity/search";
 import { resolveConfig, errorResult, errorMessage } from "./utils/config";
-import { formatErrors as formatErrorsShared, formatSessionRowSimple } from "./formatters/text";
+import { formatErrors as formatErrorsShared, formatSessionRowSimple, formatSessionsJson } from "./formatters/text";
 
 const USAGE = `Usage: oas search --text <query>
 
@@ -45,6 +45,7 @@ export type SearchOptions = {
   currentSessionId?: string;
   excludeCurrent?: boolean;
   excludeSession?: string[];
+  format?: "text" | "json";
   searchSessions: SearchService;
   findSimilarSessions?: ContentSearchService;
 };
@@ -237,10 +238,13 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
 
   const stderr = formatErrorsShared(resultErrors);
   if (filteredSessions.length === 0) {
-    return { exitCode: 0, stdout: "No sessions found.\n", stderr };
+    const emptyJson = options.format === "json" ? "[]\n" : "No sessions found.\n";
+    return { exitCode: 0, stdout: emptyJson, stderr };
   }
 
-  const stdout = filteredSessions.map(formatSessionRowSimple).join("\n") + "\n";
+  const stdout = options.format === "json"
+    ? formatSessionsJson(filteredSessions)
+    : filteredSessions.map(formatSessionRowSimple).join("\n") + "\n";
   return { exitCode: 0, stdout, stderr };
 }
 

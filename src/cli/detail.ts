@@ -13,6 +13,7 @@ import {
   withLabel,
   normalizeTitle,
 } from "./utils/agents";
+import { formatDetail, formatSessionDetailJson } from "./formatters/text";
 
 const USAGE =
   "Usage: oas detail --session <agent:alias:session_id|agent:session_id> | oas detail --agent <agent> --alias <alias> --id <session_id>";
@@ -30,6 +31,7 @@ export async function runDetailCommand(options: {
   agent?: string;
   alias?: string;
   id?: string;
+  format?: "text" | "json";
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -61,7 +63,9 @@ export async function runDetailCommand(options: {
     );
   }
 
-  const stdout = formatDetail(detail, target) + "\n";
+  const stdout = options.format === "json"
+    ? formatSessionDetailJson(detail)
+    : formatDetail(detail, target) + "\n";
   return {
     exitCode: 0,
     stdout,
