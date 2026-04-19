@@ -72,6 +72,8 @@ export function walkDir(dir: string, files: string[]): void {
   }
 }
 
+// NOTE: Reads entire file into memory. For session JSONL files (< 50MB typical),
+// this is acceptable. Streaming would be needed for files > 100MB.
 export function splitJsonlLines(content: string): string[] {
   return content.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
 }

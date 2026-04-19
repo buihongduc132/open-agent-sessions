@@ -250,6 +250,9 @@ function runVectorSearch(
   }
 
   // ── Attempt 2: Shadow table — brute-force cosine similarity ─────────────────
+  // PERF: This brute-force cosine is a FALLBACK when sqlite-vec is unavailable.
+  // The primary path uses sqlite-vec's native KNN which handles millions of vectors.
+  // This JS fallback is only reached in test/dev environments without sqlite-vec.
   try {
     const allRows = db
       .prepare(`SELECT embedding, session_id, message_id FROM session_vec`)
