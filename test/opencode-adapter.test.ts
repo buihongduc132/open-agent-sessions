@@ -1724,7 +1724,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         const detail = await adapter.getSessionDetail!("ses-user-1", {
-          selection: { mode: "user-only" },
+          selection: { mode: "all", userOnly: true },
         });
 
         // Messages 1, 3, 5, 7, 9, 11, 13, 15 are user (odd numbers)
@@ -1749,7 +1749,7 @@ describe("OpenCode Adapter", () => {
         const adapter = createOpenCodeAdapter(entry, { cwd });
 
         const detail = await adapter.getSessionDetail!("ses-no-user", {
-          selection: { mode: "user-only" },
+          selection: { mode: "all", userOnly: true },
         });
 
         expect(detail.messages).toEqual([]);
@@ -2018,7 +2018,7 @@ describe("OpenCode Adapter", () => {
 
         const detail = await adapter.getSessionDetail!("ses-combo-3", {
           mode: "all_no_tools",
-          selection: { mode: "user-only" },
+          selection: { mode: "all", userOnly: true },
         });
 
         expect(detail.messages).toHaveLength(2);

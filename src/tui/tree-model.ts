@@ -41,6 +41,8 @@ export interface TreeRenderOptions {
   maxDepth?: number;
   /** Session ID prefix for rendering a subtree */
   rootKey?: string;
+  /** Max character width for each label; labels longer than this are truncated with `…` */
+  maxLabelWidth?: number;
 }
 
 export interface TreeRenderLine {
@@ -79,8 +81,8 @@ export function buildForest(sessions: SessionSummary[]): TreeNode[] {
       children: [],
     });
     // parentSessionId may be in agent-specific data; we store parentId separately
-    if ("parentSessionId" in s && (s as Record<string, unknown>).parentSessionId) {
-      const parentId = String((s as Record<string, unknown>).parentSessionId);
+    if ("parentSessionId" in s && (s as unknown as Record<string, unknown>).parentSessionId) {
+      const parentId = String((s as unknown as Record<string, unknown>).parentSessionId);
       parentMap.set(s.id, parentId);
     }
   }
@@ -208,8 +210,10 @@ function renderNode(
   const isSelected = node.key === options.selectedKey;
   const childCount = node.children.length;
 
-  // Build the label
-  const agentColor = colorForAgent(node.agent);
+  // Build the label — plain text; color applied via fg prop in TreeView, not embedded ANSI.
+  // When multiple sessions share the same agent:alias they are visually identical without a
+  // distinguisher; append the first 8 chars of the sessionId so each row is identifiable.
+  const shortId = node.sessionId.slice(0, 8);
   const forkedLabel = node.forkedAt
     ? ` [${node.forkedAt.slice(0, 16).replace("T", " ")}]`
     : "";
@@ -217,8 +221,9 @@ function renderNode(
     ? ` (+${childCount} more)`
     : "";
 
-  const label = `${agentColor}${node.agent}/${node.alias}${forkedLabel}${collapsedLabel}`;
-  const text = prefix + connector + label;
+  const label = `${node.agent}/${node.alias}~${shortId}${forkedLabel}${collapsedLabel}`;
+  const truncatedLabel = truncateLabel(label, options.maxLabelWidth);
+  const text = prefix + connector + truncatedLabel;
 
   lines.push({
     text,
@@ -243,14 +248,25 @@ function renderNode(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** ANSI color codes for agent types in the tree. */
+/**
+ * Truncate `text` to `maxWidth` characters, appending `…` if truncated.
+ * If maxWidth is undefined, 0, or <= the text length, returns text unchanged.
+ */
+export function truncateLabel(text: string, maxWidth?: number): string {
+  if (!maxWidth || maxWidth <= 0) return text;
+  if (text.length <= maxWidth) return text;
+  if (maxWidth < 3) return text.slice(0, maxWidth);
+  return text.slice(0, maxWidth - 1) + "…";
+}
+
+/** Hex color for agent type. Used for both text fg and tree label color. */
 export function colorForAgent(agent: string): string {
   switch (agent) {
-    case "opencode": return "\x1b[36m[opencode]\x1b[0m ";  // cyan
-    case "codex":    return "\x1b[33m[codex]\x1b[0m ";    // yellow
-    case "claude":   return "\x1b[35m[claude]\x1b[0m ";   // magenta
-    case "acpx":     return "\x1b[32m[acpx]\x1b[0m ";    // green
-    default:         return `\x1b[90m[${agent}]\x1b[0m `; // dim
+    case "opencode": return "#4dd9ff"; // cyan
+    case "codex":    return "#ffcc00";  // yellow
+    case "claude":   return "#cc99ff";  // magenta
+    case "acpx":     return "#99ff99";  // green
+    default:         return "#999999";  // dim gray
   }
 }
 

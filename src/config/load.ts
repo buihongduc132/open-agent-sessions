@@ -17,6 +17,18 @@ class YamlParseError extends Error {
   }
 }
 
+/**
+ * Error thrown when YAML parsing fails with line/column metadata.
+ */
+class YamlParseError extends Error {
+  line?: number;
+  column?: number;
+  constructor(message: string) {
+    super(message);
+    this.name = "YamlParseError";
+  }
+}
+
 export function loadConfigFromFile(path: string): Config {
   if (!path || typeof path !== "string") {
     throw new Error("Config path must be a non-empty string");
