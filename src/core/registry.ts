@@ -15,6 +15,7 @@ const AGENT_ORDER: Record<AgentKind, number> = {
   opencode: 0,
   codex: 1,
   claude: 2,
+  hermes: 3,
 };
 
 // R-40: In-memory LRU cache for session detail reads.

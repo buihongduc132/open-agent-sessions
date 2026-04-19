@@ -136,6 +136,7 @@ export interface AdapterFactories {
   opencode: AdapterFactory;
   codex: AdapterFactory;
   claude: AdapterFactory;
+  hermes: AdapterFactory;
 }
 
 export interface AdapterHandle {

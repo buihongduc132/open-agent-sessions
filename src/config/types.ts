@@ -1,4 +1,4 @@
-export type AgentKind = "opencode" | "codex" | "claude";
+export type AgentKind = "opencode" | "codex" | "claude" | "hermes";
 
 export type OpenCodeStorageMode = "auto" | "db" | "jsonl";
 

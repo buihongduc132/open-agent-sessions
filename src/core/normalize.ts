@@ -1,7 +1,7 @@
 import { AgentKind } from "../config/types";
 import { SessionSummary, SessionStorageKind } from "./types";
 
-const ALLOWED_AGENTS: AgentKind[] = ["opencode", "codex", "claude"];
+const ALLOWED_AGENTS: AgentKind[] = ["opencode", "codex", "claude", "hermes"];
 const ALLOWED_STORAGE: SessionStorageKind[] = ["db", "jsonl", "other"];
 
 export function normalizeSessionSummary(
