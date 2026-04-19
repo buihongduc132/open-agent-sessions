@@ -53,14 +53,14 @@ describe("GAP 11: oas sessions project scope across worktrees", () => {
 
   test("oas sessions count in oas-16apr-gaps >= ocxo session list count", async () => {
     const [oasResult, ocxoResult] = await Promise.all([
-      runCLI(["sessions", "--limit", "0", "--format", "json"], WORKTREES.oasAprGaps),
+      runCLI(["sessions", "--limit", "0", "--last", "9999d", "--format", "json"], WORKTREES.oasAprGaps),
       new Promise<{ stdout: string }>((resolve) => {
-        const proc = spawn("ocxo", ["session", "list", "-n", "100"], { cwd: WORKTREES.oasAprGaps, timeout: 15000 });
+        const proc = spawn("ocxo", ["session", "list", "-n", "0"], { cwd: WORKTREES.oasAprGaps, timeout: 30000 });
         let stdout = "";
         proc.stdout.on("data", (d) => { stdout += d.toString(); });
         proc.on("close", () => { resolve({ stdout }); });
         proc.on("error", () => { resolve({ stdout: "" }); });
-        setTimeout(() => { proc.kill(); resolve({ stdout: "" }); }, 15000);
+        setTimeout(() => { proc.kill(); resolve({ stdout: "" }); }, 30000);
       }),
     ]);
 
