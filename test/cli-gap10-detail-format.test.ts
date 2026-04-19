@@ -117,13 +117,15 @@ describe("GAP 10c: `oas detail --format json|text`", () => {
     expect(parsed).toBeTypeOf("object");
     expect(Array.isArray(parsed)).toBe(false);
     const obj = parsed as Record<string, unknown>;
-    // Must have SessionDetail fields
-    expect(obj).toHaveProperty("id");
-    expect(obj).toHaveProperty("agent");
-    expect(obj).toHaveProperty("alias");
-    expect(obj).toHaveProperty("title");
-    expect(obj).toHaveProperty("created_at");
-    expect(obj).toHaveProperty("updated_at");
+    // Must have SessionDetail fields (nested under .session per formatMessagesJson)
+    const session = obj.session as Record<string, unknown> | undefined;
+    expect(session).toBeDefined();
+    expect(session!).toHaveProperty("id");
+    expect(session!).toHaveProperty("agent");
+    expect(session!).toHaveProperty("alias");
+    expect(session!).toHaveProperty("title");
+    expect(session!).toHaveProperty("created_at");
+    expect(session!).toHaveProperty("updated_at");
     // messages is the key field that distinguishes SessionDetail from SessionSummary
     expect(obj).toHaveProperty("messages");
   });
@@ -140,8 +142,8 @@ describe("GAP 10c: `oas detail --format json|text`", () => {
     if (!realSessionId) return; // skip if no session found
     const result = await runCLI(["detail", realSessionId, "--format", "text"]);
     expect(result.exitCode).toBe(0);
-    const firstChar = result.stdout.trim()[0];
-    expect(firstChar).not.toMatch(/[\[{]/);
+    // text output is NOT valid JSON (formatDetail produces multi-line key:value lines)
+    expect(() => JSON.parse(result.stdout)).toThrow();
   });
 
   test("`oas detail <id>` (no --format) behaves like --format text (backwards compat)", async () => {

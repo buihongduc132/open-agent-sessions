@@ -113,9 +113,8 @@ describe("GAP 10b: `oas search --format json|text`", () => {
   test("`oas search --text ast --format text` returns non-JSON text output", async () => {
     const result = await runCLI(["search", "--text", "ast", "--format", "text", "--limit", "5"]);
     expect(result.exitCode).toBe(0);
-    // text output is NOT valid JSON
-    const firstChar = result.stdout.trim()[0];
-    expect(firstChar).not.toMatch(/[\[{]/);
+    // text output is NOT valid JSON (formatSessionRowSimple produces [agent:alias] prefix)
+    expect(() => JSON.parse(result.stdout)).toThrow();
   });
 
   test("`oas search --text ast` (no --format) behaves like --format text (backwards compat)", async () => {
