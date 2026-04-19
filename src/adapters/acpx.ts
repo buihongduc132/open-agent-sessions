@@ -190,15 +190,16 @@ export function createAcpxAdapter(
               }
             }
 
-            // Apply userOnly filter if set (role=assistant conflicts with userOnly → empty)
+            // Apply role-based filtering
             const effectiveUserOnly = options.userOnly || options.selection?.userOnly;
             if (effectiveUserOnly) {
-              // If role is set to something other than 'user', userOnly constraint is impossible
               if (options.role && options.role !== "user") {
                 msgs = [];
               } else {
                 msgs = msgs.filter((m) => m.role === "user");
               }
+            } else if (options.role) {
+              msgs = msgs.filter((m) => m.role === options.role);
             }
 
             detail = { ...detail, messages: msgs };

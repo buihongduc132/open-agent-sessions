@@ -275,7 +275,6 @@ function contentResultsToSessions(
       return {
         ...known,
         title: r.title || known.title,
-        message_count: r.matchedChunks,
       };
     }
 
