@@ -42,21 +42,28 @@ export interface TextFormatterOptions {
  * When title is empty/missing, uses session ID as title with different layout:
  * Format: [agent:alias] SESSION_ID...            MSG   LAST_ACTIVITY
  */
-export function formatSessionRow(session: SessionSummary): string {
-  const label = `[${session.agent}:${session.alias}]`.padEnd(25);
+export interface FormatSessionRowOptions {
+  full?: boolean;
+  showAlias?: boolean;
+}
+
+export function formatSessionRow(session: SessionSummary, opts?: FormatSessionRowOptions): string {
+  const showAlias = opts?.showAlias ?? false;
+  const isDefault = session.alias === "default";
+  const label = showAlias || !isDefault
+    ? `[${session.agent}:${session.alias}]`.padEnd(25)
+    : `[${session.agent}]`.padEnd(25);
   const roleTag = session.parentSessionId ? "[sub]" : "[main]";
   const title = session.title.trim().length > 0 ? session.title : session.id;
   const sessionId = truncateId(session.id, 20);
   const messageCount = session.message_count.toString().padStart(4, " ");
   const lastActivity = formatRelativeTime(session.updated_at);
-  
+
   if (title === session.id) {
-    // No title - show session ID prominently
     return `${label} ${roleTag} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
   }
-  
-  // Has title - show title with session ID
-  const displayTitle = truncateText(title, 40);
+
+  const displayTitle = opts?.full ? title : truncateText(title, 40);
   return `${label} ${roleTag} ${displayTitle.padEnd(40)} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
 }
 
