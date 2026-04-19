@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
+import { createLabel } from "./label";
+import { extractContentLine, extractContentPartsClaude, extractContentTextClaude } from "./content-utils";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
@@ -20,6 +22,8 @@ import {
   minIso,
   resolvePath,
   safeStat,
+  sortByIsoDesc,
+  splitJsonlLines,
 } from "./fs-utils";
 
 type ClaudeAdapterOptions = {
@@ -47,7 +51,7 @@ export function createClaudeAdapter(
   return {
     version: "1.0.0", // TODO: Replace with actual version from package.json or similar
     listSessions: () => {
-      const label = `[${entry.agent}:${entry.alias}]`;
+      const label = createLabel(entry);
       try {
         const rootPath = resolveClaudePath(entry, options);
         const files = collectJsonlFiles(rootPath);
@@ -62,7 +66,7 @@ export function createClaudeAdapter(
     },
     // R-22: searchSessions — full Claude adapter
     searchSessions: (query: SearchQuery): SessionSummary[] => {
-      const label = `[${entry.agent}:${entry.alias}]`;
+      const label = createLabel(entry);
       try {
         const rootPath = resolveClaudePath(entry, options);
         const files = collectJsonlFiles(rootPath);
@@ -83,9 +87,7 @@ export function createClaudeAdapter(
           }
         }
 
-        results.sort(
-          (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)
-        );
+        return sortByIsoDesc(results, "updated_at");
         return results;
       } catch (error) {
         const message = errorMessage(error);
@@ -100,7 +102,7 @@ export function createClaudeAdapter(
       sessionId: string,
       _options: SessionReadOptions
     ): Promise<SessionDetail> => {
-      const label = `[${entry.agent}:${entry.alias}]`;
+      const label = createLabel(entry);
       const rootPath = resolveClaudePath(entry, options);
       const files = collectJsonlFiles(rootPath);
 
@@ -167,7 +169,7 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
   if (!sessionId || sessionId.trim().length === 0 || sessionId.startsWith(".")) {
     throw new Error(`Claude session id missing for ${filePath}`);
   }
-  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
   let title: string | undefined;
   let messageCount = 0;
   let minTimestamp: string | undefined;
@@ -247,44 +249,11 @@ function readOptionalString(value: unknown): string | undefined {
   return undefined;
 }
 
-function extractContentLine(content: unknown): string | undefined {
-  const text = extractContentText(content);
-  if (!text) return undefined;
-  const line = text.split(/\r?\n/)[0]?.trim();
-  return line && line.length > 0 ? line : undefined;
-}
-
-function extractContentText(content: unknown): string | undefined {
-  if (typeof content === "string") {
-    return content;
-  }
-  if (Array.isArray(content)) {
-    const pieces = content
-      .map((item) => {
-        if (typeof item === "string") return item;
-        if (item && typeof item === "object") {
-          const record = item as Record<string, unknown>;
-          if (typeof record.text === "string") return record.text;
-          if (typeof record.output_text === "string") return record.output_text;
-          if (typeof record.input_text === "string") return record.input_text;
-        }
-        return "";
-      })
-      .filter((part) => part.length > 0);
-    return pieces.length > 0 ? pieces.join("") : undefined;
-  }
-  if (content && typeof content === "object") {
-    const record = content as Record<string, unknown>;
-    if (typeof record.text === "string") return record.text;
-  }
-  return undefined;
-}
-
 /**
  * Parse all messages from a Claude JSONL transcript file.
  */
 function parseClaudeMessages(filePath: string, label: string): SessionMessage[] {
-  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
   const messages: SessionMessage[] = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -329,34 +298,5 @@ function parseClaudeMessages(filePath: string, label: string): SessionMessage[] 
  * Extract text parts from Claude message content.
  */
 function extractContentParts(content: unknown): string[] {
-  const parts: string[] = [];
-
-  if (typeof content === "string") {
-    parts.push(content);
-    return parts;
-  }
-
-  if (Array.isArray(content)) {
-    for (const item of content) {
-      if (typeof item === "string") {
-        parts.push(item);
-      } else if (item && typeof item === "object") {
-        const record = item as Record<string, unknown>;
-        const text =
-          (typeof record.input_text === "string" ? record.input_text : null) ??
-          (typeof record.text === "string" ? record.text : null) ??
-          (typeof record.output_text === "string" ? record.output_text : null);
-        if (text) parts.push(text);
-      }
-    }
-  } else if (content && typeof content === "object") {
-    const record = content as Record<string, unknown>;
-    const text =
-      (typeof record.input_text === "string" ? record.input_text : null) ??
-      (typeof record.text === "string" ? record.text : null) ??
-      (typeof record.output_text === "string" ? record.output_text : null);
-    if (text) parts.push(text);
-  }
-
-  return parts;
+  return extractContentPartsClaude(content);
 }

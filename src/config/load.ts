@@ -1,9 +1,9 @@
 import { readFileSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { homedir } from "node:os";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { Config } from "./types";
 import { validateConfig } from "./validate";
+import { expandTilde } from "../adapters/fs-utils";
 
 /**
  * Error thrown when YAML parsing fails with line/column metadata.
@@ -89,16 +89,6 @@ function resolvePath(pathValue: string, baseDir: string): string {
     return expanded;
   }
   return resolve(baseDir, expanded);
-}
-
-function expandTilde(pathValue: string): string {
-  if (pathValue === "~") {
-    return homedir();
-  }
-  if (pathValue.startsWith("~/") || pathValue.startsWith("~\\")) {
-    return resolve(homedir(), pathValue.slice(2));
-  }
-  return pathValue;
 }
 
 function parseYamlWithPython(contents: string, sourcePath: string): unknown {

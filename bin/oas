@@ -511,6 +511,8 @@ async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
     until: parsed.options["until"] as string | undefined,
     limit: parsed.options["limit"] as number | undefined,
     format: parsed.options["format"] as "text" | "json" | undefined,
+    full: parsed.options["full"] === true,
+    showAlias: parsed.options["show-alias"] === true,
     config,
     getSessions,
   });
@@ -578,11 +580,20 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
 }
 
 async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (format !== "text" && format !== "json") {
+      console.error("Invalid --format value: must be 'text' or 'json'");
+      process.exit(1);
+    }
+  }
+
   const config = loadConfig();
   const searchSessions = createSearchService(config);
 
   const result = await runSearchCommand({
     text: parsed.options["text"] as string | undefined,
+    format: parsed.options["format"] as "text" | "json" | undefined,
     config,
     searchSessions,
   });
@@ -600,10 +611,14 @@ async function handleListNewCommand(parsed: ParsedArgs): Promise<void> {
     agent: parsed.options["agent"] as string | undefined,
     alias: parsed.options["alias"] as string | undefined,
     q: parsed.options["q"] as string | undefined,
+    limit: parsed.options["limit"] as number | undefined,
     rootsOnly: parsed.options["roots-only"] === true,
     subOnly: parsed.options["sub-only"] === true,
     childrenOf: parsed.options["children-of"] as string | undefined,
     includeSubagents: parsed.options["include-subagents"] === true,
+    full: parsed.options["full"] === true,
+    showAlias: parsed.options["show-alias"] === true,
+    format: parsed.options["format"] as "text" | "json" | undefined,
     config,
     list,
   });
@@ -614,19 +629,30 @@ async function handleListNewCommand(parsed: ParsedArgs): Promise<void> {
 }
 
 async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (format !== "text" && format !== "json") {
+      console.error("Invalid --format value: must be 'text' or 'json'");
+      process.exit(1);
+    }
+  }
+
   const config = loadConfig();
   const getSession = createDetailService(config);
 
   // Support positional session spec: `oas detail <session-id>`
+  // parseArgs stores first non-flag arg as command (not positional), so also use parsed.command
   const sessionSpec =
     parsed.options["session"] as string | undefined ||
-    (parsed.positional[0] ? `--session ${parsed.positional[0]}` : undefined);
+    parsed.positional[0] ||
+    parsed.command || undefined;
 
   const result = await runDetailCommand({
     session: sessionSpec,
     agent: parsed.options["agent"] as string | undefined,
     alias: parsed.options["alias"] as string | undefined,
     id: parsed.options["id"] as string | undefined,
+    format: parsed.options["format"] as "text" | "json" | undefined,
     config,
     getSession,
   });
@@ -740,11 +766,13 @@ console.log("    export [options]       Export session in CSF/Markdown/Text form
   console.log("    tui                    Launch the interactive TUI (session browser + clone)");
   console.log("");
   console.log("Sessions Command Options:");
-  console.log("    --last DURATION        Last duration (e.g., 4h, 2d, 1w)");
-  console.log("    --since TIMESTAMP      Start time (ISO-8601 format)");
-  console.log("    --until TIMESTAMP      End time (ISO-8601 format)");
-  console.log("    --limit N              Maximum results (default: 50, 0 = all)");
-  console.log("    --format FORMAT        Output format: text (default) or json");
+console.log("    --last DURATION     Last duration (e.g., 4h, 2d, 1w)");
+  console.log("    --since TIMESTAMP   Start time (ISO-8601 format)");
+  console.log("    --until TIMESTAMP   End time (ISO-8601 format)");
+  console.log("    --limit N           Maximum results (default: 50, 0 = all)");
+  console.log("    --format FORMAT     Output format: text (default) or json");
+  console.log("    --full              Show full titles (no truncation)");
+  console.log("    --show-alias        Show all aliases including 'default'");
   console.log("");
   console.log("List-New Command Options:");
   console.log("    --agent NAME           Filter by agent (OpenCode-only in CLI)");
@@ -836,9 +864,7 @@ console.log("    export [options]       Export session in CSF/Markdown/Text form
 // ============================================================================
 
 async function handleTuiCommand(): Promise<void> {
-  console.error("DEBUG handleTuiCommand: START");
   const config = loadConfig();
-  console.error("DEBUG config agents:", JSON.stringify(config.agents.map(a => ({agent:a.agent, alias:a.alias, enabled:a.enabled}))));
 
   // Create CLI-compatible services for the TUI
   const listService = createListServiceFromConfig(config);
@@ -887,19 +913,22 @@ async function main() {
   const command = argv[0];
   const restArgs = argv.slice(1);
 
-  // Handle legacy commands
+  // Handle list command — route to new handler for flag support
   if (command === "list" || command === "recent") {
-    const limitArg = restArgs[0];
-    if (limitArg === "--help" || limitArg === "-h") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
       showHelp();
       return;
     }
-    const limit = limitArg ? parseInt(limitArg, 10) : 10;
-    if (isNaN(limit) || limit <= 0) {
-      console.error("Error: limit must be a positive number");
-      process.exit(1);
+    const limitArg = parsed.positional[0] || (parsed.command ? parsed.command : undefined);
+    if (limitArg !== undefined) {
+      const num = Number(limitArg);
+      if (isNaN(num) || num <= 0 || !Number.isInteger(num)) {
+        console.error(`Error: limit must be a positive number, got: ${limitArg}`);
+        process.exit(1);
+      }
     }
-    listRecentSessions(limit);
+    await handleListNewCommand(parsed);
     return;
   }
 

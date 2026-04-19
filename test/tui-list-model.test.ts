@@ -281,11 +281,11 @@ describe("/ enters filter mode", () => {
 
 // ── t jumps to timeline ──────────────────────────────────────────────────────
 
-describe("t opens detail for selected session", () => {
-  test("t emits open-detail for the selected session", () => {
+describe("t jumps to timeline", () => {
+  test("t emits switch-view to timeline", () => {
     const state = makeState({ mode: "list" });
     const { effects } = applyKey(state, key("t"));
-    expect(effects).toContainEqual(expect.objectContaining({ type: "open-detail" }));
+    expect(effects).toContainEqual({ type: "switch-view", view: "timeline" });
   });
 });
 

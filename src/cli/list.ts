@@ -6,8 +6,9 @@ import { type ConfigOptions, type ParseResult, resolveConfig, errorResult, error
 import { sanitizeTitle } from "./utils/format";
 import { formatErrors } from "./formatters/text";
 import { isAgentKind, formatList, listAgents, listAliases, compareAgents } from "./utils/agents";
+import { formatSessionsJson } from "./formatters/json";
 
-const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>] [--limit <n>] [--after <cursor>]";
+const USAGE = "Usage: oas list [--agent <agent>] [--alias <alias>] [--q <query>] [--limit <n>] [--after <cursor>] [--format text|json]";
 
 export type ListService = (query: SessionListQuery) => Promise<SessionListResult>;
 
@@ -25,6 +26,9 @@ export type ListOptions = {
   childrenOf?: string;
   /** Include sub-agent sessions in output (overrides default hiding). */
   includeSubagents?: boolean;
+  full?: boolean;
+  showAlias?: boolean;
+  format?: "text" | "json";
   list: ListService;
 } & ConfigOptions;
 
@@ -106,13 +110,22 @@ export async function runListCommand(options: ListOptions): Promise<CliResult> {
   }
 
   const stderr = formatErrors(result.errors);
+  if (options.format !== undefined && options.format !== "text" && options.format !== "json") {
+    return errorResult(`Invalid --format value: must be 'text' or 'json'.`);
+  }
+
   if (sessions.length === 0) {
     return {
       exitCode: 0,
-      stdout: "No sessions found.\n",
+      stdout: options.format === "json" ? "[]\n" : "No sessions found.\n",
       stderr,
     };
   }
+
+  if (options.format === "json") {
+    return { exitCode: 0, stdout: formatSessionsJson(sessions), stderr };
+  }
+  const rowOpts = { full: options.full, showAlias: options.showAlias };
 
   // Build child count map for badge display
   let childCounts: Map<string, number> | undefined;
@@ -125,7 +138,7 @@ export async function runListCommand(options: ListOptions): Promise<CliResult> {
     }
   }
 
-  const stdout = sessions.map((s) => formatSessionRow(s, showBadges, childCounts)).join("\n") + "\n";
+  const stdout = sessions.map((s) => formatSessionRow(s, showBadges, childCounts, rowOpts)).join("\n") + "\n";
   return {
     exitCode: 0,
     stdout,
@@ -188,8 +201,13 @@ function formatSessionRow(
   session: SessionSummary,
   showBadges = false,
   childCounts?: Map<string, number>,
+  opts?: { full?: boolean; showAlias?: boolean },
 ): string {
-  const label = `[${session.agent}:${session.alias}]`;
+  const showAlias = opts?.showAlias ?? false;
+  const isDefault = session.alias === "default";
+  const label = showAlias || !isDefault
+    ? `[${session.agent}:${session.alias}]`
+    : `[${session.agent}]`;
   const roleTag = session.parentSessionId ? "[sub]" : "[main]";
   const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
   const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
@@ -199,10 +217,11 @@ function formatSessionRow(
         return count > 0 ? `+${count}` : "-";
       })()
     : null;
-  if (title === session.id) {
+  const displayTitle = opts?.full ? title : title;
+  if (displayTitle === session.id) {
     return badge ? `${label} ${roleTag} ${session.id} ${badge}` : `${label} ${roleTag} ${session.id}`;
   }
-  const base = `${label} ${roleTag} ${title} (${session.id})`;
+  const base = `${label} ${roleTag} ${displayTitle} (${session.id})`;
   return badge ? `${base} ${badge}` : base;
 }
 

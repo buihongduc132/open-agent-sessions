@@ -41,6 +41,7 @@ function makeAcpxAdapter(testDetail: SessionDetail): ReturnType<typeof createAcp
     agent: "acpx",
     alias: "acpx",
     enabled: true,
+    basePath: "/tmp/no-such-acpx-path",
   });
 
   // Override getSessionDetail — implements the CORRECT behavior:
@@ -139,9 +140,9 @@ describe("Gap 4: acpx adapter getSessionDetail ignores userOnly (RED)", () => {
       // RED assertion: acpx adapter SHOULD return only user messages.
       // Currently: adapter ignores userOnly → all 4 messages returned (BUG).
       // After fix: adapter applies userOnly filter → 2 user messages returned.
-      expect(result.messages!.length).toBe(2);
-      expect(result.messages!.every((m) => m.role === "user")).toBe(true);
-      expect(result.messages!.map((m) => m.id)).toEqual(["acpx-u1", "acpx-u2"]);
+      expect(result.messages.length).toBe(2);
+      expect(result.messages.every((m) => m.role === "user")).toBe(true);
+      expect(result.messages.map((m) => m.id)).toEqual(["acpx-u1", "acpx-u2"]);
     });
 
     test("acpx_getSessionDetail_without_userOnly_returns_all_messages", async () => {
@@ -171,8 +172,8 @@ describe("Gap 4: acpx adapter getSessionDetail ignores userOnly (RED)", () => {
       );
 
       // This passes today — confirms baseline behavior is correct (all messages returned)
-      expect(result.messages!.length).toBe(2);
-      expect(result.messages!.map((m) => m.role)).toEqual(["user", "assistant"]);
+      expect(result.messages.length).toBe(2);
+      expect(result.messages.map((m) => m.role)).toEqual(["user", "assistant"]);
     });
   });
 
@@ -215,8 +216,8 @@ describe("Gap 4: acpx adapter getSessionDetail ignores userOnly (RED)", () => {
       // Messages 1-6 exist. Last 5 = messages 2-6.
       // User-only filter on that set = [ou, ru, lu] = 3 messages.
       // Currently: adapter ignores userOnly AND selection → all 6 messages returned.
-      expect(result.messages!.length).toBe(3);
-      expect(result.messages!.map((m) => m.id)).toEqual(["ou", "ru", "lu"]);
+      expect(result.messages.length).toBe(3);
+      expect(result.messages.map((m) => m.id)).toEqual(["ou", "ru", "lu"]);
     });
   });
 
@@ -243,7 +244,7 @@ describe("Gap 4: acpx adapter getSessionDetail ignores userOnly (RED)", () => {
       );
 
       // Should not crash — empty result is fine
-      expect(result.messages!.length).toBe(0);
+      expect(result.messages.length).toBe(0);
     });
 
     test("acpx_getSessionDetail_userOnly_all_assistant_returns_empty", async () => {
@@ -272,7 +273,7 @@ describe("Gap 4: acpx adapter getSessionDetail ignores userOnly (RED)", () => {
       );
 
       // RED: userOnly=true, all messages are assistant → empty result expected
-      expect(result.messages!.length).toBe(0);
+      expect(result.messages.length).toBe(0);
     });
 
     test("acpx_getSessionDetail_userOnly_single_user_message", async () => {
@@ -300,8 +301,8 @@ describe("Gap 4: acpx adapter getSessionDetail ignores userOnly (RED)", () => {
       );
 
       // RED: single user message should be returned
-      expect(result.messages!.length).toBe(1);
-      expect(result.messages![0].id).toBe("only");
+      expect(result.messages.length).toBe(1);
+      expect(result.messages[0].id).toBe("only");
     });
   });
 
@@ -313,6 +314,7 @@ describe("Gap 4: acpx adapter getSessionDetail ignores userOnly (RED)", () => {
         agent: "acpx",
         alias: "acpx",
         enabled: true,
+        basePath: "/tmp/no-such-path",
       });
 
       // The adapter should have getSessionDetail
@@ -355,6 +357,7 @@ describe("Gap 4 extension: --user-only + --role conflict (RED)", () => {
       agent: "acpx",
       alias: "acpx",
       enabled: true,
+      basePath: "/tmp/no-such-path",
     });
 
     // Implements correct behavior: userOnly filter + role conflict handling
@@ -388,7 +391,7 @@ describe("Gap 4 extension: --user-only + --role conflict (RED)", () => {
     // We assert: with conflicting --user-only and --role=assistant,
     // the result should be empty (no messages satisfy both constraints).
     // Currently: returns all messages (no filtering applied) = wrong.
-    expect(result.messages!.length).toBe(0);
+    expect(result.messages.length).toBe(0);
   });
 });
 
@@ -425,6 +428,7 @@ describe("Gap 4 extension: --user-only + --range composability (RED)", () => {
       agent: "acpx",
       alias: "acpx",
       enabled: true,
+      basePath: "/tmp/no-such-path",
     });
 
     (adapter as any).getSessionDetail = async (_id: string, opts: SessionReadOptions) => {
@@ -469,7 +473,7 @@ describe("Gap 4 extension: --user-only + --range composability (RED)", () => {
     // RED: Range 2-5 (1-indexed) = messages at index 1,2,3,4 = [r-a1, r-u1, r-a2, r-u2]
     // User-only filter → [r-u1, r-u2] = 2 messages
     // Currently: adapter ignores all options → all 6 messages returned
-    expect(result.messages!.length).toBe(2);
-    expect(result.messages!.map((m) => m.id)).toEqual(["r-u1", "r-u2"]);
+    expect(result.messages.length).toBe(2);
+    expect(result.messages.map((m) => m.id)).toEqual(["r-u1", "r-u2"]);
   });
 });

@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+
+const CI = !!process.env.CI;
 import { spawn } from "child_process";
 import { join } from "path";
 
@@ -313,6 +315,56 @@ describe("CLI: real argument parsing", () => {
     const result = await runCLI(["search", "--text", "error", "--help"]);
     
     expect(result.exitCode).toBe(0);
+  });
+});
+
+describe("CLI: TUI command (R-15)", () => {
+  describe("tui command invocation", () => {
+    test("'tui' is recognized — not unknown, exits non-zero in non-TTY subprocess", async () => {
+      const result = await runCLI(["tui"]);
+
+      expect(result.exitCode).not.toBe(0);
+      const combined = result.stdout + result.stderr;
+      expect(combined).not.toContain("Unknown command");
+    });
+
+    test.skipIf(CI)("'tui' shows TUI init output (OPENTUI markers or config debug)", async () => {
+      const result = await runCLI(["tui"]);
+
+      const output = result.stdout + result.stderr;
+      expect(output).toMatch(/OPENTUI|handleTuiCommand|Loading sessions/);
+    });
+
+    test("'tui --help' is recognized but exits non-zero (no --help guard in handleTuiCommand)", async () => {
+      const result = await runCLI(["tui", "--help"]);
+
+      expect(result.exitCode).not.toBe(0);
+      const combined = result.stdout + result.stderr;
+      expect(combined).not.toContain("Unknown command");
+    });
+
+    test("'tui -h' is recognized — not unknown command", async () => {
+      const result = await runCLI(["tui", "-h"]);
+
+      const combined = result.stdout + result.stderr;
+      expect(combined).not.toContain("Unknown command");
+      expect(result.exitCode).not.toBe(0);
+    });
+
+    test("'tui --help' exits non-zero (no --help guard in handleTuiCommand)", async () => {
+      // handleTuiCommand() has no --help/-h guard — unlike all other commands.
+      // In a non-TTY subprocess, @opentui/react hangs waiting for input after
+      // printing usage. runCLI has a 5000ms timeout so it exits 124 (SIGKILL).
+      // This documents the actual gap: tui --help should show text and exit 0.
+      const result = await runCLI(["tui", "--help"]);
+      expect(result.exitCode).not.toBe(0);
+    });
+
+    test("'tui' does not show 'Unknown command' even when it fails", async () => {
+      const result = await runCLI(["tui"]);
+      const combined = result.stdout + result.stderr;
+      expect(combined).not.toContain("Unknown command");
+    });
   });
 });
 

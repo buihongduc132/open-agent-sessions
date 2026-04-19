@@ -21,7 +21,6 @@ import {
   type SessionDetail,
   type SessionReadOptions,
   type SessionMessage,
-  type SessionSummary,
 } from "../src/core/types";
 import { type ForkChainNode } from "../src/core/subagents";
 import type { ListService } from "../src/cli/list";
@@ -38,8 +37,10 @@ const baseConfig: Config = {
   ],
 };
 
-// SessionItem is SessionSummary with optional parentSessionId
-type SessionItem = SessionSummary & { parentSessionId?: string };
+// Infer SessionItem from ListService for fixture types
+type SessionItem = ListService extends (q: unknown) => Promise<infer R>
+  ? R extends { sessions: (infer S)[] } ? S : never
+  : never;
 
 // ============================================================================
 // GAP 1: Tree command — newline in title breaks one-line-per-node format
