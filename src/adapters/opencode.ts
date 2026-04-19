@@ -344,22 +344,37 @@ function listSessionsFromDb(
   label: string
 ): SessionSummary[] {
   const projectId = findProjectId(db, cwd, label);
-  if (!projectId) {
-    return [];
-  }
+  const normalizedCwd = resolve(cwd);
 
   // R-23: Fix N+1 — fetch all sessions WITH message counts in a single query
-  const rows = db
-    .query<SessionRow & { message_count: number }, [string]>(
-      `SELECT s.id, s.project_id, s.parent_id, s.directory, s.title, s.time_created, s.time_updated,
-              COUNT(m.id) AS message_count
-       FROM session s
-       LEFT JOIN message m ON m.session_id = s.id
-       WHERE s.project_id = ?
-       GROUP BY s.id
-       ORDER BY s.time_updated DESC`
-    )
-    .all(projectId);
+  let rows: SessionRow & { message_count: number }[];
+
+  if (projectId) {
+    rows = db
+      .query<SessionRow & { message_count: number }, [string]>(
+        `SELECT s.id, s.project_id, s.parent_id, s.directory, s.title, s.time_created, s.time_updated,
+                COUNT(m.id) AS message_count
+         FROM session s
+         LEFT JOIN message m ON m.session_id = s.id
+         WHERE s.project_id = ?
+         GROUP BY s.id
+         ORDER BY s.time_updated DESC`
+      )
+      .all(projectId);
+  } else {
+    // GAP-11 fallback: no project table entry — query by directory
+    rows = db
+      .query<SessionRow & { message_count: number }, [string]>(
+        `SELECT s.id, s.project_id, s.parent_id, s.directory, s.title, s.time_created, s.time_updated,
+                COUNT(m.id) AS message_count
+         FROM session s
+         LEFT JOIN message m ON m.session_id = s.id
+         WHERE s.directory = ?
+         GROUP BY s.id
+         ORDER BY s.time_updated DESC`
+      )
+      .all(normalizedCwd);
+  }
 
   return rows.map((row: SessionRow & { message_count: number }) => ({
     id: row.id,
@@ -382,13 +397,13 @@ function listSessionsByTimeRangeFromDb(
   label: string
 ): SessionSummary[] {
   const projectId = findProjectId(db, cwd, label);
-  if (!projectId) {
-    return [];
-  }
+  const normalizedCwd = resolve(cwd);
 
-  // Build query with optional filters
-  const conditions: string[] = ["s.project_id = ?"];
-  const params: (string | number)[] = [projectId];
+  // Build conditions and params — project_id path OR directory fallback
+  const conditions: string[] = projectId
+    ? ["s.project_id = ?"]
+    : ["s.directory = ?"];
+  const params: (string | number)[] = projectId ? [projectId] : [normalizedCwd];
 
   // Add time filters (both use time_updated for "last activity" semantics)
   if (options.since !== undefined) {
@@ -452,11 +467,15 @@ function searchSessionsFromDb(
 ): SessionSummary[] {
   const cwd = query.cwd ?? process.cwd();
   const projectId = findProjectId(db, cwd, label);
-  if (!projectId) {
-    return [];
-  }
-
+  const normalizedCwd = resolve(cwd);
   const searchPattern = `%${query.text.toLowerCase()}%`;
+
+  const idCondition = projectId
+    ? "s.project_id = ?"
+    : "s.directory = ?";
+  const searchParams: (string | number)[] = projectId
+    ? [projectId, searchPattern, searchPattern]
+    : [normalizedCwd, searchPattern, searchPattern];
 
   // R-23: Fix N+1 — single query with message count CTE
   // Combines title search and content search in one round-trip
@@ -464,7 +483,7 @@ function searchSessionsFromDb(
          SELECT DISTINCT s.id
          FROM session s
          LEFT JOIN part p ON p.session_id = s.id
-         WHERE s.project_id = ?
+         WHERE ${idCondition}
            AND (LOWER(s.title) LIKE ? OR LOWER(p.data) LIKE ?)
        )
        SELECT s.id, s.project_id, s.directory, s.title, s.time_created, s.time_updated,
@@ -476,8 +495,8 @@ function searchSessionsFromDb(
        ORDER BY s.time_updated DESC`;
 
   const rows = db
-    .query<SessionRow & { message_count: number }, [string, string, string]>(sql)
-    .all(projectId, searchPattern, searchPattern);
+    .query<SessionRow & { message_count: number }, (string | number)[]>(sql)
+    .all(...searchParams);
 
   return rows.map((row) => ({
     id: row.id,
@@ -927,12 +946,17 @@ function toolSearchFromDb(
   label: string
 ): SessionSummary[] {
   const projectId = findProjectId(db, cwd, label);
-  if (!projectId) {
-    return [];
-  }
+  const normalizedCwd = resolve(cwd);
 
   // Fuzzy tool name: use SQL LIKE with wildcards at both ends
   const toolPattern = `%${query.tool}%`;
+
+  const idCondition = projectId
+    ? "s.project_id = ?"
+    : "s.directory = ?";
+  const searchParams: (string | number)[] = projectId
+    ? [projectId, toolPattern]
+    : [normalizedCwd, toolPattern];
 
   // R-41: Find sessions where tool/MCP was used in any message part
   const sql = `WITH matching_sessions AS (
@@ -940,7 +964,7 @@ function toolSearchFromDb(
          FROM session s
          JOIN message m ON m.session_id = s.id
          JOIN part p ON p.message_id = m.id
-         WHERE s.project_id = ?
+         WHERE ${idCondition}
            AND p.data LIKE ?
            AND p.data LIKE '%"type":"tool"%'
        )
@@ -956,8 +980,8 @@ function toolSearchFromDb(
   let rows: (SessionRow & { message_count: number })[];
   try {
     rows = db
-      .query<SessionRow & { message_count: number }, [string, string]>(sql)
-      .all(projectId, toolPattern);
+      .query<SessionRow & { message_count: number }, (string | number)[]>(sql)
+      .all(...searchParams);
   } catch {
     return [];
   }
