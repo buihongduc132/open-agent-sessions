@@ -73,7 +73,7 @@ export async function runSessionsCommand(options: SessionsOptions): Promise<CliR
   }
 
   // Resolve config
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }
@@ -204,10 +204,12 @@ function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions>
     };
   }
 
-  // Default: last 24h only when no time filters AND no explicit --limit 0
-  // "--limit 0" means "show all" — do not impose a time restriction in that case
-  if (result.since === undefined && result.until === undefined && options.limit !== 0) {
-    result.since = now - 24 * 60 * 60 * 1000; // 24 hours ago
+  // Default: last 24h when no time filters AND no --limit flag was specified.
+  // options.limit === undefined means no --limit was passed → apply 24h default.
+  // options.limit === 0     means explicit --limit 0 → no time restriction (show all).
+  // options.limit > 0       means explicit limit → apply 24h default.
+  if (result.since === undefined && result.until === undefined && options.limit === undefined) {
+    result.since = now - 24 * 60 * 60 * 1000;
   }
 
   return { ok: true, value: result };

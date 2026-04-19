@@ -922,6 +922,14 @@ async function main() {
       showHelp();
       return;
     }
+    const limitArg = parsed.positional[0] || (parsed.command ? parsed.command : undefined);
+    if (limitArg !== undefined) {
+      const num = Number(limitArg);
+      if (isNaN(num) || num <= 0 || !Number.isInteger(num)) {
+        console.error(`Error: limit must be a positive number, got: ${limitArg}`);
+        process.exit(1);
+      }
+    }
     await handleListNewCommand(parsed);
     return;
   }

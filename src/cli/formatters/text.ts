@@ -47,7 +47,7 @@ export interface FormatSessionRowOptions {
   showAlias?: boolean;
 }
 
-export function formatSessionRow(session: SessionSummary, opts?: FormatSessionRowOptions): string {
+export function formatSessionRow(session: SessionSummary, opts?: FormatSessionRowOptions, _index?: number, _arr?: SessionSummary[]): string {
   const showAlias = opts?.showAlias ?? false;
   const isDefault = session.alias === "default";
   const label = showAlias || !isDefault
@@ -74,7 +74,7 @@ export function formatSessionsTable(sessions: SessionSummary[]): string {
   if (sessions.length === 0) {
     return "No sessions found.\n";
   }
-  return sessions.map(formatSessionRow).join("\n") + "\n";
+  return sessions.map((s) => formatSessionRow(s)).join("\n") + "\n";
 }
 
 /**

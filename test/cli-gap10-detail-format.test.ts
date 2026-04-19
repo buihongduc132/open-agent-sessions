@@ -81,13 +81,19 @@ describe("GAP 10c: `oas detail --format json|text`", () => {
   let realSessionId: string | null = null;
 
   async function discoverSession(): Promise<string | null> {
-    const result = await runCLI(["sessions", "--format", "json", "--limit", "1"], 8000);
+    // Fetch multiple sessions and pick the one with fewest messages.
+    // Large sessions (100+ messages) can overflow the stdout pipe buffer
+    // (~65536 bytes), producing truncated JSON that fails to parse.
+    const result = await runCLI(["list", "--format", "json", "--limit", "20"], 8000);
     if (result.exitCode !== 0) return null;
     try {
       const parsed = JSON.parse(result.stdout);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed[0].id as string;
-      }
+      if (!Array.isArray(parsed) || parsed.length === 0) return null;
+      // Pick session with the fewest messages to avoid pipe buffer truncation
+      const sorted = [...parsed].sort((a: any, b: any) =>
+        (a.message_count ?? 999) - (b.message_count ?? 999)
+      );
+      return sorted[0].id as string;
     } catch {}
     return null;
   }

@@ -76,7 +76,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
     }
   }
 
-  let filteredSessions: SessionSummary[];
+  let filteredSessions: SessionSummary[] = [];
   let resultErrors: SearchError[] = [];
 
   try {
@@ -139,7 +139,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
       };
       const boolResult = await executeBooleanSearch(searchOpts);
       filteredSessions = boolResult.sessions;
-      resultErrors = boolResult.errors;
+      resultErrors = boolResult.errors as SearchError[];
 
       // Deferred: run content search for regex terms after boolean evaluation
       // This ensures findSimilarSessions is called last for regex terms,

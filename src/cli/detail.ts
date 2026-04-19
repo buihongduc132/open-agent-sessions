@@ -5,7 +5,6 @@ import { resolveConfig, errorResult, errorMessage, type ParseResult } from "./ut
 import {
   isAgentKind,
   formatList,
-  validateAlias,
   listAgents,
   aliasesForAgent,
   compareAgents,
@@ -13,7 +12,7 @@ import {
   withLabel,
   normalizeTitle,
 } from "./utils/agents";
-import { formatDetail, formatSessionDetailJson } from "./formatters/text";
+import { formatSessionDetailJson } from "./formatters/text";
 
 const USAGE =
   "Usage: oas detail --session <agent:alias:session_id|agent:session_id> | oas detail --agent <agent> --alias <alias> --id <session_id>";
@@ -37,7 +36,7 @@ export async function runDetailCommand(options: {
   loadConfig?: (path: string) => Config;
   getSession: DetailService;
 }): Promise<CliResult> {
-  const configResult = resolveConfig(options);
+  const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
     return errorResult(configResult.error);
   }

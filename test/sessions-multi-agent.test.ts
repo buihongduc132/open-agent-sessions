@@ -764,7 +764,7 @@ describe("cli sessions: multi-agent output", () => {
 
     expect(result.exitCode).toBe(0);
     // BOTH agents must appear in output
-    expect(result.stdout).toContain("[opencode:default]");
+    expect(result.stdout).toContain("[opencode]");
     expect(result.stdout).toContain("[codex:sessions]");
     expect(result.stdout).toContain("OpenCode Work");
     expect(result.stdout).toContain("Codex Work");

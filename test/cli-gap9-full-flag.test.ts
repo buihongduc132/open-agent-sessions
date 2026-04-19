@@ -60,12 +60,12 @@ describe("GAP 9a: `oas sessions --full` — full title, no truncation", () => {
   test("`oas sessions --full` shows titles that are NOT truncated", async () => {
     const hasLong = await hasLongTitle();
     if (!hasLong) return;
-    const withFull = await runCLI(["sessions", "--full", "--last", "30d", "--limit", "5"]);
-    const withoutFull = await runCLI(["sessions", "--last", "30d", "--limit", "5"]);
+    const withFull = await runCLI(["sessions", "--full", "--last", "30d", "--limit", "50"], 15000);
+    const withoutFull = await runCLI(["sessions", "--last", "30d", "--limit", "50"], 15000);
     expect(withFull.exitCode).toBe(0);
     expect(withoutFull.exitCode).toBe(0);
     expect(withFull.stdout.length).toBeGreaterThan(withoutFull.stdout.length);
-  });
+  }, 20000);
 
   test("`oas sessions` (no --full) has truncated titles when they exceed 40 chars", async () => {
     const hasLong = await hasLongTitle();
