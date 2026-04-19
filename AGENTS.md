@@ -171,7 +171,8 @@ The long-term goal is: **Minor agents → Unified Schema → Adapter pattern**, 
 | `claude` | Mature | JSONL transcripts in `~/.claude/sessions/` | Directory name (human-readable slug) | Content is flexible (`string \| array \| object`); token counts must be inferred |
 | `codex` | Mature | SQLite (`state_5.sqlite` threads + `logs_1.sqlite` messages) + JSONL index | Integer thread ID | `messages.message` is a JSON string requiring parse; git context preserved in index |
 | `openclaw` | Minor | JSONL event stream per session + `sessions.json` metadata index | UUID (`*.jsonl` filenames) | Index at `~/.openclaw/agents/main/sessions/sessions.json`; per-session stream has mixed event types |
-| `pi` / `oh-my-pi (OMP)` | Minor | JSONL event stream + `stats.db` (tokens/costs) + `history.db` (FTS prompts) | `<timestamp>_<id>.jsonl` under `~/.omp/agent/sessions/<slug>/` | Event types: `session`, `model_change`, `thinking_level_change`, `custom_message`, `message`, `compaction` |
+|| `pi` / `oh-my-pi (OMP)` | Minor | JSONL event stream + `stats.db` (tokens/costs) + `history.db` (FTS prompts) | `<timestamp>_<id>.jsonl` under `~/.omp/agent/sessions/<slug>/` | Event types: `session`, `model_change`, `thinking_level_change`, `custom_message`, `message`, `compaction` |
+|| `hermes` | Mature | SQLite (`~/.hermes/state.db`, WAL mode, schema v6) | UUID | `sessions` table (id, source, model, title, parent_session_id, billing, tokens); `messages` table (role, content, tool_calls JSON, reasoning); FTS5 `messages_fts`; parent chain for context compression |
 
 ### Adapter Interface
 

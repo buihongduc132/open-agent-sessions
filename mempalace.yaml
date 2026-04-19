@@ -1,0 +1,45 @@
+wing: open_agent_sessions
+rooms:
+- name: documentation
+  description: Files from docs/
+  keywords:
+  - documentation
+  - docs
+- name: src
+  description: Files from src/
+  keywords:
+  - src
+  - src
+- name: open_agent_sessions
+  description: Files from open_agent_sessions/
+  keywords:
+  - open_agent_sessions
+  - open_agent_sessions
+- name: testing
+  description: Files from test/
+  keywords:
+  - testing
+  - test
+- name: flow
+  description: Files from flow/
+  keywords:
+  - flow
+  - flow
+- name: bin
+  description: Files from bin/
+  keywords:
+  - bin
+  - bin
+- name: scripts
+  description: Files from scripts/
+  keywords:
+  - scripts
+  - scripts
+- name: configuration
+  description: Files from config/
+  keywords:
+  - configuration
+  - config
+- name: general
+  description: Files that don't fit other rooms
+  keywords: []
