@@ -72,19 +72,36 @@ export function walkDir(dir: string, files: string[]): void {
   }
 }
 
+// NOTE: Reads entire file into memory. For session JSONL files (< 50MB typical),
+// this is acceptable. Streaming would be needed for files > 100MB.
+export function splitJsonlLines(content: string): string[] {
+  return content.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+}
+
 // ============================================================================
 // File Content Search
 // ============================================================================
 
-/**
- * Search file content for a case-insensitive text match.
- */
 export function contentContains(filePath: string, needle: string): boolean {
   try {
     return readFileSync(filePath, "utf8").toLowerCase().includes(needle);
   } catch {
     return false;
   }
+}
+
+export function listJsonFiles(dir: string): string[] {
+  try {
+    return readdirSync(dir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => join(dir, f));
+  } catch {
+    return [];
+  }
+}
+
+export function containsIgnoreCase(text: string, needle: string): boolean {
+  return text.toLowerCase().includes(needle.toLowerCase());
 }
 
 // ============================================================================
@@ -97,4 +114,24 @@ export function minIso(a: string, b: string): string {
 
 export function maxIso(a: string, b: string): string {
   return Date.parse(a) >= Date.parse(b) ? a : b;
+}
+
+export function sortByIsoDesc<T>(arr: T[], key: keyof T): T[] {
+  return [...arr].sort((a, b) => {
+    const aVal = String(a[key] ?? "");
+    const bVal = String(b[key] ?? "");
+    return Date.parse(bVal) - Date.parse(aVal);
+  });
+}
+
+// ============================================================================
+// Safe Text File Read
+// ============================================================================
+
+export function readTextFile(path: string): string | null {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return null;
+  }
 }

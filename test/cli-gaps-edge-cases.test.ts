@@ -598,8 +598,8 @@ describe("Gap 4 — Composable read flags edge cases", () => {
     );
 
     // Should return all 3 messages, not crash or return empty
-    expect(result.messages!.length).toBe(3);
-    expect(result.messages!.map((m) => m.id)).toEqual(["m1", "m2", "m3"]);
+    expect(result.messages.length).toBe(3);
+    expect(result.messages.map((m) => m.id)).toEqual(["m1", "m2", "m3"]);
   });
 
   /**
@@ -628,8 +628,8 @@ describe("Gap 4 — Composable read flags edge cases", () => {
     );
 
     // Should return exactly 1 message: the 3rd one
-    expect(result.messages!.length).toBe(1);
-    expect(result.messages![0].id).toBe("m3");
+    expect(result.messages.length).toBe(1);
+    expect(result.messages[0].id).toBe("m3");
   });
 
   /**
@@ -663,8 +663,8 @@ describe("Gap 4 — Composable read flags edge cases", () => {
     );
 
     // First 5 messages = [a1, u1, a2, u2, a3], then userOnly filter = [u1, u2] = 2 messages
-    expect(result.messages!.length).toBe(2);
-    expect(result.messages!.map((m) => m.id)).toEqual(["u1", "u2"]);
+    expect(result.messages.length).toBe(2);
+    expect(result.messages.map((m) => m.id)).toEqual(["u1", "u2"]);
   });
 
   /**
@@ -690,7 +690,7 @@ describe("Gap 4 — Composable read flags edge cases", () => {
     );
 
     // System messages should be filtered out — empty result
-    expect(result.messages!.length).toBe(0);
+    expect(result.messages.length).toBe(0);
   });
 });
 

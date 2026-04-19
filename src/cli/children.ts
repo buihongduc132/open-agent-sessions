@@ -40,7 +40,8 @@ export async function runChildrenCommand(options: ChildrenOptions): Promise<CliR
   }
 
   if (children.length === 0) {
-    return { exitCode: 0, stdout: "No children found.\n", stderr: "" };
+    const empty = options.format === "json" ? "[]\n" : "No children found.\n";
+    return { exitCode: 0, stdout: empty, stderr: "" };
   }
 
   if (options.format === "json") {

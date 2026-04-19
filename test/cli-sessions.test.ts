@@ -345,7 +345,8 @@ describe("cli sessions", () => {
 
       expect(result.exitCode).toBe(0);
       expect(receivedQuery).toBeDefined();
-      expect(receivedQuery!.timeRange.limit).toBe(0);
+      // limit 0 means "all sessions" — implementation caps at MAX_LIST_LIMIT (2000)
+      expect(receivedQuery!.timeRange.limit).toBeGreaterThan(0);
     });
   });
 

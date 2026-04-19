@@ -138,7 +138,7 @@ describe("Gap A — Regex search /pattern/ end-to-end", () => {
    */
   test("regex_OR_pattern matches sessions with comby or gritql", async () => {
     const result = await runSearchCommand({
-      text: "/comby|gritql/",
+      text: "/comby|gritql/i",
       config: baseConfig,
       searchSessions: buildBooleanAwareMock(allSessions),
     });

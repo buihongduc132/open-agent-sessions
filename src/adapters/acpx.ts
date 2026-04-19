@@ -22,12 +22,14 @@
  * @file src/adapters/acpx.ts
  */
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { Adapter, SearchQuery, SessionDetail, SessionMessage, SessionReadOptions, SessionSummary } from "../core/types";
 import { AgentKind } from "../config/types";
 import type { SimilarSessionResult } from "../similarity/search";
+import { containsIgnoreCase, listJsonFiles, sortByIsoDesc } from "./fs-utils";
+import { createLabel } from "./label";
 import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
@@ -82,7 +84,7 @@ export function createAcpxAdapter(
   }
 
   const basePath = resolveAcpxBasePath(options);
-  const label = `[${entry.agent}:${entry.alias}]`;
+  const label = createLabel(entry);
 
   return {
     version: "1.0.0",
@@ -95,29 +97,17 @@ export function createAcpxAdapter(
         return [];
       }
 
-      let files: string[];
-      try {
-        files = readdirSync(sessionsDir).filter((f) => f.endsWith(".json"));
-      } catch {
-        return [];
-      }
-
+      const files = listJsonFiles(sessionsDir);
       const results: SessionSummary[] = [];
-      for (const file of files) {
-        const filePath = join(sessionsDir, file);
+      for (const filePath of files) {
         try {
           const session = parseAcpxSessionFile(filePath);
           results.push(mapToSessionSummary(session));
         } catch {
-          // Skip malformed files
         }
       }
 
-      // Sort by most recently updated (last prompt timestamp) descending
-      results.sort(
-        (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)
-      );
-      return results;
+      return sortByIsoDesc(results, "updated_at");
     },
 
     // R-31: searchSessions — full acpx adapter
@@ -128,44 +118,33 @@ export function createAcpxAdapter(
         return [];
       }
 
-      let files: string[];
-      try {
-        files = readdirSync(sessionsDir).filter((f) => f.endsWith(".json"));
-      } catch {
-        return [];
-      }
+      const files = listJsonFiles(sessionsDir);
 
       const needle = query.text.toLowerCase();
       const results: SessionSummary[] = [];
 
-      for (const file of files) {
-        const filePath = join(sessionsDir, file);
+      for (const filePath of files) {
         try {
           const session = parseAcpxSessionFile(filePath);
 
-          // Match against sessionId, agent, scope, name, and prompt previews
-          const sessionIdMatch = session.sessionId.toLowerCase().includes(needle);
-          const agentMatch = session.agent.toLowerCase().includes(needle);
-          const scopeMatch = session.scope.toLowerCase().includes(needle);
-          const nameMatch = session.name?.toLowerCase().includes(needle) ?? false;
+          const sessionIdMatch = containsIgnoreCase(session.sessionId, needle);
+          const agentMatch = containsIgnoreCase(session.agent, needle);
+          const scopeMatch = containsIgnoreCase(session.scope, needle);
+          const nameMatch = session.name ? containsIgnoreCase(session.name, needle) : false;
           const promptMatch = session.last_prompt.some(
             (p) =>
-              p.textPreview.toLowerCase().includes(needle) ||
-              p.timestamp.toLowerCase().includes(needle)
+              containsIgnoreCase(p.textPreview, needle) ||
+              containsIgnoreCase(p.timestamp, needle)
           );
 
           if (sessionIdMatch || agentMatch || scopeMatch || nameMatch || promptMatch) {
             results.push(mapToSessionSummary(session));
           }
         } catch {
-          // Skip malformed files
         }
       }
 
-      results.sort(
-        (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)
-      );
-      return results;
+      return sortByIsoDesc(results, "updated_at");
     },
 
     // R-31: getSessionDetail — full acpx adapter
@@ -179,16 +158,9 @@ export function createAcpxAdapter(
         throw new Error(`${label} sessions directory not found: ${sessionsDir}`);
       }
 
-      // Search all .json files for a matching sessionId field
-      let files: string[];
-      try {
-        files = readdirSync(sessionsDir).filter((f) => f.endsWith(".json"));
-      } catch {
-        throw new Error(`${label} session not found: ${sessionId}`);
-      }
+      const files = listJsonFiles(sessionsDir);
 
-      for (const file of files) {
-        const filePath = join(sessionsDir, file);
+      for (const filePath of files) {
         try {
           const session = parseAcpxSessionFile(filePath);
           if (session.sessionId === sessionId) {
@@ -203,7 +175,7 @@ export function createAcpxAdapter(
                   msgs = msgs.slice(0, selection.count);
                   break;
                 case "last":
-                  msgs = msgs.slice(-(selection.count ?? 10));
+                  msgs = selection.count === 0 ? [] : msgs.slice(-(selection.count ?? 10));
                   break;
                 case "range": {
                   const start = (selection.start ?? 1) - 1; // 1-indexed → 0-indexed
@@ -218,15 +190,16 @@ export function createAcpxAdapter(
               }
             }
 
-            // Apply userOnly filter if set (role=assistant conflicts with userOnly → empty)
+            // Apply role-based filtering
             const effectiveUserOnly = options.userOnly || options.selection?.userOnly;
             if (effectiveUserOnly) {
-              // If role is set to something other than 'user', userOnly constraint is impossible
               if (options.role && options.role !== "user") {
                 msgs = [];
               } else {
                 msgs = msgs.filter((m) => m.role === "user");
               }
+            } else if (options.role) {
+              msgs = msgs.filter((m) => m.role === options.role);
             }
 
             detail = { ...detail, messages: msgs };

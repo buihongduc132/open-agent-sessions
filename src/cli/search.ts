@@ -9,7 +9,7 @@ import {
 } from "./search-boolean";
 import type { SimilarSessionResult } from "../similarity/search";
 import { resolveConfig, errorResult, errorMessage } from "./utils/config";
-import { formatErrors as formatErrorsShared, formatSessionRowSimple } from "./formatters/text";
+import { formatErrors as formatErrorsShared, formatSessionRowSimple, formatSessionsJson } from "./formatters/text";
 
 const USAGE = `Usage: oas search --text <query>
 
@@ -45,6 +45,7 @@ export type SearchOptions = {
   currentSessionId?: string;
   excludeCurrent?: boolean;
   excludeSession?: string[];
+  format?: "text" | "json";
   searchSessions: SearchService;
   findSimilarSessions?: ContentSearchService;
 };
@@ -76,7 +77,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
   }
 
   let filteredSessions: SessionSummary[] = [];
-  let resultErrors: Array<{ agent: string; alias: string; message: string }> = [];
+  let resultErrors: SearchError[] = [];
 
   try {
     if (isBooleanQuery(rawQuery)) {
@@ -138,7 +139,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
       };
       const boolResult = await executeBooleanSearch(searchOpts);
       filteredSessions = boolResult.sessions;
-      resultErrors = boolResult.errors;
+      resultErrors = boolResult.errors as SearchError[];
 
       // Deferred: run content search for regex terms after boolean evaluation
       // This ensures findSimilarSessions is called last for regex terms,
@@ -237,10 +238,13 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
 
   const stderr = formatErrorsShared(resultErrors);
   if (filteredSessions.length === 0) {
-    return { exitCode: 0, stdout: "No sessions found.\n", stderr };
+    const emptyJson = options.format === "json" ? "[]\n" : "No sessions found.\n";
+    return { exitCode: 0, stdout: emptyJson, stderr };
   }
 
-  const stdout = filteredSessions.map(formatSessionRowSimple).join("\n") + "\n";
+  const stdout = options.format === "json"
+    ? formatSessionsJson(filteredSessions)
+    : filteredSessions.map(formatSessionRowSimple).join("\n") + "\n";
   return { exitCode: 0, stdout, stderr };
 }
 
@@ -271,7 +275,6 @@ function contentResultsToSessions(
       return {
         ...known,
         title: r.title || known.title,
-        message_count: r.matchedChunks,
       };
     }
 
@@ -384,8 +387,8 @@ function parseRegex(query: string): RegExp | null {
     // Strip 'g' flag — it is harmful in boolean .test() filter loops.
     // 'g' is only useful for matchAll/exec loops, which we never use.
     const rawFlags = match[2].replace(/g/g, "");
-    // Default to case-insensitive if no 'i' flag specified
-    const flags = rawFlags.includes("i") ? rawFlags : rawFlags + "i";
+    // Respect user-provided flags. If no flags specified, default to case-insensitive.
+    const flags = rawFlags.length > 0 ? rawFlags : "i";
     return new RegExp(pattern, flags);
   } catch {
     return null;

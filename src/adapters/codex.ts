@@ -2,6 +2,13 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Database } from "bun:sqlite";
+import { createLabel } from "./label";
+import { splitJsonlLines } from "./fs-utils";
+import {
+  extractContentPartsCodex,
+  extractContentTextCodex,
+  extractFirstResponseLine,
+} from "./content-utils";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
@@ -46,7 +53,7 @@ export function createCodexAdapter(
   return {
     version: "1.0.0", // TODO: Replace with actual version from package.json or similar
     listSessions: () => {
-      const label = `[${entry.agent}:${entry.alias}]`;
+      const label = createLabel(entry);
       try {
         const rootPath = resolveCodexPath(entry, options);
 
@@ -87,7 +94,7 @@ export function createCodexAdapter(
     //   1. SQLite  — for ~/.codex/state_5.sqlite: single indexed query, O(log n)
     //   2. JSONL   — for file/directory paths: file-based scan + sort + slice
     listSessionsByTimeRange: (rangeOpts: TimeRangeOptions): SessionSummary[] => {
-      const label = `[${entry.agent}:${entry.alias}]`;
+      const label = createLabel(entry);
       const since = rangeOpts.since ?? 0; // 0 = no lower bound
       const limit = rangeOpts.limit ?? 50;
       const skipId = rangeOpts.skipSessionId;
@@ -149,7 +156,7 @@ export function createCodexAdapter(
     },
     // R-21: searchSessions — full Codex adapter
     searchSessions: (query: SearchQuery): SessionSummary[] => {
-      const label = `[${entry.agent}:${entry.alias}]`;
+      const label = createLabel(entry);
       try {
         const rootPath = resolveCodexPath(entry, options);
         const files = collectJsonlFiles(rootPath);
@@ -187,7 +194,7 @@ export function createCodexAdapter(
       sessionId: string,
       _options: SessionReadOptions
     ): Promise<SessionDetail> => {
-      const label = `[${entry.agent}:${entry.alias}]`;
+      const label = createLabel(entry);
       const rootPath = resolveCodexPath(entry, options);
 
       // ── SQLite backend: use DB to resolve JSONL path, then parse messages ──
@@ -286,7 +293,7 @@ function parseCodexSessionForTimeRange(filePath: string, entry: OtherAgentEntry)
 }
 
 function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentEntry): SessionSummary {
-  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
 
   // Codex files can contain multiple sessions. We collect ALL session_meta records
   // and their associated timestamps, then pair them: each session_meta's id is
@@ -383,7 +390,7 @@ function parseCodexSessionForTimeRangeInner(filePath: string, entry: OtherAgentE
 }
 
 function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): SessionSummary {
-  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
   let sessionMeta: CodexRecord | undefined;
   let title: string | undefined;
   let messageCount = 0;
@@ -426,7 +433,7 @@ function parseCodexSessionInner(filePath: string, entry: OtherAgentEntry): Sessi
         messageCount += 1;
       }
       if (!title && role === "user") {
-        const extracted = extractResponseText(payload);
+        const extracted = extractFirstResponseLine(payload.content);
         if (extracted) {
           title = extracted;
         }
@@ -475,38 +482,8 @@ function parseJsonLine(line: string, filePath: string, lineNumber: number): Code
   }
 }
 
-function extractResponseText(payload: Record<string, unknown>): string | undefined {
-  const content = payload.content;
-  const text = extractContentText(content);
-  if (!text) return undefined;
-  const line = text.split(/\r?\n/)[0]?.trim();
-  return line && line.length > 0 ? line : undefined;
-}
-
 function extractContentText(content: unknown): string | undefined {
-  if (typeof content === "string") {
-    return content;
-  }
-  if (Array.isArray(content)) {
-    const pieces = content
-      .map((item) => {
-        if (typeof item === "string") return item;
-        if (item && typeof item === "object") {
-          const record = item as Record<string, unknown>;
-          if (typeof record.input_text === "string") return record.input_text;
-          if (typeof record.text === "string") return record.text;
-          if (typeof record.output_text === "string") return record.output_text;
-        }
-        return "";
-      })
-      .filter((part) => part.length > 0);
-    return pieces.length > 0 ? pieces.join("") : undefined;
-  }
-  if (content && typeof content === "object") {
-    const record = content as Record<string, unknown>;
-    if (typeof record.text === "string") return record.text;
-  }
-  return undefined;
+  return extractContentTextCodex(content);
 }
 
 function readString(value: unknown, context: string): string {
@@ -555,7 +532,7 @@ function parseCodexMessages(
   _sessionId: string,
   label: string
 ): SessionMessage[] {
-  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
   const messages: SessionMessage[] = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -582,7 +559,7 @@ function parseCodexMessages(
 
     // Extract text parts from content
     const content = payload.content;
-    const textParts = extractContentParts(content);
+    const textParts = extractContentPartsCodex(content);
 
     const parts: import("../core/types").SessionPart[] = textParts.map((text) => ({
       type: "text",
@@ -607,45 +584,7 @@ function parseCodexMessages(
   return messages;
 }
 
-/**
- * Extract text content from Codex response_item content field.
- */
-function extractContentParts(content: unknown): string[] {
-  const parts: string[] = [];
-
-  if (typeof content === "string") {
-    parts.push(content);
-    return parts;
-  }
-
-  if (Array.isArray(content)) {
-    for (const item of content) {
-      if (typeof item === "string") {
-        parts.push(item);
-      } else if (item && typeof item === "object") {
-        const record = item as Record<string, unknown>;
-        const text =
-          (typeof record.input_text === "string" ? record.input_text : null) ??
-          (typeof record.text === "string" ? record.text : null) ??
-          (typeof record.output_text === "string" ? record.output_text : null);
-        if (text) parts.push(text);
-      }
-    }
-  } else if (content && typeof content === "object") {
-    const record = content as Record<string, unknown>;
-    const text =
-      (typeof record.input_text === "string" ? record.input_text : null) ??
-      (typeof record.text === "string" ? record.text : null) ??
-      (typeof record.output_text === "string" ? record.output_text : null);
-    if (text) parts.push(text);
-  }
-
-  return parts;
-}
-
-// ============================================================================
-// F2: SQLite-backed time-range listing
-// ============================================================================
+export { extractContentPartsCodex };
 
 interface SqliteThreadRow {
   id: string;
@@ -868,7 +807,7 @@ export function createCodexCloneSourceAdapter(
     throw new Error(`Codex source adapter requires agent "codex", got "${entry.agent}"`);
   }
 
-  const label = `[${entry.agent}:${entry.alias}]`;
+  const label = createLabel(entry);
 
   return {
     agent: "codex",
@@ -904,7 +843,7 @@ function parseCodexSessionForClone(
   targetSessionId: string,
   label: string
 ): CloneSession | null {
-  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
   let sessionId: string | undefined;
   let sessionMeta: CodexRecord | undefined;
   let title: string | undefined;
@@ -966,7 +905,7 @@ function parseCodexSessionForClone(
         });
 
         if (!title && role === "user") {
-          const extracted = extractResponseText(payload);
+          const extracted = extractFirstResponseLine(payload.content);
           if (extracted) {
             title = extracted;
           }

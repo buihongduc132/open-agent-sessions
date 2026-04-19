@@ -3,6 +3,7 @@ import { SessionSummary, TimeRangeOptions } from "../core/types";
 import { CliResult } from "./types";
 import { parseLastDuration, parseTimestamp, ParseResult } from "./utils/time-parser";
 import { formatSessionRow, formatSessionsJson, formatErrors } from "./formatters/text";
+import type { FormatSessionRowOptions } from "./formatters/text";
 import { resolveConfig, errorResult, errorMessage } from "./utils/config";
 
 const USAGE = `Usage: oas sessions [options]
@@ -51,6 +52,8 @@ export type SessionsOptions = {
   until?: string;
   limit?: number;
   format?: "text" | "json";
+  full?: boolean;
+  showAlias?: boolean;
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -110,7 +113,7 @@ export async function runSessionsCommand(options: SessionsOptions): Promise<CliR
 
   const stdout = options.format === "json"
     ? formatSessionsJson(result.sessions)
-    : result.sessions.map(formatSessionRow).join("\n") + "\n";
+    : result.sessions.map((s) => formatSessionRow(s, { full: options.full, showAlias: options.showAlias })).join("\n") + "\n";
   
   return {
     exitCode: 0,
@@ -138,8 +141,11 @@ function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions>
     }
   }
   
+  const limit = options.limit ?? 50;
+  const MAX_LIST_LIMIT = 2000;
+  const effectiveLimit = limit === 0 ? MAX_LIST_LIMIT : Math.min(limit, MAX_LIST_LIMIT);
   const result: TimeRangeOptions = {
-    limit: options.limit ?? 50,
+    limit: effectiveLimit,
   };
 
   // Parse --until first (if specified, it becomes the reference point for --last)
@@ -198,9 +204,12 @@ function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions>
     };
   }
 
-  // Default: last 24h if no time filters specified
-  if (result.since === undefined && result.until === undefined) {
-    result.since = now - 24 * 60 * 60 * 1000; // 24 hours ago
+  // Default: last 24h when no time filters AND no --limit flag was specified.
+  // options.limit === undefined means no --limit was passed → apply 24h default.
+  // options.limit === 0     means explicit --limit 0 → no time restriction (show all).
+  // options.limit > 0       means explicit limit → apply 24h default.
+  if (result.since === undefined && result.until === undefined && options.limit === undefined) {
+    result.since = now - 24 * 60 * 60 * 1000;
   }
 
   return { ok: true, value: result };

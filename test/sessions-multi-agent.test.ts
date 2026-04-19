@@ -7,7 +7,6 @@ import {
   type SessionSummary,
 } from "../src/index";
 import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
-import type { AgentKind } from "../src/types";
 import type { TimeRangeOptions } from "../src/core/types";
 
 // ============================================================================
@@ -166,7 +165,7 @@ async function collectSessionsFromRegistry(
 
 function makeSessionsService(
   sessions: SessionSummary[],
-  errors: { agent: AgentKind; alias: string; message: string }[] = []
+  errors: { agent: string; alias: string; message: string }[] = []
 ): SessionsService {
   return async () => ({ sessions, errors });
 }
@@ -765,7 +764,7 @@ describe("cli sessions: multi-agent output", () => {
 
     expect(result.exitCode).toBe(0);
     // BOTH agents must appear in output
-    expect(result.stdout).toContain("[opencode:default]");
+    expect(result.stdout).toContain("[opencode]");
     expect(result.stdout).toContain("[codex:sessions]");
     expect(result.stdout).toContain("OpenCode Work");
     expect(result.stdout).toContain("Codex Work");
@@ -824,7 +823,8 @@ describe("cli sessions: multi-agent output", () => {
     });
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("[opencode:default]");
+    // Note: default alias is hidden by GAP 9 (showAlias=false default)
+    expect(result.stdout).toContain("[opencode]");
     expect(result.stdout).toContain("Only OpenCode");
     expect(result.stdout).not.toContain("[codex:");
   });
