@@ -823,7 +823,8 @@ describe("cli sessions: multi-agent output", () => {
     });
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("[opencode:default]");
+    // Note: default alias is hidden by GAP 9 (showAlias=false default)
+    expect(result.stdout).toContain("[opencode]");
     expect(result.stdout).toContain("Only OpenCode");
     expect(result.stdout).not.toContain("[codex:");
   });
