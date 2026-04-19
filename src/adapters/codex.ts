@@ -559,7 +559,7 @@ function parseCodexMessages(
 
     // Extract text parts from content
     const content = payload.content;
-    const textParts = extractContentParts(content);
+    const textParts = extractContentPartsCodex(content);
 
     const parts: import("../core/types").SessionPart[] = textParts.map((text) => ({
       type: "text",

@@ -1,4 +1,4 @@
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -347,7 +347,7 @@ function listSessionsFromDb(
   const normalizedCwd = resolve(cwd);
 
   // R-23: Fix N+1 — fetch all sessions WITH message counts in a single query
-  let rows: SessionRow & { message_count: number }[];
+  let rows: (SessionRow & { message_count: number })[];
 
   if (projectId) {
     rows = db
@@ -480,56 +480,6 @@ function searchSessionsFromDb(
 
   // R-23: Fix N+1 — single query with message count CTE
   // Combines title search and content search in one round-trip
-  const sql = `WITH matching_ids AS (
-         SELECT DISTINCT s.id
-         FROM session s
-         LEFT JOIN part p ON p.session_id = s.id
-         WHERE ${idCondition}
-           AND (LOWER(s.title) LIKE ? OR LOWER(p.data) LIKE ?)
-       )
-       SELECT s.id, s.project_id, s.parent_id, s.directory, s.title, s.time_created, s.time_updated,
-              COUNT(m.id) AS message_count
-       FROM matching_ids ids
-       JOIN session s ON s.id = ids.id
-       LEFT JOIN message m ON m.session_id = s.id
-       GROUP BY s.id
-       ORDER BY s.time_updated DESC`;
-
-  const rows = db
-    .query<SessionRow & { message_count: number }, (string | number)[]>(sql)
-    .all(...searchParams);
-
-  return rows.map((row) => ({
-    id: row.id,
-    agent: "opencode",
-    alias: entry.alias,
-    title: row.title || row.id,
-    created_at: formatTimestamp(row.time_created),
-    updated_at: formatTimestamp(row.time_updated),
-    message_count: row.message_count,
-    storage: "db",
-    parentSessionId: row.parent_id ?? undefined,
-  }));
-}
-
-function searchSessionsFromDb(
-  db: Database,
-  entry: OpenCodeAgentEntry,
-  query: SearchQuery,
-  label: string
-): SessionSummary[] {
-  const cwd = query.cwd ?? process.cwd();
-  const projectId = findProjectId(db, cwd, label);
-  const normalizedCwd = resolve(cwd);
-  const searchPattern = `%${query.text.toLowerCase()}%`;
-
-  const idCondition = projectId
-    ? "s.project_id = ?"
-    : "s.directory = ?";
-  const searchParams: (string | number)[] = projectId
-    ? [projectId, searchPattern, searchPattern]
-    : [normalizedCwd, searchPattern, searchPattern];
-
   const sql = `WITH matching_ids AS (
          SELECT DISTINCT s.id
          FROM session s
@@ -767,7 +717,7 @@ function getMessagesFromDb(
 
 // Message selection options type
 type MessageSelectionOpts = {
-  mode: "first" | "last" | "all" | "range";
+  mode: "first" | "last" | "all" | "range" | "user-only";
   count?: number;
   start?: number;
   end?: number;

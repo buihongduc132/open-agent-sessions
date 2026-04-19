@@ -65,7 +65,7 @@ export interface ToolSearchQuery {
 
 export type SessionReadMode = "last_message" | "all_no_tools" | "all_with_tools";
 
-export type MessageSelectionMode = "first" | "last" | "all" | "range";
+export type MessageSelectionMode = "first" | "last" | "all" | "range" | "user-only";
 
 export interface MessageSelectionOptions {
   mode: MessageSelectionMode;
