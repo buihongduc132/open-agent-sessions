@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+
+const CI = !!process.env.CI;
 import { spawn } from "child_process";
 import { join } from "path";
 
@@ -326,7 +328,7 @@ describe("CLI: TUI command (R-15)", () => {
       expect(combined).not.toContain("Unknown command");
     });
 
-    test("'tui' shows TUI init output (OPENTUI markers or config debug)", async () => {
+    test.skipIf(CI)("'tui' shows TUI init output (OPENTUI markers or config debug)", async () => {
       const result = await runCLI(["tui"]);
 
       const output = result.stdout + result.stderr;

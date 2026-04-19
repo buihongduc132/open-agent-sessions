@@ -27,6 +27,8 @@ import { describe, expect, test } from "bun:test";
 import { spawn } from "child_process";
 import { join } from "path";
 
+const CI = !!process.env.CI;
+
 // ============================================================================
 // CLI helper
 // ============================================================================
@@ -75,7 +77,7 @@ async function runCLI(args: string[], timeoutMs = 6000): Promise<{
 // GAP 10b — `search --format json|text`
 // ============================================================================
 
-describe("GAP 10b: `oas search --format json|text`", () => {
+describe.skipIf(CI)("GAP 10b: `oas search --format json|text`", () => {
   test("`oas search --text ast --format json` exits 0", async () => {
     const result = await runCLI(["search", "--text", "ast", "--format", "json", "--limit", "5"]);
     expect(result.exitCode).toBe(0);

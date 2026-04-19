@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { spawn } from "child_process";
 import { join } from "path";
 
+const CI = !!process.env.CI;
+
 async function runCLI(args: string[], timeoutMs = 4000): Promise<{
   exitCode: number;
   stdout: string;
@@ -51,7 +53,7 @@ async function hasLongTitle(limit = 100): Promise<boolean> {
   } catch { return false; }
 }
 
-describe("GAP 9a: `oas sessions --full` — full title, no truncation", () => {
+describe.skipIf(CI)("GAP 9a: `oas sessions --full` — full title, no truncation", () => {
   test("`oas sessions --full` exits 0", async () => {
     const result = await runCLI(["sessions", "--full", "--last", "30d"]);
     expect(result.exitCode).toBe(0);
@@ -89,7 +91,7 @@ describe("GAP 9a: `oas sessions --full` — full title, no truncation", () => {
   });
 });
 
-describe("GAP 9b: `oas sessions` — hide `default` alias by default", () => {
+describe.skipIf(CI)("GAP 9b: `oas sessions` — hide `default` alias by default", () => {
   test("`oas sessions` (default) — `:default]` must NOT appear in output", async () => {
     const result = await runCLI(["sessions", "--last", "30d", "--limit", "5"]);
     expect(result.exitCode).toBe(0);

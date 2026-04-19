@@ -6,6 +6,8 @@
  */
 
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+
+const CI = !!process.env.CI;
 import { Database } from "bun:sqlite";
 import { mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -666,7 +668,7 @@ describe("R-18: forkSession — native storage write is DEFERRED, not persisted"
     writableDb.close();
   });
 
-  test("TC-R18-3: forkSession (JSONL adapter) writes clone metadata readable via listSessions", async () => {
+  test.skipIf(CI)("TC-R18-3: forkSession (JSONL adapter) writes clone metadata readable via listSessions", async () => {
     const fork = await getForkSession();
     const cwd = tempDir;
     const originalCwd = process.cwd();

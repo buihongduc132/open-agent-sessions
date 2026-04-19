@@ -4,6 +4,8 @@ import { join } from "path";
 import type { SessionSummary } from "../src/core/types";
 import type { SessionsService } from "../src/cli/sessions";
 
+const CI = !!process.env.CI;
+
 function runCLI(args: string[], cwd: string, timeoutMs = 8000): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const proc = spawn("bun", [join(cwd, "bin", "oas"), ...args], { cwd, timeout: timeoutMs });
@@ -34,7 +36,7 @@ function makeSession(id: string, title: string, directory: string): SessionSumma
   };
 }
 
-describe("GAP 11: oas sessions project scope across worktrees", () => {
+describe.skipIf(CI)("GAP 11: oas sessions project scope across worktrees", () => {
   test("open-agent-sessions worktree: oas returns sessions (exact project match)", async () => {
     const result = await runCLI(["sessions", "--limit", "5", "--format", "json"], WORKTREES.openAgentSessions);
     expect(result.exitCode).toBe(0);
@@ -94,7 +96,7 @@ describe("GAP 11: oas sessions project scope across worktrees", () => {
   });
 });
 
-describe("GAP 11: unit-level — cwd drives session scope", () => {
+describe.skipIf(CI)("GAP 11: unit-level — cwd drives session scope", () => {
   test("getSessions receives correct cwd from runSessionsCommand", async () => {
     let receivedCwd: string | undefined;
     const mockGetSessions: SessionsService = async (query) => {

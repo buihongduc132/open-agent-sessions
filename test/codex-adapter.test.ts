@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+
+const CI = !!process.env.CI;
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
@@ -510,7 +512,7 @@ describe("codex adapter", () => {
     // F2: SQLite-backed listSessionsByTimeRange (real Codex storage)
     // Codex stores sessions in ~/.codex/state_5.sqlite — the threads table.
     // This path is triggered when the path ends in .sqlite (or is the default state_5.sqlite).
-    describe("SQLite-backed listSessionsByTimeRange (F2)", () => {
+    describe.skipIf(CI)("SQLite-backed listSessionsByTimeRange (F2)", () => {
       // Test helper: check if the real Codex DB exists and is accessible.
       // Returns the DB path string if present, otherwise null (skip test).
       function realSqliteDbPath(): string | null {

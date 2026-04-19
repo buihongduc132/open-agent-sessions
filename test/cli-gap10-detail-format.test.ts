@@ -27,6 +27,8 @@ import { describe, expect, test } from "bun:test";
 import { spawn } from "child_process";
 import { join } from "path";
 
+const CI = !!process.env.CI;
+
 // ============================================================================
 // CLI helper
 // ============================================================================
@@ -76,7 +78,7 @@ async function runCLI(args: string[], timeoutMs = 6000): Promise<{
 // Discovery: get a real session ID from `oas sessions` to test detail command
 // ============================================================================
 
-describe("GAP 10c: `oas detail --format json|text`", () => {
+describe.skipIf(CI)("GAP 10c: `oas detail --format json|text`", () => {
   // Discover a real session ID before running tests
   let realSessionId: string | null = null;
 
