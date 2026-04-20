@@ -945,6 +945,7 @@ async function main() {
 
   // R-13: Config inspection command
   if (command === "config") {
+    // restArgs is ["--show"/"--validate"/"--paths"/...] (already sliced past "config")
     const result = await runConfigCommand(restArgs);
     process.stdout.write(result.stdout);
     process.stderr.write(result.stderr);
