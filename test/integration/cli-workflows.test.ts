@@ -466,9 +466,7 @@ describe("CLI Integration Tests", () => {
       expect(Array.isArray(output.messages)).toBe(true);
     }, 30000);
 
-    // Skip: Integration test for --role is flaky in CI due to environment issues
-    // The feature is tested in unit tests (test/cli-read.test.ts)
-    test.skip("AC7: oas read <id> --role user - filter by role", async () => {
+    test("AC7: oas read <id> --role user - filter by role", async () => {
       const sessions = [
         {
           id: "test-session-role",
@@ -673,9 +671,7 @@ describe("CLI Integration Tests", () => {
       expect(readResult.stdout).toContain("4h Window Session 1");
     }, 35000);
 
-    // Skip: Integration test for search + read with tools is flaky in CI
-    // Feature is tested in unit tests
-    test.skip("WF2: Search for sessions, then read with tools", async () => {
+    test("WF2: Search for sessions, then read with tools", async () => {
       const sessions = [
         {
           id: "session-search-test",
