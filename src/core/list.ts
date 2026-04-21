@@ -98,6 +98,12 @@ export type SessionListQuery = {
    * immediately after the one referenced by the cursor.
    */
   after?: string;
+  /**
+   * When true (default), only return sessions without a parentSessionId.
+   * Set to false to include child/forked sessions.
+   * Applied BEFORE limit/pagination so the limit counts root sessions only.
+   */
+  rootsOnly?: boolean;
 };
 
 export type SessionListError = {

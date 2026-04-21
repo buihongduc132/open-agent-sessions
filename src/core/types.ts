@@ -53,6 +53,10 @@ export type SessionPart =
 export interface SearchQuery {
   cwd?: string;
   text: string;
+  /** Maximum number of search results to return. */
+  limit?: number;
+  /** Restrict search results to sessions within this time range. */
+  timeRange?: TimeRangeOptions;
 }
 
 /** R-41: Query for fuzzy tool/MCP/skills usage search */
