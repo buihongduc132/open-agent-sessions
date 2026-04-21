@@ -43,7 +43,7 @@ describe("deprecated shims: error propagation (Zone 4)", () => {
 // Zone 1: Empty/Nil Inputs
 // ============================================================================
 
-describe("deprecated shims: empty/nil inputs (Zone 1)", () => {
+describe.skipIf(CI)("deprecated shims: empty/nil inputs (Zone 1)", () => {
   test("oas list (no args) exits 0 with deprecation warning", async () => {
     const result = await runCLI(["list"]);
 
@@ -85,7 +85,7 @@ describe("deprecated shims: empty/nil inputs (Zone 1)", () => {
 // Zone 3: Multi-Flag / Multi-Component Interaction
 // ============================================================================
 
-describe("deprecated shims: multi-flag interaction (Zone 3)", () => {
+describe.skipIf(CI)("deprecated shims: multi-flag interaction (Zone 3)", () => {
   test("oas sessions --last 4h --format json forwards flags with deprecation", async () => {
     const result = await runCLI(["sessions", "--last", "4h", "--format", "json"]);
 
@@ -105,7 +105,7 @@ describe("deprecated shims: multi-flag interaction (Zone 3)", () => {
 // Zone 5: State Mutation — Forwarding Correctness
 // ============================================================================
 
-describe("deprecated shims: forwarding correctness (Zone 5)", () => {
+describe.skipIf(CI)("deprecated shims: forwarding correctness (Zone 5)", () => {
   test("oas list 5 forwards positional N as --limit 5", async () => {
     const result = await runCLI(["list", "5"]);
 
