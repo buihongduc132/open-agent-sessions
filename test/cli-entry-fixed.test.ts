@@ -92,8 +92,7 @@ describe("CLI: help output verification", () => {
     // OpenCode commands
     expect(result.stdout).toContain("list");
     expect(result.stdout).toContain("recent");
-    expect(result.stdout).toContain("find");
-    expect(result.stdout).toContain("show");
+    expect(result.stdout).toContain("session detail");
     
     // Extended commands
     expect(result.stdout).toContain("sessions");
@@ -125,10 +124,8 @@ describe("CLI: help output verification", () => {
   test("--help shows read command options", async () => {
     const result = await runCLI(["--help"]);
     
-    expect(result.stdout).toContain("--session SPEC");
     expect(result.stdout).toContain("--agent NAME");
     expect(result.stdout).toContain("--alias NAME");
-    expect(result.stdout).toContain("--id SESSION_ID");
     expect(result.stdout).toContain("--first N");
     expect(result.stdout).toContain("--last N");
     expect(result.stdout).toContain("--all");
@@ -148,10 +145,10 @@ describe("CLI: help output verification", () => {
     const result = await runCLI(["--help"]);
     
     expect(result.stdout).toContain("Examples:");
-    expect(result.stdout).toContain("oas list");
-    expect(result.stdout).toContain("oas sessions --last 4h");
-    expect(result.stdout).toContain("oas read");
-    expect(result.stdout).toContain("oas search");
+    expect(result.stdout).toContain("oas session");
+    expect(result.stdout).toContain("oas session list --last 4h");
+    expect(result.stdout).toContain("oas session read");
+    expect(result.stdout).toContain("oas session search");
   });
 
   test("no arguments shows help", async () => {
@@ -258,7 +255,7 @@ describe("CLI: command routing", () => {
       
       // Unknown command shows usage in stdout, error in stderr
       const output = result.stdout + result.stderr;
-      expect(output).toContain("Usage:");
+      expect(output).toContain("Unknown command");
       expect(output).toContain("Run 'oas --help'");
     });
   });
@@ -391,6 +388,6 @@ describe("CLI: error handling", () => {
     const result = await runCLI(["list", "abc"]);
     
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("positive number");
+    expect(result.stderr).toContain("non-negative integer");
   });
 });
