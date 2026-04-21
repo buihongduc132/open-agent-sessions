@@ -66,12 +66,21 @@ export async function runListCommand(options: ListOptions): Promise<CliResult> {
     return errorResult(aliasResult.error);
   }
 
+  // Determine whether we need child sessions in the raw results.
+  // - includeSubagents: show all sessions (children visible)
+  // - childrenOf: need children visible to filter by parent
+  // - subOnly: need children visible to filter to children only
+  // - showBadges (default mode): need children for badge counting, then hide from display
+  const showBadges = !options.includeSubagents && options.childrenOf === undefined && !options.subOnly;
+  const needsChildren = options.includeSubagents || options.childrenOf !== undefined || options.subOnly;
+
   const query: SessionListQuery = {
     agent: agentResult.value,
     alias: aliasResult.value,
     q: normalizeQuery(options.q),
     limit: options.limit,
     after: options.after,
+    rootsOnly: (needsChildren || showBadges) ? false : undefined,
   };
 
   let result: SessionListResult;
@@ -81,31 +90,19 @@ export async function runListCommand(options: ListOptions): Promise<CliResult> {
     return errorResult(errorMessage(error));
   }
 
-  // Apply rootsOnly filter: only sessions with no parentSessionId
+  // Apply CLI-specific post-processing filters on core results
   let sessions = result.sessions;
-  if (options.rootsOnly) {
-    sessions = sessions.filter((s) => !s.parentSessionId);
-  }
 
-  // Apply childrenOf filter: only sessions whose parent is the specified ID
   if (options.childrenOf !== undefined) {
     sessions = sessions.filter((s) => s.parentSessionId === options.childrenOf);
   }
 
-  // Apply subOnly filter: only sessions with a parentSessionId
   if (options.subOnly) {
     sessions = sessions.filter((s) => !!s.parentSessionId);
   }
 
-  // Determine badge mode for formatting
-  // - includeSubagents: show all, no badges
-  // - childrenOf/subOnly: filtered view, no badges
-  // - default/rootsOnly: hide children, show +N badges
-  const showBadges = !options.includeSubagents && options.childrenOf === undefined && !options.subOnly;
-  const hideChildren = showBadges && !options.rootsOnly; // rootsOnly already filters them
-
-  if (hideChildren) {
-    // Default mode: hide child sessions, show only roots with child count badges
+  // Default mode: core returns children for badge counting; hide from display
+  if (showBadges) {
     sessions = sessions.filter((s) => !s.parentSessionId);
   }
 

@@ -163,7 +163,7 @@ describe("cli list", () => {
       list,
     });
 
-    expect(received).toEqual({ agent: "codex", alias: "work", q: "triage" });
+    expect(received).toEqual({ agent: "codex", alias: "work", q: "triage", rootsOnly: false });
   });
 
   test("empty query is normalized to undefined", async () => {
@@ -179,7 +179,7 @@ describe("cli list", () => {
       list,
     });
 
-    expect(received).toEqual({ agent: undefined, alias: undefined, q: undefined });
+    expect(received).toEqual({ agent: undefined, alias: undefined, q: undefined, rootsOnly: false });
   });
 
   test("passes limit and after to list service", async () => {
