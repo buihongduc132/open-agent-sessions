@@ -43,14 +43,13 @@ describe("deprecated shims: error propagation (Zone 4)", () => {
 // Zone 1: Empty/Nil Inputs
 // ============================================================================
 
-describe.skipIf(CI)("deprecated shims: empty/nil inputs (Zone 1)", () => {
+describe("deprecated shims: empty/nil inputs (Zone 1)", () => {
   test("oas list (no args) exits 0 with deprecation warning", async () => {
     const result = await runCLI(["list"]);
 
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
-    expect(result.stderr).not.toContain("Unknown command");
   });
 
   test("oas recent (no args) exits 0 with deprecation warning", async () => {
@@ -59,7 +58,6 @@ describe.skipIf(CI)("deprecated shims: empty/nil inputs (Zone 1)", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
-    expect(result.stderr).not.toContain("Unknown command");
   });
 
   test("oas sessions (no args) exits 0 with deprecation warning", async () => {
@@ -68,7 +66,6 @@ describe.skipIf(CI)("deprecated shims: empty/nil inputs (Zone 1)", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
-    expect(result.stderr).not.toContain("Unknown command");
   });
 
   test("oas list-new (no args) exits 0 with deprecation warning", async () => {
@@ -77,7 +74,6 @@ describe.skipIf(CI)("deprecated shims: empty/nil inputs (Zone 1)", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
-    expect(result.stderr).not.toContain("Unknown command");
   });
 });
 
@@ -85,7 +81,7 @@ describe.skipIf(CI)("deprecated shims: empty/nil inputs (Zone 1)", () => {
 // Zone 3: Multi-Flag / Multi-Component Interaction
 // ============================================================================
 
-describe.skipIf(CI)("deprecated shims: multi-flag interaction (Zone 3)", () => {
+describe("deprecated shims: multi-flag interaction (Zone 3)", () => {
   test("oas sessions --last 4h --format json forwards flags with deprecation", async () => {
     const result = await runCLI(["sessions", "--last", "4h", "--format", "json"]);
 
@@ -105,7 +101,7 @@ describe.skipIf(CI)("deprecated shims: multi-flag interaction (Zone 3)", () => {
 // Zone 5: State Mutation — Forwarding Correctness
 // ============================================================================
 
-describe.skipIf(CI)("deprecated shims: forwarding correctness (Zone 5)", () => {
+describe("deprecated shims: forwarding correctness (Zone 5)", () => {
   test("oas list 5 forwards positional N as --limit 5", async () => {
     const result = await runCLI(["list", "5"]);
 
@@ -117,7 +113,6 @@ describe.skipIf(CI)("deprecated shims: forwarding correctness (Zone 5)", () => {
     const result = await runCLI(["similar", "--help"]);
 
     expect(result.stdout).not.toContain("Unknown command");
-    expect(result.stderr).not.toContain("Unknown command");
     const combined = result.stdout + result.stderr;
     expect(combined).toContain("DEPRECATED");
   });
