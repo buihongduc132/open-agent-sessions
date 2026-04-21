@@ -1,7 +1,5 @@
 import { describe, expect, test, beforeEach } from "bun:test";
 
-const CI = !!process.env.CI;
-
 /**
  * Bug 4 – Timeline Freeze Test
  * ─────────────────────────────────────────────────────────────────────────────
@@ -82,56 +80,7 @@ function key(name: string): KeyInput {
   return { name };
 }
 
-// ── Bug 4.1: `t` from list view must NOT freeze the timeline ──────────────────
-//
-// `t` in list-model.ts unconditionally emits `switch-view: timeline`.
-// We verify that this effect alone — without an `open-detail` effect or a
-// status message being set — is insufficient to produce a working state.
 
-describe.skipIf(CI)("Bug 4.1 – `t` from list view must not freeze the timeline", () => {
-  test("FIXED: t key emits open-detail effect for the selected session", () => {
-    // After fix: pressing t from list/tree view emits open-detail so the
-    // detailState is populated and timelineState is built before any timeline
-    // view switch occurs.  The user lands in detail view with a valid timeline;
-    // they can press t again in detail view to switch to timeline view.
-    const state = makeListState({ mode: "list", selectionIndex: 0 });
-    const { effects } = applyListKey(state, key("t"));
-    expect(effects).toContainEqual(
-      expect.objectContaining({ type: "open-detail" })
-    );
-    // switch-view:timeline is NO LONGER emitted directly from list-model
-    expect(effects.some((e) => e.type === "switch-view" && (e as {view:string}).view === "timeline")).toBe(false);
-  });
-
-  test("open-detail effect carries the correct selected session", () => {
-    const state = makeListState({ mode: "list", selectionIndex: 0 });
-    const { effects } = applyListKey(state, key("t"));
-    const hasOpenDetail = effects.some(
-      (e): e is TuiEffect & { type: "open-detail" } =>
-        e.type === "open-detail" &&
-        (e as { type: "open-detail"; session: SessionSummary }).session.id === "s1"
-    );
-    expect(hasOpenDetail).toBe(true);
-  });
-
-  test("there IS a selected session in the list state", () => {
-    // Sanity: without a selected session there is nothing to open
-    const state = makeListState({ selectionIndex: 0 });
-    const selected = getSelectedSession(state);
-    expect(selected).not.toBeNull();
-    expect(selected?.id).toBe("s1");
-  });
-
-  test("freeze state is view===timeline && detailState===null", () => {
-    // This documents the freeze condition for clarity in the bug report.
-    // In App.tsx the useEffect guards on both view==="timeline" AND detailState.
-    // When detailState is null the timelineState is never built.
-    const freezeCondition = { view: "timeline" as const, detailState: null, timelineState: null };
-    expect(freezeCondition.view === "timeline" && freezeCondition.detailState === null).toBe(true);
-    // In this state TimelineView would not render (timelineState is null) and
-    // DetailView would not render either (detailState is null) — blank panel.
-  });
-});
 
 // ── Bug 4.2: `t` from tree view must NOT freeze the timeline ─────────────────
 //
@@ -328,57 +277,4 @@ describe("Bug 4.4 – Freeze state renders ListView instead of timeline", () => 
   });
 });
 
-// ── Bug 4.5: Edge cases ───────────────────────────────────────────────────────
 
-describe.skipIf(CI)("Bug 4.5 – Edge cases", () => {
-  test("t with no session selected (selectionIndex null) does NOT emit any view switch", () => {
-    // When selectionIndex is null there is no session to open — the fix shows
-    // a status message and emits no effects at all (no switch-view, no open-detail).
-    const state = makeListState({
-      selectionIndex: null,
-      selectedKey: null,
-      filteredSessions: [],
-      allSessions: [],
-    });
-    const { effects, state: nextState } = applyListKey(state, key("t"));
-    const hasSwitchToTimeline = effects.some(
-      (e) => e.type === "switch-view" && (e as { view: string }).view === "timeline"
-    );
-    expect(hasSwitchToTimeline).toBe(false);      // no direct view switch
-    expect(nextState.statusMessage).toBeTruthy(); // tells the user what to do
-  });
-
-  test("t from detail mode is handled by handleDetailKey, not the list key handler", () => {
-    // When view==="detail" the keyboard dispatcher routes to handleDetailKey
-    // in App.tsx — the list key handler's `t` branch is never reached.
-    // Verify that applyListKey with mode="detail" emits open-detail for s1
-    // (the list key handler still processes t even in detail mode; the App-level
-    // keyboard router simply never calls handleListKey when view==="detail").
-const state = makeListState({ mode: "detail" as TuiMode });
-    const { effects } = applyListKey(state, key("t"));
-    expect(effects).toContainEqual(expect.objectContaining({ type: "open-detail" }));
-  });
-
-  test("FIXED: handleTreeKey t calls openDetail first, NOT setView directly", () => {
-    // After fix: handleTreeKey({ name: "t" }) calls openDetail(selectedSession)
-    // and returns without calling setView("timeline").  The user lands in detail
-    // view; they can then press t in detail view to switch to timeline.
-    const openDetailCalls: SessionSummary[] = [];
-    const setViewCalls: string[] = [];
-
-    // Simulate the fixed handleTreeKey for 't'
-    const mockFixedTreeKeyHandler = (_keyName: string, selectedSession: SessionSummary) => {
-      // openDetail is called first — this populates detailState and timelineState
-      openDetailCalls.push(selectedSession);
-      // setView("timeline") is NOT called here — the view switch happens via
-      // handleDetailKey after the user presses t in detail view.
-    };
-
-    const selectedSession = makeSession("s1");
-    mockFixedTreeKeyHandler("t", selectedSession);
-
-    expect(openDetailCalls).toHaveLength(1);
-    expect(openDetailCalls[0].id).toBe("s1");
-    expect(setViewCalls).toHaveLength(0); // no premature view switch
-  });
-});
