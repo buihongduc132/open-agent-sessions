@@ -50,6 +50,7 @@ describe("deprecated shims: empty/nil inputs (Zone 1)", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
+    expect(result.stderr).not.toContain("Unknown command");
   });
 
   test("oas recent (no args) exits 0 with deprecation warning", async () => {
@@ -58,6 +59,7 @@ describe("deprecated shims: empty/nil inputs (Zone 1)", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
+    expect(result.stderr).not.toContain("Unknown command");
   });
 
   test("oas sessions (no args) exits 0 with deprecation warning", async () => {
@@ -66,6 +68,7 @@ describe("deprecated shims: empty/nil inputs (Zone 1)", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
+    expect(result.stderr).not.toContain("Unknown command");
   });
 
   test("oas list-new (no args) exits 0 with deprecation warning", async () => {
@@ -74,6 +77,7 @@ describe("deprecated shims: empty/nil inputs (Zone 1)", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("DEPRECATED");
     expect(result.stdout).not.toContain("Unknown command");
+    expect(result.stderr).not.toContain("Unknown command");
   });
 });
 
@@ -113,6 +117,7 @@ describe("deprecated shims: forwarding correctness (Zone 5)", () => {
     const result = await runCLI(["similar", "--help"]);
 
     expect(result.stdout).not.toContain("Unknown command");
+    expect(result.stderr).not.toContain("Unknown command");
     const combined = result.stdout + result.stderr;
     expect(combined).toContain("DEPRECATED");
   });
