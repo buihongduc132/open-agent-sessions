@@ -927,11 +927,6 @@ async function handleSessionCommand(subArgs: string[]): Promise<void> {
       // Support: oas session detail <session-spec> [flags]
       const parsed = parseArgs(restArgs);
       if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
-      // If no --session/--id flag and first positional looks like a session spec, wire it
-      if (!parsed.options["session"] && !parsed.options["id"] && parsed.positional.length === 0) {
-        // First non-flag arg was consumed as parsed.command (the sub-subcommand arg)
-        // Try to extract from restArgs directly
-      }
       await handleDetailCommand(parsed);
       return;
     }
