@@ -166,13 +166,16 @@ export async function listSessions(
   // Route to listSessionsByTimeRange when either limit or after is requested.
   // The after cursor positions after a specific session; limit controls page size.
   if (query.limit !== undefined || query.after !== undefined) {
-    return listSessionsPaginated(registry, query);
+    const rootsOnly = query.rootsOnly ?? true;
+    return listSessionsPaginated(registry, query, rootsOnly);
   }
 
   // ── Default branch (no pagination) ──────────────────────────────────────
+  const rootsOnly = query.rootsOnly ?? true;
   const { sessions, errors } = await collectSessions(registry, query);
   const filtered = applyFilters(sessions, query);
-  const ordered = filtered.slice().sort(compareSessions);
+  const rootFiltered = rootsOnly ? filtered.filter((s) => !s.parentSessionId) : filtered;
+  const ordered = rootFiltered.slice().sort(compareSessions);
   return { sessions: ordered, errors };
 }
 
@@ -182,13 +185,12 @@ export async function listSessions(
 
 async function listSessionsPaginated(
   registry: AdapterRegistry,
-  query: SessionListQuery
+  query: SessionListQuery,
+  rootsOnly: boolean
 ): Promise<SessionListResult> {
   const limit = query.limit ?? 50;
 
   // Decode the cursor to extract a `since` timestamp and optional sessionId.
-  // If `after` is provided, we pass the decoded timestamp as the `since` lower
-  // bound so the adapter returns only sessions that are newer than the cursor.
   let since: number | undefined;
   let skipSessionId: string | undefined;
   if (query.after !== undefined) {
@@ -197,15 +199,12 @@ async function listSessionsPaginated(
       since = decoded.updatedAtMs;
       skipSessionId = decoded.sessionId;
     }
-    // If the cursor is malformed we intentionally ignore it rather than error,
-    // so a corrupted bookmark still yields a graceful empty result.
   }
 
   const sessions: SessionSummary[] = [];
   const errors: SessionListError[] = [];
 
   // F6: When agent or alias filter is set, call only matching adapters.
-  // This avoids triggering Codex's fallback full-scan for single-agent queries.
   const targetAdapters =
     query.agent !== undefined || query.alias !== undefined
       ? registry.adapters.filter(
@@ -215,8 +214,6 @@ async function listSessionsPaginated(
         )
       : registry.adapters;
 
-  // Call adapters sequentially so we can catch individual adapter errors and
-  // still process successful results from other adapters.
   for (const adapter of targetAdapters) {
     try {
       if (adapter.listSessionsByTimeRange) {
@@ -235,18 +232,50 @@ async function listSessionsPaginated(
     }
   }
 
-  // Merge results from all adapters, apply filters, and skip the cursor session.
-  // The skip (via skipSessionId) is applied AFTER filters so cursor-skipping
-  // doesn't interfere with cross-adapter ordering or agent filters.
   let ordered = applyFilters(sessions, query);
-  if (skipSessionId !== undefined) {
-    ordered = ordered.filter((s) => s.id !== skipSessionId);
-  }
   ordered = ordered.slice().sort(compareSessions);
 
-  // hasMore: true when there is at least one more item beyond the page.
-  // Computed AFTER filtering so that e.g. agent-filtered results correctly
-  // indicate whether more pages remain in that filtered view.
+  // Apply roots-only filter BEFORE pagination so limit counts root sessions.
+  if (rootsOnly) {
+    ordered = ordered.filter((s) => !s.parentSessionId);
+  }
+
+  // Cursor skipping: strategy depends on whether child sessions exist.
+  // When children are present and rootsOnly is active, the time-based cursor
+  // (since) may exclude roots that come after the cursor in the filtered
+  // order. We detect this at runtime and re-fetch without since when needed.
+  if (skipSessionId !== undefined) {
+    const needsFullScan = rootsOnly && sessions.some((s) => s.parentSessionId !== undefined);
+    if (needsFullScan) {
+      // The since-filtered results may be incomplete — re-fetch all sessions
+      // and skip past the cursor position in the sorted+filtered list.
+      const allSessions: SessionSummary[] = [];
+      for (const adapter of targetAdapters) {
+        try {
+          if (adapter.listSessionsByTimeRange) {
+            const result = adapter.listSessionsByTimeRange({ since: undefined, limit, skipSessionId: undefined });
+            allSessions.push(...result);
+          } else {
+            const result = await adapter.listSessions();
+            allSessions.push(...result);
+          }
+        } catch {
+        }
+      }
+      ordered = applyFilters(allSessions, query);
+      ordered = ordered.slice().sort(compareSessions);
+      if (rootsOnly) {
+        ordered = ordered.filter((s) => !s.parentSessionId);
+      }
+      const cursorIdx = ordered.findIndex((s) => s.id === skipSessionId);
+      if (cursorIdx >= 0) {
+        ordered = ordered.slice(cursorIdx + 1);
+      }
+    } else {
+      ordered = ordered.filter((s) => s.id !== skipSessionId);
+    }
+  }
+
   const hasMore = ordered.length > limit;
   const page = ordered.slice(0, limit);
   const nextCursor =

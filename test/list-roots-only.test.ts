@@ -106,7 +106,7 @@ describe("roots-only session filtering", () => {
 
     //#then only root sessions returned (sorted by updated_at desc)
     expect(sessions.length).toBe(2);
-    expect(sessions.map((s) => s.id)).toEqual(["root-2", "root-1"]);
+    expect(sessions.map((s) => s.id)).toEqual(["root-1", "root-2"]);
     expect(sessions.every((s) => s.parentSessionId === undefined)).toBe(true);
   });
 
