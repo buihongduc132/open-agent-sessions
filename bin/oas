@@ -959,6 +959,7 @@ async function handleSessionCommand(subArgs: string[]): Promise<void> {
 
     case "similar": {
       const parsed = parseArgs(restArgs);
+      if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
       await handleSimilarCommand(parsed);
       return;
     }
@@ -982,10 +983,30 @@ async function handleSessionListSubcommand(args: string[]): Promise<void> {
     return;
   }
 
+  // Validate --limit if provided as flag
+  const limitVal = parsed.options["limit"];
+  if (limitVal !== undefined) {
+    if (limitVal === true) {
+      console.error("Error: --limit requires a value");
+      process.exit(1);
+    }
+    const limitNum = Number(limitVal);
+    if (isNaN(limitNum) || limitNum < 0 || !Number.isInteger(limitNum)) {
+      console.error(`Error: --limit must be a non-negative integer, got: ${limitVal}`);
+      process.exit(1);
+    }
+  }
+
   // Detect time-range flags → route to sessions handler
   const hasTimeFlags = parsed.options["last"] !== undefined
     || parsed.options["since"] !== undefined
     || parsed.options["until"] !== undefined;
+
+  // Convert --limit 0 to "all results" (undefined) for the list-new path.
+  // The sessions (time-range) path already handles limit 0 → MAX_LIST_LIMIT internally.
+  if (!hasTimeFlags && parsed.options["limit"] === 0) {
+    delete parsed.options["limit"];
+  }
 
   if (hasTimeFlags) {
     // Route to sessions handler — it handles --last/--since/--until/--limit/--format/--full/--show-alias
@@ -996,8 +1017,11 @@ async function handleSessionListSubcommand(args: string[]): Promise<void> {
     const limitArg = parsed.positional[0] || (parsed.command ? parsed.command : undefined);
     if (limitArg !== undefined) {
       const num = Number(limitArg);
-      if (isNaN(num) || num <= 0 || !Number.isInteger(num)) {
-        console.error(`Error: limit must be a positive number, got: ${limitArg}`);
+      // Positional 0 means "all results" — skip setting limit
+      if (num === 0 && Number.isInteger(num)) {
+        // Don't pass limit to the list service — returns all sessions
+      } else if (isNaN(num) || num < 0 || !Number.isInteger(num)) {
+        console.error(`Error: limit must be a non-negative integer, got: ${limitArg}`);
         process.exit(1);
       }
     }
@@ -1068,7 +1092,10 @@ async function main() {
 
   if (command === "sessions") {
     deprecationNotice("oas session list");
-    await handleSessionListSubcommand(restArgs);
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
+    // Route directly to sessions handler — it applies 24h default via parseTimeRange
+    await handleSessionsCommand(parsed);
     return;
   }
 
