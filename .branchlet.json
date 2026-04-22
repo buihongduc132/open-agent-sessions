@@ -1,0 +1,17 @@
+{
+  "worktreeCopyPatterns": [],
+  "worktreeCopyIgnores": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.git/**",
+    "**/Thumbs.db",
+    "**/.DS_Store"
+  ],
+  "worktreePathTemplate": "$BASE_PATH/../oas-$BRANCH",
+  "postCreateCmd": [
+    "sh -c 'MAIN=$(git worktree list | grep \"[main]\" | head -1 | cut -f1 -d\" \"); [ -z \"$MAIN\" ] && exit 0; for f in .env .env.local .env.production .env.staging .env.db; do [ -f \"$MAIN/$f\" ] && rm -f \"$f\" && ln -sfn \"$MAIN/$f\" \"$f\"; done; echo \"[branchlet] Linked .env files\"'",
+    "sh -c 'MAIN=$(git worktree list | grep \"[main]\" | head -1 | cut -f1 -d\" \"); [ -z \"$MAIN\" ] && exit 0; for d in target; do if [ -d \"$MAIN/$d\" ]; then rm -rf \"$d\" && ln -sfn \"$MAIN/$d\" \"$d\" && echo \"[branchlet] Symlinked $d/ from $MAIN\"; fi; done; for d in node_modules .venv venv __pycache__ .mypy_cache .pytest_cache .ruff_cache; do if [ -d \"$MAIN/$d\" ]; then rm -rf \"$d\" && ln -sfn \"$MAIN/$d\" \"$d\" && echo \"[branchlet] Symlinked $d/ from $MAIN\"; fi; done; for d in pkg; do if [ -d \"$MAIN/$d\" ]; then rm -rf \"$d\" && ln -sfn \"$MAIN/$d\" \"$d\" && echo \"[branchlet] Symlinked $d/ from $MAIN\"; fi; done; if [ -d \"$MAIN/dist\" ]; then rm -rf dist && ln -sfn \"$MAIN/dist\" dist && echo \"[branchlet] Symlinked dist/ from $MAIN\"; fi; echo \"[branchlet] Shared dir linking complete\"'"
+  ],
+  "terminalCommand": "",
+  "deleteBranchWithWorktree": false
+}
