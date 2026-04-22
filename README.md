@@ -47,29 +47,33 @@ git clone https://github.com/buihongduc132/open-agent-sessions.git
 cd open-agent-sessions && mise install
 
 # List sessions (last 24h)
-oas sessions
+oas session list
 
 # List with time filter
-oas sessions --last 4h
-oas sessions --since 2026-01-01 --limit 20
+oas session list --last 4h
+oas session list --since 2026-01-01 --limit 20
 
 # Read session messages
-oas read <session-id>
-oas read opencode:default:<session-id>
-oas read --session <session-id> --last 20 --format json
+oas session read <session-id>
+oas session read opencode:default:<session-id>
+oas session read <session-id> --last 20 --format json
 
-# Search
-oas search --text "fix authentication bug"
+# Search (titles + content, with boolean operators)
+oas session search --text "fix authentication bug"
+oas session search --text "ast-grep AND comby"
+oas session search --text "error OR warning" --format json
+oas session search --text "config NOT testing"
 
 # Filtered list
-oas list-new --agent opencode --alias default --q "bug"
+oas session list --agent opencode --alias default --q "bug"
+oas session list --roots-only --full --format json
 
 # Clone (Codex → OpenCode)
-oas clone --from codex:work:<session-id> --to opencode:default
+oas session clone --from codex:work:<session-id> --to opencode:default
 
 # Export session
-oas export opencode:default:<session-id> --format markdown
-oas export opencode:default:<session-id> --format csf --output session.csf.json
+oas session export opencode:default:<session-id> --format markdown
+oas session export opencode:default:<session-id> --format csf --output session.csf.json
 
 # Interactive TUI
 oas tui
@@ -108,7 +112,7 @@ open-agent-sessions
 │   │   ├── search.ts           # oas search: content search across adapters
 │   │   ├── detail.ts           # oas detail: session detail view
 │   │   ├── clone.ts            # oas clone: Codex → OpenCode copy
-│   │   ├── export.ts           # oas export: CSF/Markdown/text export
+│   │   ├── export.ts           # oas session export: CSF/Markdown/text export
 │   │   ├── config.ts           # oas config: config inspection
 │   │   └── formatters/         # Output formatters (text, JSON, ANSI colors)
 │   └── tui/                    # Interactive terminal UI (Ink/React)
@@ -233,85 +237,98 @@ agents:
 
 ## CLI Reference
 
-### `oas sessions` — Time-filtered list
+### `oas session list` — List sessions
 
 ```bash
-oas sessions                          # last 24h, limit 50
-oas sessions --last 4h                # last 4 hours
-oas sessions --last 2d --limit 20    # last 2 days, 20 results
-oas sessions --since 2026-01-01T00:00:00Z
-oas sessions --until 2026-03-01       # up to March 2026
-oas sessions --format json            # machine-readable output
-oas sessions --limit 0                # all matching sessions
+oas session list                          # last 24h, limit 50
+oas session list --last 4h                # last 4 hours
+oas session list --last 2d --limit 20    # last 2 days, 20 results
+oas session list --since 2026-01-01T00:00:00Z
+oas session list --until 2026-03-01       # up to March 2026
+oas session list --format json            # machine-readable output
+oas session list --limit 0                # all matching sessions
+oas session list --agent opencode         # filter by agent
+oas session list --alias default          # filter by alias
+oas session list --q "bug fix"           # title/ID contains "bug fix"
+oas session list --roots-only             # only root sessions (no sub-agents)
+oas session list --sub-only               # only sub-agent sessions
+oas session list --children-of <id>       # direct children of a session
+oas session list --full                   # show full titles
+oas session list --show-alias             # show all aliases including 'default'
 ```
 
 Time formats: `4h`, `2d`, `1w`, `1M` (relative); ISO-8601 (absolute).
 
-### `oas list-new` — Filtered list
+### `oas session read` — Read session messages
 
 ```bash
-oas list-new                         # all enabled agents, all aliases
-oas list-new --agent opencode        # OpenCode only
-oas list-new --alias default        # alias "default" across all agents
-oas list-new --agent codex --alias sessions
-oas list-new --q "bug fix"          # title/ID contains "bug fix"
-oas list-new --agent opencode --q "authentication"
-```
-
-### `oas read` — Read session messages
-
-```bash
-oas read <session-id>                           # last 10 messages
-oas read opencode:default:<session-id>          # explicit agent:alias:id
-oas read --session <session-id>                  # --session flag form
-oas read --id <session-id> --agent opencode    # --id + --agent
+oas session read <session-id>                           # last 10 messages
+oas session read opencode:default:<session-id>          # explicit agent:alias:id
+oas session read <id> --session <session-id>            # --session flag form
+oas session read --id <session-id> --agent opencode     # --id + --agent
 
 # Message selection
-oas read <id> --last 5           # last 5 messages (default)
-oas read <id> --first 3        # first 3 messages
-oas read <id> --all            # all messages
-oas read <id> --range 5:10     # messages 5–10 (1-indexed, inclusive)
-oas read <id> --user-only      # only user messages
+oas session read <id> --last 5           # last 5 messages (default)
+oas session read <id> --first 3        # first 3 messages
+oas session read <id> --all            # all messages
+oas session read <id> --range 5:10     # messages 5–10 (1-indexed, inclusive)
+oas session read <id> --user-only      # only user messages (composable with --last/--first/--all/--range)
 
 # Output
-oas read <id> --format text    # plain text (default)
-oas read <id> --format json     # structured JSON
-oas read <id> --output file.md   # write to file
-oas read <id> --all --tools     # include tool messages
-oas read <id> --role assistant  # filter by role
+oas session read <id> --format text    # plain text (default)
+oas session read <id> --format json     # structured JSON
+oas session read <id> --output file.md   # write to file
+oas session read <id> --all --tools     # include tool messages
+oas session read <id> --role assistant  # filter by role
 ```
 
-### `oas search` — Content search
+### `oas session search` — Content search
 
 ```bash
-oas search --text "fix authentication bug"    # searches across all enabled agents
+oas session search --text "fix authentication bug"    # searches across all enabled agents
+oas session search --text "error" --format json       # JSON output
+
+# Boolean operators (AND / OR / NOT)
+oas session search --text "ast-grep AND comby"        # both terms required
+oas session search --text "ast-grep comby"            # implicit AND
+oas session search --text "ast-grep OR comby"         # either term
+oas session search --text "ast-grep NOT comby"        # exclude term
+oas session search --text "(ast-grep OR comby) AND session"  # grouping
+
+# Regex patterns
+oas session search --text "/gritql|ast-grep/"
+
+# Pipe to jq
+oas session search --text "error" --format json | jq -r '.[].id'
 ```
 
-Searches session **titles and content** via adapter-specific implementations.
+Searches session **titles and message content** across all enabled adapters.
+Operator precedence: `NOT` > `AND` > `OR`.
 
-### `oas detail` — Session detail view
+### `oas session detail` — Session detail view
 
 ```bash
-oas detail opencode:default:<session-id>   # positional spec
-oas detail --session opencode:<session-id>  # --session flag
-oas detail --agent codex --alias work --id <session-id>
+oas session detail opencode:default:<session-id>   # positional spec
+oas session detail --session opencode:<session-id>  # --session flag
+oas session detail --agent codex --alias work --id <session-id>
+oas session detail <id> --format json               # JSON output
 ```
 
-### `oas clone` — Clone session (Codex → OpenCode)
+### `oas session clone` — Clone session (Codex → OpenCode)
 
 ```bash
-oas clone --from codex:sessions:<session-id> --to opencode:default
+oas session clone --from codex:sessions:<session-id> --to opencode:default
 ```
 
 Direction enforced: Codex source → OpenCode destination. Cloning reads all messages from Codex, reformats to CSF, and writes as a new OpenCode session.
 
-### `oas export` — Export session
+### `oas session export` — Export session
 
 ```bash
-oas export opencode:default:<session-id>              # CSF (default)
-oas export <id> --format markdown                    # Human-readable Markdown
-oas export <id> --format text                        # Plain text
-oas export <id> --output session.csf.json          # Write to file
+oas session export opencode:default:<session-id>              # CSF (default)
+oas session export <id> --format markdown                    # Human-readable Markdown
+oas session export <id> --format text                        # Plain text
+oas session export <id> --output session.csf.json          # Write to file
 ```
 
 Session ref formats: `session-id` · `alias:session-id` · `agent:alias:session-id`
@@ -323,6 +340,16 @@ oas tui
 ```
 
 VIM-style navigation (`j/k` up/down, `h/H` agent drill, `a/L` alias drill, `l` open detail). See [TUI Reference](#tui-reference) below.
+
+### `oas session similar` — Find similar sessions
+
+```bash
+oas session similar <session-id>              # top 5 similar sessions
+oas session similar <session-id> --top 10     # top 10 results
+oas session similar <session-id> --format json # JSON output
+```
+
+Uses hybrid FTS5 + vector similarity (RRF fusion) to find sessions with related content.
 
 ### `oas config` — Config inspection
 

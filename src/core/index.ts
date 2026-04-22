@@ -3,6 +3,7 @@ export { createListService, clearListCache, listSessions } from "./list";
 export { cloneSession, createCloneService } from "./clone";
 export { normalizeSessionSummary, normalizeTimestamp } from "./normalize";
 export { inferSubAgents, formatSubAgentSummary, formatStatusLine, buildForkChain } from "./subagents";
+export { ChunkCache, CHUNK_DURATION_MS, bucketForTimestamp, getCacheDir } from "./chunk-cache";
 export type {
   SessionSubAgentSummary,
   ToolUsage,
@@ -32,3 +33,9 @@ export type {
   CloneSession,
   CloneSourceAdapter,
 } from "./clone";
+export type {
+  CachedChunk,
+  CacheWindow,
+  InvalidationEntry,
+  LookupResult,
+} from "./chunk-cache";

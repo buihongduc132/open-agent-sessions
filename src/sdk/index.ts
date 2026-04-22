@@ -88,3 +88,12 @@ export { normalizeSessionSummary, normalizeTimestamp } from "../core/normalize";
 // Session fork (R-39) — SessionRef is re-exported from core/types above
 export { forkSession } from "./session";
 export type { ForkResult } from "./session";
+
+// Chunk cache
+export { ChunkCache, CHUNK_DURATION_MS, bucketForTimestamp, getCacheDir } from "../core/chunk-cache";
+export type {
+  CachedChunk,
+  CacheWindow,
+  InvalidationEntry,
+  LookupResult,
+} from "../core/chunk-cache";

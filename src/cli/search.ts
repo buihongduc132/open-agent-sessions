@@ -48,6 +48,9 @@ export type SearchOptions = {
   format?: "text" | "json";
   searchSessions: SearchService;
   findSimilarSessions?: ContentSearchService;
+  limit?: number;
+  since?: number;
+  until?: number;
 };
 
 // ============================================================================
@@ -65,6 +68,13 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
   }
 
   const rawQuery = String(options.text).trim();
+
+  const limitAndTimeRange = {
+    ...(options.limit !== undefined ? { limit: options.limit } : {}),
+    ...(options.since !== undefined || options.until !== undefined
+      ? { timeRange: { since: options.since, until: options.until } }
+      : {}),
+  };
 
   const excludedIds = new Set<string>();
   if (options.excludeCurrent && options.currentSessionId) {
@@ -98,7 +108,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
             const regex = parseRegex(searchText);
             if (regex) {
               // Fetch all sessions via wildcard search, then filter by regex
-              const allQuery: SearchQuery = { cwd: process.cwd(), text: "e" };
+              const allQuery: SearchQuery = { cwd: process.cwd(), text: "e", ...limitAndTimeRange };
               const allResult = await options.searchSessions(allQuery);
               const matched = allResult.sessions.filter((s) =>
                 regex.test(s.title) || regex.test(s.id)
@@ -117,7 +127,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
           }
 
           const normalizedSearchText = normalizeFuzzyQuery(searchText);
-          const query: SearchQuery = { cwd: process.cwd(), text: normalizedSearchText };
+          const query: SearchQuery = { cwd: process.cwd(), text: normalizedSearchText, ...limitAndTimeRange };
           const result = await options.searchSessions(query);
           if (term !== "*") {
             ctx.recordTerm(term, result.sessions);
@@ -171,7 +181,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
       const regex = parseRegex(rawQuery);
       if (regex) {
         // Fetch all sessions via wildcard-like search, then filter by regex
-        const query: SearchQuery = { cwd: process.cwd(), text: "e" };
+        const query: SearchQuery = { cwd: process.cwd(), text: "e", ...limitAndTimeRange };
         const result = await options.searchSessions(query);
         filteredSessions = result.sessions.filter((s) =>
           regex.test(s.title) || regex.test(s.id)
@@ -179,7 +189,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
         resultErrors = result.errors;
       } else {
         // Invalid regex — fall back to plain search
-        const query: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+        const query: SearchQuery = { cwd: process.cwd(), text: rawQuery, ...limitAndTimeRange };
         const result = await options.searchSessions(query);
         filteredSessions = result.sessions;
         resultErrors = result.errors;
@@ -190,7 +200,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
         const normalizedQuery = normalizeFuzzyQuery(rawQuery);
 
         // Always run title search for agent/alias resolution and fallback
-        const titleQuery: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+        const titleQuery: SearchQuery = { cwd: process.cwd(), text: rawQuery, ...limitAndTimeRange };
         const titleResult = await options.searchSessions(titleQuery);
 
         let contentResults: SimilarSessionResult[] | undefined;
@@ -222,7 +232,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
           }
         }
       } else {
-        const query: SearchQuery = { cwd: process.cwd(), text: normalizeWhitespace(rawQuery) };
+        const query: SearchQuery = { cwd: process.cwd(), text: normalizeWhitespace(rawQuery), ...limitAndTimeRange };
         const result = await options.searchSessions(query);
         filteredSessions = result.sessions;
         resultErrors = result.errors;
@@ -234,6 +244,10 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
 
   if (excludedIds.size > 0) {
     filteredSessions = filteredSessions.filter((s) => !excludedIds.has(s.id));
+  }
+
+  if (options.limit !== undefined && filteredSessions.length > options.limit) {
+    filteredSessions = filteredSessions.slice(0, options.limit);
   }
 
   const stderr = formatErrorsShared(resultErrors);
