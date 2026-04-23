@@ -82,3 +82,12 @@ _*
 
 # Worktrees
 open-agent-sessions-wt-*
+
+# Added by maintenance script
+venv/
+.venv/
+.abw/
+bin/
+__pycache__/
+target/
+.pytest_cache/
