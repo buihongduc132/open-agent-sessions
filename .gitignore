@@ -87,6 +87,7 @@ open-agent-sessions-wt-*
 venv/
 .venv/
 .abw/
+bin/
 __pycache__/
 target/
 .pytest_cache/
