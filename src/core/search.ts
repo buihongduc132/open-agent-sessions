@@ -28,10 +28,12 @@ export async function searchSessionsWithErrors(
   const sessions: SessionSummary[] = [];
   const errors: SearchError[] = [];
 
-  // Filter adapters by agent if requested
-  const targetAdapters = query.agent
-    ? registry.adapters.filter(a => a.agent === query.agent)
-    : registry.adapters;
+  // Filter adapters by agent and/or alias if requested
+  const targetAdapters = registry.adapters.filter(a => {
+    if (query.agent && a.agent !== query.agent) return false;
+    if (query.alias && a.alias !== query.alias) return false;
+    return true;
+  });
 
   const results = await Promise.all(
     targetAdapters.map(async (adapter) => {

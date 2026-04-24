@@ -146,11 +146,15 @@ export function createHermesAdapter(
       const sinceSec = opts.since != null ? opts.since / 1000 : 0;
       const untilSec = opts.until != null ? opts.until / 1000 : 4102444800;
 
-      const rows = db
-        .query<SessionRow, [number, number, number]>(
-          "SELECT id, source, model, title, parent_session_id, started_at, ended_at, message_count, tool_call_count FROM sessions WHERE started_at >= ? AND started_at <= ? ORDER BY started_at DESC LIMIT ?",
-        )
-        .all(sinceSec, untilSec, opts.limit ?? 50);
+      // limit: 0 or undefined means "all" — omit LIMIT clause entirely
+      const effectiveLimit = opts.limit;
+      const sql = effectiveLimit
+        ? "SELECT id, source, model, title, parent_session_id, started_at, ended_at, message_count, tool_call_count FROM sessions WHERE started_at >= ? AND started_at <= ? ORDER BY started_at DESC LIMIT ?"
+        : "SELECT id, source, model, title, parent_session_id, started_at, ended_at, message_count, tool_call_count FROM sessions WHERE started_at >= ? AND started_at <= ? ORDER BY started_at DESC";
+
+      const rows = effectiveLimit
+        ? db.query<SessionRow, [number, number, number]>(sql).all(sinceSec, untilSec, effectiveLimit)
+        : db.query<SessionRow, [number, number]>(sql).all(sinceSec, untilSec);
 
       return rows.map((row) => mapSessionSummary(db, row, entry.alias, label)).sort((a, b) =>
         b.updated_at.localeCompare(a.updated_at)

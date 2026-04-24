@@ -101,7 +101,10 @@ export function extractContentPartsClaude(content: unknown): string[] {
 export function extractContentTextGemini(content: unknown): string | undefined {
   if (typeof content === "string") return content;
   if (Array.isArray(content)) {
-    const pieces = (content as Array<{ text?: string }>).map(item => item.text ?? "").filter(t => t.length > 0);
+    const pieces = (content as Array<{ text?: string } | null>)
+      .filter((item): item is { text?: string } => item != null)
+      .map(item => item.text ?? "")
+      .filter(t => t.length > 0);
     return pieces.length > 0 ? pieces.join("") : undefined;
   }
   return undefined;
@@ -110,7 +113,10 @@ export function extractContentTextGemini(content: unknown): string | undefined {
 export function extractContentPartsGemini(content: unknown): string[] {
   if (typeof content === "string") return [content];
   if (Array.isArray(content)) {
-    return (content as Array<{ text?: string }>).map(item => item.text ?? "").filter(t => t.length > 0);
+    return (content as Array<{ text?: string } | null>)
+      .filter((item): item is { text?: string } => item != null)
+      .map(item => item.text ?? "")
+      .filter(t => t.length > 0);
   }
   return [];
 }

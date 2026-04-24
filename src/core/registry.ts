@@ -38,7 +38,13 @@ export function clearDetailCache(): void {
  * Clears the list cache so the session list reflects the updated session.
  */
 export function invalidateDetailCache(alias: string, sessionId: string): void {
-  detailCache.delete(`${alias}:${sessionId}`);
+  // Cache keys include options suffix, so delete all entries matching the prefix.
+  const prefix = `${alias}:${sessionId}:`;
+  for (const key of detailCache.keys()) {
+    if (key.startsWith(prefix)) {
+      detailCache.delete(key);
+    }
+  }
   clearListCache();
 }
 

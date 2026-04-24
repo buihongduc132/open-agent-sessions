@@ -17,7 +17,7 @@ export const AGENT_ORDER: Record<AgentKind, number> = {
  * Helper to check if a string is a valid AgentKind.
  */
 export function isAgentKind(kind: string): kind is AgentKind {
-  return kind in AGENT_ORDER;
+  return Object.keys(AGENT_ORDER).includes(kind as AgentKind);
 }
 
 /**

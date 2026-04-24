@@ -100,10 +100,10 @@ export function createAntigravityAdapter(
     },
     getSessionDetail: async (
       sessionId: string,
-      options: SessionReadOptions
+      readOptions: SessionReadOptions
     ): Promise<SessionDetail> => {
       const label = createLabel(entry);
-      const dataPath = resolveAntigravityPath(entry, options as any);
+      const dataPath = resolveAntigravityPath(entry, options);
       const sessionPath = join(dataPath, "brain", sessionId);
       if (!safeStat(sessionPath)) {
         throw new Error(`${label} session not found: ${sessionId}`);
@@ -121,11 +121,11 @@ export function createAntigravityAdapter(
       let messages = parseAntigravityMessages(logPath, label);
 
       // Apply selection/filtering
-      if (options.userOnly) {
+      if (readOptions.userOnly) {
         messages = messages.filter(m => m.role === "user");
       }
-      if (options.selection) {
-        const { mode, count, start, end } = options.selection;
+      if (readOptions.selection) {
+        const { mode, count, start, end } = readOptions.selection;
         if (mode === "last") {
           messages = (count === 0) ? messages : messages.slice(-(count ?? 10));
         } else if (mode === "first") {
