@@ -108,6 +108,7 @@ export function createHermesAdapter(
 
   // Support injection of an existing Database instance (for testing)
   let db: Database;
+  let ownsDb = false;
   if (options.dbPath instanceof DatabaseCtor) {
     db = options.dbPath;
   } else {
@@ -120,6 +121,7 @@ export function createHermesAdapter(
     }
 
     db = new DatabaseCtor(resolvedPath, { readonly: true });
+    ownsDb = true;
   }
 
   validateSchema(db, label);
@@ -142,7 +144,7 @@ export function createHermesAdapter(
     listSessionsByTimeRange: (opts: TimeRangeOptions): SessionSummary[] => {
       // since/until are in milliseconds; hermes started_at is unix seconds
       const sinceSec = opts.since != null ? opts.since / 1000 : 0;
-      const untilSec = opts.until != null ? opts.until / 1000 : Infinity;
+      const untilSec = opts.until != null ? opts.until / 1000 : 4102444800;
 
       const rows = db
         .query<SessionRow, [number, number, number]>(
@@ -302,6 +304,13 @@ export function createHermesAdapter(
 
     findSimilarSessions: async (): Promise<SimilarSessionResult[]> => {
       return [];
+    },
+
+    destroy: () => {
+      if (ownsDb) {
+        db.close();
+        ownsDb = false;
+      }
     },
   };
 }

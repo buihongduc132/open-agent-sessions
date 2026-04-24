@@ -130,6 +130,9 @@ export interface Adapter {
    * @param topK Maximum results to return. Default: 5.
    */
   findSimilarSessions?(sessionId: string, topK?: number): Promise<SimilarSessionResult[]>;
+
+  /** Release resources (e.g. close SQLite handles). No-op if resources are injected. */
+  destroy?(): void;
 }
 
 export type AdapterFactory = (entry: AgentEntry) => Adapter;

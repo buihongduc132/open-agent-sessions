@@ -110,40 +110,58 @@ export function createGeminiAdapter(
     },
     getSessionDetail: async (
       sessionId: string,
-      options: SessionReadOptions
+      readOptions: SessionReadOptions
     ): Promise<SessionDetail> => {
       const label = createLabel(entry);
-      const rootPath = resolveGeminiPath(entry, options as any); // Type hack for options
-      const files = collectJsonlFiles(rootPath);
+      const rootPath = resolveGeminiPath(entry, options);
 
-      for (const filePath of files) {
-        const summary = parseGeminiSession(filePath, entry);
-        if (summary.id === sessionId) {
-          let messages = parseGeminiMessages(filePath, label);
+      // Try direct file lookup first: <sessionId>.jsonl
+      const directPath = join(rootPath, sessionId + ".jsonl");
+      const directStat = safeStat(directPath);
+      let targetPath: string | undefined;
 
-          // Apply selection/filtering
-          if (options.userOnly) {
-            messages = messages.filter(m => m.role === "user");
+      if (directStat) {
+        targetPath = directPath;
+      } else {
+        // Fall back to O(N) scan
+        const files = collectJsonlFiles(rootPath);
+        for (const filePath of files) {
+          const summary = parseGeminiSession(filePath, entry);
+          if (summary.id === sessionId) {
+            targetPath = filePath;
+            break;
           }
-          if (options.selection) {
-            const { mode, count, start, end } = options.selection;
-            if (mode === "last") {
-              messages = messages.slice(-(count ?? 10));
-            } else if (mode === "first") {
-              messages = messages.slice(0, count ?? 10);
-            } else if (mode === "range") {
-              messages = messages.slice((start ?? 1) - 1, end ?? messages.length);
-            }
-          }
-
-          return {
-            ...summary,
-            messages,
-          };
         }
       }
 
-      throw new Error(`${label} session not found: ${sessionId}`);
+      if (!targetPath) {
+        throw new Error(`${label} session not found: ${sessionId}`);
+      }
+
+      const summary = parseGeminiSession(targetPath, entry);
+      // TODO(PR#15-c4): parseGeminiSession and parseGeminiMessages both read the same file.
+      // Consider combining into a single-pass parse to avoid double I/O.
+      let messages = parseGeminiMessages(targetPath, label);
+
+      // Apply selection/filtering
+      if (readOptions.userOnly) {
+        messages = messages.filter(m => m.role === "user");
+      }
+      if (readOptions.selection) {
+        const { mode, count, start, end } = readOptions.selection;
+        if (mode === "last") {
+          messages = messages.slice(-(count ?? 10));
+        } else if (mode === "first") {
+          messages = messages.slice(0, count ?? 10);
+        } else if (mode === "range") {
+          messages = messages.slice((start ?? 1) - 1, end ?? messages.length);
+        }
+      }
+
+      return {
+        ...summary,
+        messages,
+      };
     },
     findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [],
   };
@@ -187,7 +205,7 @@ function parseGeminiSession(filePath: string, entry: OtherAgentEntry): SessionSu
     try {
       record = JSON.parse(lines[i]);
     } catch {
-      throw new Error(`Gemini JSONL parse error in ${filePath} at line ${i + 1}`);
+      continue;
     }
 
     if (record["$set"]) continue;

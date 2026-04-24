@@ -109,6 +109,8 @@ export function createAntigravityAdapter(
         throw new Error(`${label} session not found: ${sessionId}`);
       }
 
+      // TODO(PR#15-c3): parseAntigravitySession and parseAntigravityMessages both read overview.txt.
+      // Consider caching or combining into a single-pass parse. Minor agent with small session counts.
       const summary = parseAntigravitySession(dataPath, sessionId, entry);
       const logPath = join(sessionPath, ".system_generated", "logs", "overview.txt");
       const stat = safeStat(logPath);

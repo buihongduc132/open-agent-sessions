@@ -175,7 +175,11 @@ describe("GeminiAdapter", () => {
     writeFileSync(sessionFile, '{"sessionId": "1", "startTime": "2026-04-23T05:50:25Z"}\n{invalid-json}');
 
     const adapter = createGeminiAdapter(entry);
-    expect(() => adapter.listSessions()).toThrow(/JSONL parse error/);
+    // Malformed non-header lines are skipped (not thrown) per PR#15-c5
+    const sessions = adapter.listSessions();
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].id).toBe("1");
+    expect(sessions[0].message_count).toBe(0);
   });
 
   it("returns empty when no session files found", () => {
