@@ -42,6 +42,8 @@ export interface SessionMessage {
   parts: SessionPart[];
   modelID?: string;
   agent?: string;
+  /** Adapter-specific token usage metadata (e.g., Gemini input/output/cached). */
+  tokens?: Record<string, unknown>;
 }
 
 export type SessionPart =

@@ -278,7 +278,7 @@ describe("GeminiAdapter", () => {
 
     const adapter = createGeminiAdapter(entry);
     const detail = await adapter.getSessionDetail("abc123-uuid", {});
-    expect((detail.messages![0] as any).tokens).toEqual({ total: 100 });
+    expect(detail.messages![0].tokens).toEqual({ total: 100 });
   });
 
   it("getSessionDetail supports first/last/range selection", async () => {

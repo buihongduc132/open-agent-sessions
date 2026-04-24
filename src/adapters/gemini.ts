@@ -152,7 +152,7 @@ export function createGeminiAdapter(
       }
 
       const summary = parseGeminiSession(targetPath, entry);
-      // TODO(PR#15-c4): parseGeminiSession and parseGeminiMessages both read the same file.
+      // TODO: parseGeminiSession and parseGeminiMessages both read the same file.
       // Consider combining into a single-pass parse to avoid double I/O.
       let messages = parseGeminiMessages(targetPath, label);
 
@@ -306,7 +306,7 @@ function parseGeminiMessages(filePath: string, label: string): SessionMessage[] 
     };
 
     if (record.tokens) {
-      (msg as any).tokens = record.tokens;
+      msg.tokens = record.tokens;
     }
 
     if (messageMap.has(id)) {
