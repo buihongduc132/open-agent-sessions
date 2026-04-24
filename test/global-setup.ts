@@ -2,11 +2,13 @@ import { afterAll } from "bun:test";
 import { execSync } from "child_process";
 
 afterAll(() => {
-  console.log("Global cleanup: killing any leftover oas tui processes...");
+  const cwd = process.cwd();
+  console.log(`Global cleanup: killing any leftover oas tui processes started from ${cwd}...`);
   try {
-    // SIGKILL is more reliable to ensure they are gone
-    execSync("pkill -9 -f 'oas tui' || true");
+    // Only kill processes owned by the current user that were started from the current directory
+    const command = `pgrep -u $(whoami) -f 'oas tui' | while read pid; do if [ "$(readlink -f /proc/$pid/cwd 2>/dev/null)" = "${cwd}" ]; then kill -9 $pid; fi; done`;
+    execSync(command, { shell: "/bin/bash" });
   } catch (e) {
-    // Ignore errors if pkill fails (e.g. no processes found)
+    // Ignore errors
   }
 });
