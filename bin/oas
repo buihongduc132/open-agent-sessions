@@ -1,0 +1,1076 @@
+#!/usr/bin/env bun
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { Database } from "bun:sqlite";
+
+// CLI command imports
+import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
+import { runReadCommand, type ReadService } from "../src/cli/read";
+import { runSearchCommand, type SearchService } from "../src/cli/search";
+import { runListCommand, type ListService } from "../src/cli/list";
+import { runDetailCommand, type DetailService } from "../src/cli/detail";
+import { runCloneCommand } from "../src/cli/clone";
+import { runConfigCommand } from "../src/cli/config";
+import { runExportCommand, type ExportService } from "../src/cli/export";
+import { runSimilarCommand, type SimilarService } from "../src/cli/similar";
+
+// TUI imports (R-15)
+import { runTuiApp } from "../src/tui/App";
+import type { ListService as TuiListService, DetailService as TuiDetailService, CloneService as TuiCloneService } from "../src/tui/App";
+
+// Core imports
+import { createAdapterRegistry } from "../src/core/registry";
+import { createListService } from "../src/core/list";
+import { createCloneService, type CloneRegistry } from "../src/core/clone";
+import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery, SessionListQuery, SessionListResult } from "../src/core/types";
+
+// Config imports
+import { loadConfigFromFile, type Config } from "../src/config";
+
+// Adapter imports
+import {
+  createOpenCodeAdapter,
+  createOpenCodeCloneDestinationAdapter,
+  createCodexCloneSourceAdapter,
+  createCodexAdapter,
+  createClaudeAdapter,
+  createAcpxAdapter,
+} from "../src/adapters";
+
+const DB_PATH = join(homedir(), ".local", "share", "opencode", "opencode.db");
+
+// ============================================================================
+// Legacy Functions (for backward compatibility)
+// ============================================================================
+
+function findProjectId(db: Database, cwd: string): string | null {
+  const normalized = resolve(cwd);
+  const result = db
+    .query<{ id: string }, [string]>(
+      "SELECT id FROM project WHERE worktree = ?"
+    )
+    .get(normalized);
+  return result?.id ?? null;
+}
+
+function listRecentSessions(limit: number = 10) {
+  const cwd = process.cwd();
+  let db: Database | null = null;
+
+  try {
+    db = new Database(DB_PATH, { readonly: true });
+
+    const projectId = findProjectId(db, cwd);
+    if (!projectId) {
+      console.error(`No OpenCode project found for: ${cwd}`);
+      process.exit(1);
+    }
+
+    const sessions = db
+      .query<
+        { id: string; title: string; time_updated: number; message_count: number },
+        [string, number]
+      >(
+        `SELECT
+          s.id,
+          s.title,
+          s.time_updated,
+          (SELECT COUNT(*) FROM message WHERE session_id = s.id) as message_count
+        FROM session s
+        WHERE s.project_id = ?
+        ORDER BY s.time_updated DESC
+        LIMIT ?`
+      )
+      .all(projectId, limit);
+
+    if (sessions.length === 0) {
+      console.log("No sessions found.");
+      return;
+    }
+
+    console.log("Recent sessions:");
+    console.log("");
+
+    for (const session of sessions) {
+      const date = new Date(session.time_updated);
+      const title = session.title || "(untitled)";
+      console.log(`${session.id}  ${title}`);
+      console.log(`${' '.repeat(session.id.length)}  ${date.toLocaleString()}  (${session.message_count} messages)`);
+      console.log("");
+    }
+  } finally {
+    if (db) {
+      db.close();
+    }
+  }
+}
+
+function findSession(sessionId: string) {
+  let db: Database | null = null;
+
+  try {
+    db = new Database(DB_PATH, { readonly: true });
+
+    const session = db
+      .query<
+        { id: string; title: string; directory: string; time_created: number; time_updated: number; message_count: number },
+        [string]
+      >(
+        `SELECT
+          s.id,
+          s.title,
+          s.directory,
+          s.time_created,
+          s.time_updated,
+          (SELECT COUNT(*) FROM message WHERE session_id = s.id) as message_count
+        FROM session s
+        WHERE s.id LIKE ?`
+      )
+      .get(`${sessionId}%`);
+
+    if (!session) {
+      console.error(`Session not found: ${sessionId}`);
+      process.exit(1);
+    }
+
+    const created = new Date(session.time_created);
+    const updated = new Date(session.time_updated);
+
+    console.log(`Session: ${session.id}`);
+    console.log(`Title:   ${session.title || "(untitled)"}`);
+    console.log(`Dir:     ${session.directory}`);
+    console.log(`Created: ${created.toLocaleString()}`);
+    console.log(`Updated: ${updated.toLocaleString()}`);
+    console.log(`Messages: ${session.message_count}`);
+  } finally {
+    if (db) {
+      db.close();
+    }
+  }
+}
+
+// ============================================================================
+// Config Loading
+// ============================================================================
+
+function getDefaultConfig(): Config {
+  return {
+    agents: [
+      {
+        agent: "opencode",
+        alias: "default",
+        enabled: true,
+        storage: { mode: "auto" },
+      },
+    ],
+  };
+}
+
+function loadConfig(): Config {
+  // Try to load from default config path
+  const configPaths = [
+    join(process.cwd(), "oas.config.yaml"),
+    join(process.cwd(), "oas.config.yml"),
+    join(homedir(), ".config", "oas", "config.yaml"),
+    join(homedir(), ".config", "oas", "config.yml"),
+  ];
+
+  for (const path of configPaths) {
+    if (existsSync(path)) {
+      try {
+        return loadConfigFromFile(path);
+      } catch (error) {
+        console.error(`Failed to load config from ${path}: ${error instanceof Error ? error.message : String(error)}`);
+        process.exit(1);
+      }
+    }
+  }
+
+  // Return default config if no config file found
+  return getDefaultConfig();
+}
+
+// ============================================================================
+// Service Creation
+// ============================================================================
+
+/**
+ * Returns factory functions for all supported agent types.
+ * Codex/claude adapters use the `path` field from config, if present.
+ */
+function createAllAgentFactories(cwd: string) {
+  return {
+    opencode: (entry: AgentEntry) => createOpenCodeAdapter(entry as any, { cwd }),
+    codex: (entry: AgentEntry) => createCodexAdapter(entry as any, { defaultPath: (entry as any).path }),
+    claude: (entry: AgentEntry) => createClaudeAdapter(entry as any, {}),
+  };
+}
+
+function createSessionsService(config: Config): SessionsService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
+  return async (query: { cwd: string; timeRange: TimeRangeOptions }) => {
+    const results: SessionSummary[] = [];
+    const errors: { agent: "opencode" | "codex" | "claude"; alias: string; message: string }[] = [];
+
+    for (const adapter of registry.adapters) {
+      try {
+        if (adapter.listSessionsByTimeRange) {
+          const sessions = await adapter.listSessionsByTimeRange(query.timeRange);
+          results.push(...sessions);
+        } else {
+          // Fallback to listSessions if time range not supported
+          const sessions = await adapter.listSessions();
+          // Apply time filtering manually
+          const filtered = sessions.filter((s) => {
+            const updated = Date.parse(s.updated_at);
+            if (query.timeRange.since !== undefined && updated < query.timeRange.since) {
+              return false;
+            }
+            if (query.timeRange.until !== undefined && updated > query.timeRange.until) {
+              return false;
+            }
+            return true;
+          });
+          results.push(...filtered);
+        }
+      } catch (error) {
+        errors.push({
+          agent: adapter.agent,
+          alias: adapter.alias,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    // Sort by updated_at descending
+    results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
+
+    // Apply limit
+    const limit = query.timeRange.limit ?? 50;
+    const limited = limit > 0 ? results.slice(0, limit) : results;
+
+    return { sessions: limited, errors };
+  };
+}
+
+function createReadService(config: Config): ReadService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
+  return async (query: { agent: string; alias: string; id: string }, options: SessionReadOptions) => {
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
+    );
+
+    if (!adapter || !adapter.getSessionDetail) {
+      return null;
+    }
+
+    return adapter.getSessionDetail(query.id, options);
+  };
+}
+
+function createSearchService(config: Config): SearchService {
+  return async (query: SearchQuery) => {
+    const results: SessionSummary[] = [];
+    const errors: { agent: "opencode" | "codex" | "claude" | "acpx"; alias: string; message: string }[] = [];
+
+    for (const entry of config.agents.filter((e) => e.enabled)) {
+      try {
+        let adapter: ReturnType<typeof createOpenCodeAdapter> | null = null;
+
+        // Instantiate the correct adapter per agent type (R-19: cross-agent search)
+        if (entry.agent === "opencode") {
+          adapter = createOpenCodeAdapter(entry as any, { cwd: query.cwd ?? process.cwd() });
+        } else if (entry.agent === "codex") {
+          adapter = createCodexAdapter(entry as any, { defaultPath: (entry as any).path });
+        } else if (entry.agent === "claude") {
+          adapter = createClaudeAdapter(entry as any, {});
+        } else if (entry.agent === "acpx") {
+          adapter = createAcpxAdapter(entry as any, {});
+        }
+
+        if (adapter && adapter.searchSessions) {
+          const sessions = await adapter.searchSessions(query);
+          results.push(...sessions);
+        }
+      } catch (error) {
+        errors.push({
+          agent: entry.agent,
+          alias: entry.alias,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    // Sort by updated_at descending
+    results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
+
+    return { sessions: results, errors };
+  };
+}
+
+function createListServiceFromConfig(config: Config): ListService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
+  return createListService(registry);
+}
+
+function createDetailService(config: Config): DetailService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
+  return async (query) => {
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
+    );
+
+    if (!adapter || !adapter.getSessionDetail) {
+      return null;
+    }
+
+    return adapter.getSessionDetail(query.id, {});
+  };
+}
+
+function createExportService(config: Config): ExportService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
+  return async (query, options) => {
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
+    );
+
+    if (!adapter || !adapter.getSessionDetail) {
+      return null;
+    }
+
+    return adapter.getSessionDetail(query.id, options ?? {});
+  };
+}
+
+function createSimilarService(config: Config): SimilarService {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+
+  return async (query, topK) => {
+    const adapter = registry.adapters.find(
+      (a) => a.agent === query.agent && a.alias === query.alias
+    );
+
+    if (!adapter || !adapter.findSimilarSessions) {
+      return [];
+    }
+
+    return adapter.findSimilarSessions(query.id, topK);
+  };
+}
+
+function createCloneServiceFromConfig(config: Config) {
+  const cwd = process.cwd();
+  
+  const registry: CloneRegistry = {
+    getSource: (source) => {
+      if (source.agent !== "codex" || !source.alias) {
+        return undefined;
+      }
+      
+      const entry = config.agents.find(
+        (e) => e.agent === "codex" && e.alias === source.alias && e.enabled
+      );
+      
+      if (!entry) {
+        return undefined;
+      }
+      
+      return createCodexCloneSourceAdapter(entry as any, { cwd });
+    },
+    
+    getDestination: (destination) => {
+      if (destination.agent !== "opencode") {
+        return undefined;
+      }
+      
+      const entry = config.agents.find(
+        (e) => e.agent === "opencode" && e.alias === destination.alias && e.enabled
+      );
+      
+      if (!entry) {
+        return undefined;
+      }
+      
+      return createOpenCodeCloneDestinationAdapter(entry as any, { cwd });
+    },
+    
+    listSources: (agent) => {
+      if (agent !== "codex") return [];
+      return config.agents
+        .filter((e) => e.agent === "codex" && e.enabled)
+        .map((e) => e.alias);
+    },
+    
+    listDestinations: (agent) => {
+      if (agent !== "opencode") return [];
+      return config.agents
+        .filter((e) => e.agent === "opencode" && e.enabled)
+        .map((e) => e.alias);
+    },
+  };
+  
+  return createCloneService(registry);
+}
+
+// ============================================================================
+// Argument Parsing
+// ============================================================================
+
+interface ParsedArgs {
+  command: string;
+  options: Record<string, string | number | boolean>;
+  positional: string[];
+}
+
+function parseArgs(argv: string[]): ParsedArgs {
+  const result: ParsedArgs = {
+    command: "",
+    options: {},
+    positional: [],
+  };
+
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
+
+    if (arg.startsWith("--")) {
+      const key = arg.slice(2);
+      
+      // Handle --flag (boolean)
+      if (i + 1 >= argv.length || argv[i + 1].startsWith("-")) {
+        result.options[key] = true;
+        i++;
+        continue;
+      }
+
+      // Handle --key value
+      const value = argv[i + 1];
+      if (value !== undefined) {
+        // Try to parse as number
+        const num = Number(value);
+        result.options[key] = isNaN(num) ? value : num;
+        i += 2;
+        continue;
+      }
+      i++;
+    } else if (arg.startsWith("-") && arg !== "-") {
+      // Short flags
+      const key = arg.slice(1);
+      result.options[key] = true;
+      i++;
+    } else {
+      // Positional argument
+      if (!result.command) {
+        result.command = arg;
+      } else {
+        result.positional.push(arg);
+      }
+      i++;
+    }
+  }
+
+  return result;
+}
+
+// ============================================================================
+// Command Handlers
+// ============================================================================
+
+async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
+  // Validate --limit is a number when provided
+  if (parsed.options["limit"] !== undefined) {
+    const limit = parsed.options["limit"];
+    if (typeof limit !== "number" || isNaN(limit)) {
+      console.error("Invalid --limit value: must be a number");
+      process.exit(1);
+    }
+  }
+
+  // Validate --format is either "text" or "json" when provided
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (format !== "text" && format !== "json") {
+      console.error("Invalid --format value: must be 'text' or 'json'");
+      process.exit(1);
+    }
+  }
+
+  const config = loadConfig();
+  const getSessions = createSessionsService(config);
+
+  const result = await runSessionsCommand({
+    last: parsed.options["last"] as string | undefined,
+    since: parsed.options["since"] as string | undefined,
+    until: parsed.options["until"] as string | undefined,
+    limit: parsed.options["limit"] as number | undefined,
+    format: parsed.options["format"] as "text" | "json" | undefined,
+    full: parsed.options["full"] === true,
+    showAlias: parsed.options["show-alias"] === true,
+    config,
+    getSessions,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
+  // Validate --first is a number when provided
+  if (parsed.options["first"] !== undefined) {
+    const first = parsed.options["first"];
+    if (typeof first !== "number" || isNaN(first)) {
+      console.error("Invalid --first value: must be a number");
+      process.exit(1);
+    }
+  }
+
+  // Validate --last is a number when provided
+  if (parsed.options["last"] !== undefined) {
+    const last = parsed.options["last"];
+    if (typeof last !== "number" || isNaN(last)) {
+      console.error("Invalid --last value: must be a number");
+      process.exit(1);
+    }
+  }
+
+  // Validate --format is one of the allowed values when provided
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (!["text", "json", "csf", "markdown", "md"].includes(String(format))) {
+      console.error("Invalid --format value: must be text, json, csf, markdown, or md");
+      process.exit(1);
+    }
+  }
+
+  const config = loadConfig();
+  const getSession = createReadService(config);
+
+  // Support positional session-id: `oas read <session-id>`
+  const sessionSpec = parsed.options["session"] as string | undefined ?? parsed.positional[0];
+
+  const result = await runReadCommand({
+    session: sessionSpec,
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
+    id: parsed.options["id"] as string | undefined,
+    first: parsed.options["first"] as number | undefined,
+    last: parsed.options["last"] as number | undefined,
+    all: parsed.options["all"] as boolean | undefined,
+    range: parsed.options["range"] as string | undefined,
+    userOnly: parsed.options["user-only"] as boolean | undefined,
+    tools: parsed.options["tools"] as boolean | undefined,
+    role: parsed.options["role"] as string | undefined,
+    format: parsed.options["format"] as "text" | "json" | "csf" | "markdown" | "md" | undefined,
+    output: parsed.options["output"] as string | undefined,
+    config,
+    getSession,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (format !== "text" && format !== "json") {
+      console.error("Invalid --format value: must be 'text' or 'json'");
+      process.exit(1);
+    }
+  }
+
+  const config = loadConfig();
+  const searchSessions = createSearchService(config);
+
+  const result = await runSearchCommand({
+    text: parsed.options["text"] as string | undefined,
+    format: parsed.options["format"] as "text" | "json" | undefined,
+    config,
+    searchSessions,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleListNewCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const list = createListServiceFromConfig(config);
+
+  const result = await runListCommand({
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
+    q: parsed.options["q"] as string | undefined,
+    limit: parsed.options["limit"] as number | undefined,
+    rootsOnly: parsed.options["roots-only"] === true,
+    subOnly: parsed.options["sub-only"] === true,
+    childrenOf: parsed.options["children-of"] as string | undefined,
+    includeSubagents: parsed.options["include-subagents"] === true,
+    full: parsed.options["full"] === true,
+    showAlias: parsed.options["show-alias"] === true,
+    format: parsed.options["format"] as "text" | "json" | undefined,
+    config,
+    list,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
+  if (parsed.options["format"] !== undefined) {
+    const format = parsed.options["format"];
+    if (format !== "text" && format !== "json") {
+      console.error("Invalid --format value: must be 'text' or 'json'");
+      process.exit(1);
+    }
+  }
+
+  const config = loadConfig();
+  const getSession = createDetailService(config);
+
+  // Support positional session spec: `oas detail <session-id>`
+  // parseArgs stores first non-flag arg as command (not positional), so also use parsed.command
+  const sessionSpec =
+    parsed.options["session"] as string | undefined ||
+    parsed.positional[0] ||
+    parsed.command || undefined;
+
+  const result = await runDetailCommand({
+    session: sessionSpec,
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
+    id: parsed.options["id"] as string | undefined,
+    format: parsed.options["format"] as "text" | "json" | undefined,
+    config,
+    getSession,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleCloneCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const clone = createCloneServiceFromConfig(config);
+
+  const result = await runCloneCommand({
+    from: parsed.options["from"] as string | undefined,
+    to: parsed.options["to"] as string | undefined,
+    config,
+    clone,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleExportCommand(parsed: ParsedArgs): Promise<void> {
+  const config = loadConfig();
+  const getSession = createExportService(config);
+
+  const result = await runExportCommand({
+    sessionRef: parsed.positional[0],
+    from: parsed.options["from"] as string | undefined,
+    format: parsed.options["format"] as "csf" | "markdown" | "text" | undefined,
+    output: parsed.options["output"] as string | undefined,
+    config,
+    getSession,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+async function handleSimilarCommand(parsed: ParsedArgs): Promise<void> {
+  // Positional: oas similar <session-id>
+  const sessionId = parsed.positional[0];
+  if (!sessionId) {
+    console.error("Usage: oas similar <session-id> [--top N] [--format json|text]");
+    process.exit(1);
+  }
+
+  // Parse --top / -n (default 5)
+  const topK = parsed.options["top"] as number | undefined;
+  if (topK !== undefined && (typeof topK !== "number" || isNaN(topK))) {
+    console.error("Invalid --top value: must be a number");
+    process.exit(1);
+  }
+
+  // Parse --format
+  const format = parsed.options["format"] as string | undefined;
+  if (format !== undefined && format !== "text" && format !== "json") {
+    console.error("Invalid --format value: must be 'text' or 'json'");
+    process.exit(1);
+  }
+
+  const config = loadConfig();
+  const findSimilar = createSimilarService(config);
+
+  const result = await runSimilarCommand({
+    sessionId,
+    top: topK,
+    format: format as "text" | "json" | undefined,
+    config,
+    findSimilar,
+  });
+
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.exitCode);
+}
+
+// ============================================================================
+// Help
+// ============================================================================
+
+function showHelp() {
+  console.log("Open Agent Sessions (oas) - Session management CLI");
+  console.log("");
+  console.log("Usage:");
+  console.log("  oas <command> [options]");
+  console.log("");
+  console.log("Commands:");
+  console.log("");
+  console.log("  OpenCode Commands:");
+  console.log("    list [limit]           List recent sessions (default: 10)");
+  console.log("    recent [limit]         Same as list");
+  console.log("    find <session-id>      Show session details");
+  console.log("    show <session-id>      Same as find");
+  console.log("");
+  console.log("  Extended Commands (OpenCode):");
+  console.log("    sessions [options]     List sessions with time filtering");
+  console.log("    list-new [options]     List sessions with agent/alias/query filters");
+  console.log("    detail [options]       Show session detail view");
+  console.log("    read <session-id>      Read session messages");
+  console.log("    read [options]         Read session messages (alternative)");
+    console.log("    search [options]       Search sessions by title and content");
+    console.log("    clone [options]        Clone session from one agent to another");
+console.log("    export [options]       Export session in CSF/Markdown/Text format");
+    console.log("    similar <session-id>   Find similar sessions (hybrid similarity)");
+    console.log("    onboard                Initialize bd (beads) for the project");
+  console.log("    tui                    Launch the interactive TUI (session browser + clone)");
+  console.log("");
+  console.log("Sessions Command Options:");
+console.log("    --last DURATION     Last duration (e.g., 4h, 2d, 1w)");
+  console.log("    --since TIMESTAMP   Start time (ISO-8601 format)");
+  console.log("    --until TIMESTAMP   End time (ISO-8601 format)");
+  console.log("    --limit N           Maximum results (default: 50, 0 = all)");
+  console.log("    --format FORMAT     Output format: text (default) or json");
+  console.log("    --full              Show full titles (no truncation)");
+  console.log("    --show-alias        Show all aliases including 'default'");
+  console.log("");
+  console.log("List-New Command Options:");
+  console.log("    --agent NAME           Filter by agent (OpenCode-only in CLI)");
+  console.log("    --alias NAME           Filter by agent alias");
+  console.log("    --q QUERY              Filter by session ID or title");
+  console.log("    --roots-only            Show only root/main sessions (no parent)");
+  console.log("    --sub-only              Show only sub-agent sessions (has parent)");
+  console.log("    --children-of ID        Show only direct children of specified session");
+  console.log("    --include-subagents     Include sub-agent sessions in output");
+  console.log("");
+  console.log("Detail Command Options:");
+  console.log("    <session-id>           Positional session spec (agent:alias:session_id)");
+  console.log("    --session SPEC         Session spec (agent:alias:session_id)");
+  console.log("    --agent NAME           Agent name (OpenCode-only in CLI)");
+  console.log("    --alias NAME           Agent alias (e.g., default)");
+  console.log("    --id SESSION_ID        Session ID");
+  console.log("");
+  console.log("Search Command Options:");
+  console.log("    --text QUERY           Search text (required)");
+  console.log("");
+  console.log("Clone Command Options:");
+  console.log("    --from SPEC            Source session (agent:session_id or agent:alias:session_id)");
+  console.log("    --to SPEC              Destination (agent:alias)");
+  console.log("");
+  console.log("Export Command Options:");
+  console.log("    <session-ref>          Positional session spec (agent:alias:session_id, alias:session_id, or session_id)");
+  console.log("    --from SPEC            Session reference (same formats as positional)");
+  console.log("    --format FORMAT        Output format: csf (default), markdown, text");
+  console.log("    --output FILE          Write output to file instead of stdout");
+  console.log("");
+  console.log("Read Command Options:");
+  console.log("    <session-id>           Positional session spec (supports short forms)");
+  console.log("    --session SPEC         Session spec (session_id, alias:session_id, or agent:alias:session_id)");
+  console.log("    --agent NAME           Agent name (OpenCode-only in CLI)");
+  console.log("    --alias NAME           Agent alias (e.g., default)");
+  console.log("    --id SESSION_ID        Session ID");
+  console.log("    --first N              First N messages");
+  console.log("    --last N               Last N messages (default: 10)");
+  console.log("    --all                  All messages");
+  console.log("    --range START:END      Message range (1-indexed, inclusive)");
+  console.log("    --user-only            Show only user messages");
+  console.log("    --tools                Include tool messages (default: hide)");
+  console.log("    --role ROLE            Filter by role (user, assistant, system)");
+  console.log("    --format FORMAT        Output format: text (default) or json");
+  console.log("    --output FILE          Write output to file (recommended for large outputs)");
+  console.log("");
+  console.log("Global Options:");
+  console.log("    --help, -h             Show this help message");
+  console.log("");
+  console.log("Examples:");
+  console.log("  # OpenCode commands");
+  console.log("  oas list               List last 10 OpenCode sessions");
+  console.log("  oas list 20            List last 20 OpenCode sessions");
+  console.log("  oas find abc123        Show details for session abc123");
+  console.log("");
+  console.log("  # Extended commands");
+  console.log("  oas sessions --last 4h           Sessions from last 4 hours");
+  console.log("  oas sessions --last 2d --limit 20  Sessions from last 2 days");
+  console.log("  oas sessions --format json       Sessions in JSON format");
+  console.log("  oas read opencode:default:abc123            Read session (positional)");
+  console.log("  oas read opencode:default:abc123 --last 20  Last 20 messages");
+  console.log("  oas read opencode:default:abc123 --format json  Read in JSON");
+  console.log("  oas read --session opencode:default:abc123  Read session (flag)");
+  console.log("  oas read --session opencode:default:abc123 --all --tools");
+  console.log("  oas read --session abc123                   Read session (short form)");
+  console.log("  oas read --session default:abc123           Read session (alias form)");
+  console.log("  oas read --session abc123 --user-only       Show only user messages");
+  console.log("  oas search --text \"error\"        Search for sessions containing 'error'");
+  console.log("");
+  console.log("  # List-new command (OpenCode filters)");
+  console.log("  oas list-new                      List all sessions from OpenCode");
+  console.log("  oas list-new --agent opencode     List sessions from opencode agent");
+  console.log("  oas list-new --alias default      List sessions with 'default' alias");
+  console.log("  oas list-new --q \"bug\"            List sessions with 'bug' in title/ID");
+  console.log("");
+  console.log("  # Detail command (session detail view)");
+  console.log("  oas detail opencode:default:abc123    Show session details (positional)");
+  console.log("  oas detail --session opencode:abc123  Show details with inferred alias");
+  console.log("  oas detail --agent codex --alias work --id cx-100");
+  console.log("");
+  console.log("  # Clone command (copy session between agents)");
+  console.log("  oas clone --from codex:cx-100 --to opencode:default");
+  console.log("  oas clone --from codex:work:cx-100 --to opencode:personal");
+  process.exit(0);
+}
+
+// ============================================================================
+// TUI Command (R-15)
+// ============================================================================
+
+async function handleTuiCommand(): Promise<void> {
+  const config = loadConfig();
+
+  // Create CLI-compatible services for the TUI
+  const listService = createListServiceFromConfig(config);
+  const getSessionService = createDetailService(config);
+  const cloneService = createCloneServiceFromConfig(config);
+
+  // Map CLI service signatures to TUI service signatures
+  const tuiListService: TuiListService = async (query) => {
+    return listService(query as any);
+  };
+
+  const tuiDetailService: TuiDetailService = async (query) => {
+    return getSessionService(query as any);
+  };
+
+  const tuiCloneService: TuiCloneService = async (request) => {
+    return cloneService(request as any);
+  };
+
+  try {
+    await runTuiApp({
+      config,
+      list: tuiListService,
+      getSession: tuiDetailService,
+      cloneSession: tuiCloneService,
+    });
+  } catch (error) {
+    console.error("TUI error:", error instanceof Error ? error.message : String(error));
+    console.error("Stack:", error instanceof Error ? error.stack : "");
+    process.exit(1);
+  }
+}
+
+// ============================================================================
+// Main
+// ============================================================================
+
+async function main() {
+  const argv = process.argv.slice(2);
+  
+  if (argv.length === 0 || argv[0] === "--help" || argv[0] === "-h") {
+    showHelp();
+    return;
+  }
+
+  const command = argv[0];
+  const restArgs = argv.slice(1);
+
+  // Handle list command — route to new handler for flag support
+  if (command === "list" || command === "recent") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    const limitArg = parsed.positional[0] || (parsed.command ? parsed.command : undefined);
+    if (limitArg !== undefined) {
+      const num = Number(limitArg);
+      if (isNaN(num) || num <= 0 || !Number.isInteger(num)) {
+        console.error(`Error: limit must be a positive number, got: ${limitArg}`);
+        process.exit(1);
+      }
+    }
+    await handleListNewCommand(parsed);
+    return;
+  }
+
+  if (command === "find" || command === "show") {
+    const sessionId = restArgs[0];
+    if (!sessionId || sessionId === "--help" || sessionId === "-h") {
+      console.error("Usage: oas find <session-id>");
+      process.exit(1);
+    }
+    findSession(sessionId);
+    return;
+  }
+
+  // Handle new commands
+  if (command === "sessions") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleSessionsCommand(parsed);
+    return;
+  }
+
+  if (command === "read") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleReadCommand(parsed);
+    return;
+  }
+
+  if (command === "search") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleSearchCommand(parsed);
+    return;
+  }
+
+  // R-13: Config inspection command
+  if (command === "config") {
+    const parsed = parseArgs(restArgs);
+    const result = await runConfigCommand(parsed.args);
+    process.stdout.write(result.stdout);
+    process.stderr.write(result.stderr);
+    process.exit(result.exitCode);
+  }
+
+  if (command === "list-new") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleListNewCommand(parsed);
+    return;
+  }
+
+  if (command === "detail") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleDetailCommand(parsed);
+    return;
+  }
+
+  if (command === "clone") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleCloneCommand(parsed);
+    return;
+  }
+
+  if (command === "export") {
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"] || parsed.options["h"]) {
+      showHelp();
+      return;
+    }
+    await handleExportCommand(parsed);
+    return;
+  }
+
+  // REQ-SIM-03: Similar sessions command
+  if (command === "similar") {
+    const parsed = parseArgs(restArgs);
+    await handleSimilarCommand(parsed);
+    return;
+  }
+
+  if (command === "onboard") {
+    // Explanation: This command initializes 'bd' (beads) for the project.
+    // It will set up the necessary configuration files for issue tracking.
+    const proc = Bun.spawn(["bd", "onboard"], {
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    const exitCode = await proc.exited;
+    process.exit(exitCode);
+    return;
+  }
+
+  // TUI command (R-15)
+  if (command === "tui") {
+    await handleTuiCommand();
+    return;
+  }
+
+  // Unknown command
+  console.error(`Unknown command: ${command}`);
+  console.log("");
+  console.log("Usage: oas <command> [options]");
+  console.log("");
+  console.log("Commands:");
+  console.log("  list, recent   List recent sessions");
+  console.log("  find, show     Show session details");
+  console.log("  sessions       List sessions with time filtering");
+  console.log("  list-new       List sessions with agent/alias/query filters");
+  console.log("  detail         Show session detail view");
+  console.log("  read           Read session messages");
+  console.log("  search         Search sessions by title and content");
+  console.log("  config         Inspect, validate, or list config file paths");
+  console.log("  clone          Clone session between agents");
+  console.log("  export         Export session in CSF/Markdown/Text format");
+  console.log("  onboard        Initialize bd (beads) for the project");
+  console.log("  tui            Launch interactive TUI");
+  console.log("");
+  console.log("Run 'oas --help' for more information.");
+  process.exit(1);
+}
+
+main().catch((error) => {
+  console.error("Error:", error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});
