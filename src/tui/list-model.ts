@@ -10,6 +10,9 @@ const AGENT_ORDER: Record<AgentKind, number> = {
   opencode: 0,
   codex: 1,
   claude: 2,
+  hermes: 3,
+  gemini: 4,
+  antigravity: 5,
 };
 
 export type FilterValue<T extends string> = "all" | T;

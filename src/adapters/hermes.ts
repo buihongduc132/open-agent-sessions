@@ -145,7 +145,7 @@ export function createHermesAdapter(
       const untilSec = opts.until != null ? opts.until / 1000 : Infinity;
 
       const rows = db
-        .query<SessionRow, [number, number]>(
+        .query<SessionRow, [number, number, number]>(
           "SELECT id, source, model, title, parent_session_id, started_at, ended_at, message_count, tool_call_count FROM sessions WHERE started_at >= ? AND started_at <= ? ORDER BY started_at DESC LIMIT ?",
         )
         .all(sinceSec, untilSec, opts.limit ?? 50);

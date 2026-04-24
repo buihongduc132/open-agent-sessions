@@ -1,4 +1,4 @@
-export type AgentKind = "opencode" | "codex" | "claude" | "hermes";
+export type AgentKind = "opencode" | "codex" | "claude" | "hermes" | "gemini" | "antigravity";
 
 export type OpenCodeStorageMode = "auto" | "db" | "jsonl";
 
@@ -21,7 +21,7 @@ export interface OpenCodeAgentEntry extends BaseAgentEntry {
 }
 
 export interface OtherAgentEntry extends BaseAgentEntry {
-  agent: "codex" | "claude";
+  agent: "codex" | "claude" | "hermes" | "gemini" | "antigravity";
   [key: string]: unknown;
 }
 

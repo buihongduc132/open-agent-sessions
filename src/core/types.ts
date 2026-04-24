@@ -53,6 +53,8 @@ export type SessionPart =
 export interface SearchQuery {
   cwd?: string;
   text: string;
+  agent?: AgentKind;
+  alias?: string;
 }
 
 /** R-41: Query for fuzzy tool/MCP/skills usage search */
@@ -137,6 +139,8 @@ export interface AdapterFactories {
   codex: AdapterFactory;
   claude: AdapterFactory;
   hermes: AdapterFactory;
+  gemini: AdapterFactory;
+  antigravity: AdapterFactory;
 }
 
 export interface AdapterHandle {
@@ -145,6 +149,8 @@ export interface AdapterHandle {
   version: string;
   listSessions(): Promise<SessionSummary[]>;
   listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
+  /** Optional — only present when the adapter supports session search. */
+  searchSessions?(query: SearchQuery): Promise<SessionSummary[]>;
   /** Optional — only present when the adapter supports session detail retrieval. */
   getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
   /** Optional — only present when the adapter supports session forking (R-39). */

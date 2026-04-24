@@ -8,6 +8,8 @@ const AGENT_ORDER: Record<AgentKind, number> = {
   codex: 1,
   claude: 2,
   hermes: 3,
+  gemini: 4,
+  antigravity: 5,
 };
 
 // F4: In-memory LRU cache for session list results.

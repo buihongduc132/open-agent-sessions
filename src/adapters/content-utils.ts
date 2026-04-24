@@ -60,6 +60,11 @@ export function extractContentLine(content: unknown): string | undefined {
   return text ? firstLine(text) : undefined;
 }
 
+export function extractContentLineGemini(content: unknown): string | undefined {
+  const text = extractContentTextGemini(content);
+  return text ? firstLine(text) : undefined;
+}
+
 export function extractFirstResponseLine(content: unknown): string | undefined {
   const text = extractContentTextCodex(content);
   return text ? firstLine(text) : undefined;
@@ -91,4 +96,21 @@ export function extractContentPartsClaude(content: unknown): string[] {
     const t = textOfRecord(content as Record<string, unknown>); if (t) parts.push(t);
   }
   return parts;
+}
+
+export function extractContentTextGemini(content: unknown): string | undefined {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    const pieces = (content as Array<{ text?: string }>).map(item => item.text ?? "").filter(t => t.length > 0);
+    return pieces.length > 0 ? pieces.join("") : undefined;
+  }
+  return undefined;
+}
+
+export function extractContentPartsGemini(content: unknown): string[] {
+  if (typeof content === "string") return [content];
+  if (Array.isArray(content)) {
+    return (content as Array<{ text?: string }>).map(item => item.text ?? "").filter(t => t.length > 0);
+  }
+  return [];
 }

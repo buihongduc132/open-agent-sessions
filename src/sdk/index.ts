@@ -80,10 +80,17 @@ export {
   createCodexCloneSourceAdapter,
   createClaudeAdapter,
   createAcpxAdapter,
+  createGeminiAdapter,
+  createAntigravityAdapter,
 } from "../adapters";
 
 // Normalization
-export { normalizeSessionSummary, normalizeTimestamp } from "../core/normalize";
+export {
+  normalizeSessionSummary,
+  normalizeTimestamp,
+  searchSessions,
+  searchSessionsWithErrors,
+} from "../core";
 
 // Session fork (R-39) — SessionRef is re-exported from core/types above
 export { forkSession } from "./session";

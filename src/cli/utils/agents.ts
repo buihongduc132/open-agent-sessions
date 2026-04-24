@@ -18,7 +18,7 @@ import type { ParseResult } from "./config";
  * Previously duplicated in detail.ts, read.ts, clone.ts, export.ts, list.ts.
  */
 export function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
+  return agent === "opencode" || agent === "codex" || agent === "claude" || agent === "hermes" || agent === "gemini" || agent === "antigravity";
 }
 
 // ============================================================================
@@ -29,6 +29,9 @@ const AGENT_ORDER: Record<AgentKind, number> = {
   opencode: 0,
   codex: 1,
   claude: 2,
+  hermes: 3,
+  gemini: 4,
+  antigravity: 5,
 };
 
 /**
