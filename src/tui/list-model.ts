@@ -119,7 +119,7 @@ export function applyKey(
     return { state, effects: [{ type: "exit", reason: "ctrl-c" }] };
   }
 
-  if (key.name === "q") {
+  if (key.name === "q" && state.mode !== "filter") {
     return { state, effects: [{ type: "exit", reason: "quit" }] };
   }
 

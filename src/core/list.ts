@@ -281,7 +281,9 @@ function applyFilters(
     const needle = normalizedQuery as string;
     return (
       session.id.toLowerCase().includes(needle) ||
-      session.title.toLowerCase().includes(needle)
+      session.title.toLowerCase().includes(needle) ||
+      session.agent.toLowerCase().includes(needle) ||
+      session.alias.toLowerCase().includes(needle)
     );
   });
 }

@@ -639,7 +639,7 @@ export async function runTuiApp(options: {
 function Header({ title, agents }: { title: string; agents?: Config["agents"] }): ReactNode {
   const enabledAgents = agents?.filter((a) => a.enabled) ?? [];
   const agentLabel =
-    enabledAgents.length > 3
+    enabledAgents.length > 2
       ? `[${enabledAgents.length} agents enabled]`
       : enabledAgents.map((a) => `[${a.agent}:${a.alias}]`).join(" ");
 

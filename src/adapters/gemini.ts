@@ -69,7 +69,15 @@ export function createGeminiAdapter(
       try {
         const rootPath = resolveGeminiPath(entry, options);
         const files = collectJsonlFiles(rootPath);
-        return files.map((filePath) => parseGeminiSession(filePath, entry));
+        const results: SessionSummary[] = [];
+        for (const filePath of files) {
+          try {
+            results.push(parseGeminiSession(filePath, entry));
+          } catch {
+            // Skip files that fail to parse
+          }
+        }
+        return results;
       } catch (error) {
         const message = errorMessage(error);
         if (message.includes(label)) {
@@ -115,6 +123,11 @@ export function createGeminiAdapter(
       const label = createLabel(entry);
       const rootPath = resolveGeminiPath(entry, options);
 
+      // Validate sessionId to prevent path traversal
+      if (basename(sessionId) !== sessionId || sessionId.includes("..")) {
+        throw new Error(`${label} invalid session id: ${sessionId}`);
+      }
+
       // Try direct file lookup first: <sessionId>.jsonl
       const directPath = join(rootPath, sessionId + ".jsonl");
       const directStat = safeStat(directPath);
@@ -150,7 +163,7 @@ export function createGeminiAdapter(
       if (readOptions.selection) {
         const { mode, count, start, end } = readOptions.selection;
         if (mode === "last") {
-          messages = messages.slice(-(count ?? 10));
+          messages = (count === 0) ? messages : messages.slice(-(count ?? 10));
         } else if (mode === "first") {
           messages = messages.slice(0, count ?? 10);
         } else if (mode === "range") {
@@ -240,7 +253,7 @@ function parseGeminiMessages(filePath: string, label: string): SessionMessage[] 
     try {
       record = JSON.parse(lines[i]);
     } catch {
-      throw new Error(`Gemini JSONL parse error in ${filePath} at line ${i + 1}`);
+      continue;
     }
 
     if (record["$set"]) continue;
