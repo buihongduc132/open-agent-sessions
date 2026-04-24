@@ -341,7 +341,7 @@ describe("GeminiAdapter", () => {
     expect(detail.messages![0].modelID).toBe("model-x");
   });
 
-  it("invalid timestamps raise error with context", () => {
+  it("invalid timestamps in listSessions are skipped (per-file resilience)", () => {
     const projectDir = join(tmpDir, "project1", "chats");
     mkdirSync(projectDir, { recursive: true });
     const sessionFile = join(projectDir, "session-abc123.jsonl");
@@ -351,6 +351,7 @@ describe("GeminiAdapter", () => {
     ].join("\n"));
 
     const adapter = createGeminiAdapter(entry);
-    expect(() => adapter.listSessions()).toThrow(/timestamp invalid/);
+    const sessions = adapter.listSessions();
+    expect(sessions).toEqual([]);
   });
 });

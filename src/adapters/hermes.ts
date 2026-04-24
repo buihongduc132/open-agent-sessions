@@ -234,11 +234,11 @@ export function createHermesAdapter(
             messages = messages.slice(0, selection.count);
             break;
           case "last":
-            messages = selection.count === 0 ? [] : messages.slice(-(selection.count ?? 10));
+            messages = selection.count === 0 ? messages : messages.slice(-(selection.count ?? 10));
             break;
           case "range": {
             const start = (selection.start ?? 1) - 1;
-            const end = selection.end ?? start + 1;
+            const end = selection.end ?? messages.length;
             messages = messages.slice(start, end);
             break;
           }
@@ -268,11 +268,12 @@ export function createHermesAdapter(
       const results: SessionSummary[] = [];
 
       // Find sessions that have messages with tool_name matching
+      const escaped = needle.replace(/%/g, "\\%").replace(/_/g, "\\_");
       const toolRows = db
         .query<{ session_id: string }, [string]>(
-          "SELECT DISTINCT session_id FROM messages WHERE tool_name IS NOT NULL AND LOWER(tool_name) LIKE ?"
+          "SELECT DISTINCT session_id FROM messages WHERE tool_name IS NOT NULL AND LOWER(tool_name) LIKE ? ESCAPE '\\'"
         )
-        .all(`%${needle}%`);
+        .all(`%${escaped}%`);
 
       for (const tr of toolRows) {
         const row = db
@@ -407,8 +408,8 @@ function mapMessage(row: MessageRow): SessionMessage {
     parts.push({ type: "text", text: row.content });
   }
 
-  // Map role: hermes "tool" → keep as "tool" but adapter contract expects user/assistant/system
-  // We keep the hermes native role since it carries semantic meaning
+  // Map hermes 'tool' role to 'assistant' for adapter contract compliance.
+  // Tool metadata preserved in parts[].
   const role = row.role as SessionMessage["role"] | "tool";
   const mappedRole = role === "tool" ? "assistant" : role;
 

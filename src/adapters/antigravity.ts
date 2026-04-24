@@ -127,7 +127,7 @@ export function createAntigravityAdapter(
       if (options.selection) {
         const { mode, count, start, end } = options.selection;
         if (mode === "last") {
-          messages = messages.slice(-(count ?? 10));
+          messages = (count === 0) ? messages : messages.slice(-(count ?? 10));
         } else if (mode === "first") {
           messages = messages.slice(0, count ?? 10);
         } else if (mode === "range") {
@@ -184,23 +184,23 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
   let lastTimestamp: string | undefined;
 
   for (let i = 0; i < lines.length; i++) {
-    let entry: AntigravityLogEntry;
+    let logEntry: AntigravityLogEntry;
     try {
-      entry = JSON.parse(lines[i]);
+      logEntry = JSON.parse(lines[i]);
     } catch {
       continue; // Skip malformed lines
     }
 
-    const ts = normalizeTimestamp(entry.created_at, `Antigravity timestamp invalid in ${logPath}:${i + 1}`);
+    const ts = normalizeTimestamp(logEntry.created_at, `Antigravity timestamp invalid in ${logPath}:${i + 1}`);
     if (!firstTimestamp) firstTimestamp = ts;
     lastTimestamp = ts;
 
-    if (entry.source === "USER_EXPLICIT" && entry.type === "USER_INPUT") {
+    if (logEntry.source === "USER_EXPLICIT" && logEntry.type === "USER_INPUT") {
       messageCount++;
-      if (!title && entry.content) {
-        title = entry.content.split(/\r?\n/)[0].trim();
+      if (!title && logEntry.content) {
+        title = logEntry.content.split(/\r?\n/)[0].trim();
       }
-    } else if (entry.source === "MODEL" && entry.type === "PLANNER_RESPONSE") {
+    } else if (logEntry.source === "MODEL" && logEntry.type === "PLANNER_RESPONSE") {
       messageCount++;
     }
   }
