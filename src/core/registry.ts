@@ -11,15 +11,9 @@ import {
   SessionReadOptions,
   SearchQuery,
 } from "./types";
+import { AGENT_ORDER } from "./constants";
 
-const AGENT_ORDER: Record<AgentKind, number> = {
-  opencode: 0,
-  codex: 1,
-  claude: 2,
-  hermes: 3,
-  gemini: 4,
-  antigravity: 5,
-};
+
 
 // R-40: In-memory LRU cache for session detail reads.
 // Key = `${entry.alias}:${sessionId}` (alias is unique per registry).

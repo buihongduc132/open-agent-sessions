@@ -495,14 +495,18 @@ export function TuiAppView({
     useCallback(
       (key) => {
         if (fatalError) {
-          if (key.ctrl && key.name === "c") {
-            handleExit("ctrl-c");
-          }
-          if (key.name === "q") {
+          if ((key.ctrl && key.name === "c") || key.name === "q") {
             handleExit("quit");
           }
           return;
         }
+
+        // Global Ctrl+C always exits
+        if (key.ctrl && key.name === "c") {
+          handleExit("ctrl-c");
+          return;
+        }
+
         if (view === "tree") {
           handleTreeKey(key);
           return;
@@ -512,13 +516,24 @@ export function TuiAppView({
           return;
         }
         if (view === "detail") {
-          handleDetailKey(key);
+          // In detail view, q/escape/h go back to list
+          if (key.name === "q" || key.name === "escape" || key.name === "h") {
+            setView("list");
+          } else {
+            handleDetailKey(key);
+          }
           return;
         }
+
         // view === "list"
+        // In list view, q exits only if NOT in filter mode
+        if (key.name === "q" && listState.mode === "list") {
+          handleExit("quit");
+          return;
+        }
         handleListKey(key);
       },
-      [fatalError, handleDetailKey, handleExit, handleListKey, handleTreeKey, handleTimelineKey, view, setView]
+      [fatalError, handleDetailKey, handleExit, handleListKey, handleTreeKey, handleTimelineKey, view, setView, listState.mode]
     )
   );
 
@@ -622,11 +637,11 @@ export async function runTuiApp(options: {
 }
 
 function Header({ title, agents }: { title: string; agents?: Config["agents"] }): ReactNode {
+  const enabledAgents = agents?.filter((a) => a.enabled) ?? [];
   const agentLabel =
-    agents
-      ?.filter((a) => a.enabled)
-      .map((a) => `[${a.agent}:${a.alias}]`)
-      .join(" ") ?? "";
+    enabledAgents.length > 3
+      ? `[${enabledAgents.length} agents enabled]`
+      : enabledAgents.map((a) => `[${a.agent}:${a.alias}]`).join(" ");
 
   return (
     <box style={{ height: 1, paddingLeft: 1, paddingRight: 1 }}>
