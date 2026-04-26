@@ -35,6 +35,9 @@ import {
   createCodexAdapter,
   createClaudeAdapter,
   createAcpxAdapter,
+  createHermesAdapter,
+  createGeminiAdapter,
+  createAntigravityAdapter,
 } from "../src/adapters";
 
 // ============================================================================
@@ -91,6 +94,9 @@ function createAllAgentFactories(cwd: string) {
     opencode: (entry: AgentEntry) => createOpenCodeAdapter(entry as any, { cwd }),
     codex: (entry: AgentEntry) => createCodexAdapter(entry as any, { defaultPath: (entry as any).path }),
     claude: (entry: AgentEntry) => createClaudeAdapter(entry as any, {}),
+    hermes: (entry: AgentEntry) => createHermesAdapter(entry as any),
+    gemini: (entry: AgentEntry) => createGeminiAdapter(entry as any),
+    antigravity: (entry: AgentEntry) => createAntigravityAdapter(entry as any),
   };
 }
 
@@ -99,7 +105,7 @@ function createSessionsService(config: Config): SessionsService {
 
   return async (query: { cwd: string; timeRange: TimeRangeOptions }) => {
     const results: SessionSummary[] = [];
-    const errors: { agent: "opencode" | "codex" | "claude"; alias: string; message: string }[] = [];
+    const errors: { agent: string; alias: string; message: string }[] = [];
 
     for (const adapter of registry.adapters) {
       try {

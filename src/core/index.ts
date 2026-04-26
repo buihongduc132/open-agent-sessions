@@ -2,6 +2,7 @@ export { createAdapterRegistry, clearDetailCache, invalidateDetailCache } from "
 export { createListService, clearListCache, listSessions } from "./list";
 export { cloneSession, createCloneService } from "./clone";
 export { normalizeSessionSummary, normalizeTimestamp } from "./normalize";
+export { searchSessions, searchSessionsWithErrors } from "./search";
 export { inferSubAgents, formatSubAgentSummary, formatStatusLine, buildForkChain } from "./subagents";
 export type {
   SessionSubAgentSummary,

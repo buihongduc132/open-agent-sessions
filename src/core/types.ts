@@ -42,6 +42,8 @@ export interface SessionMessage {
   parts: SessionPart[];
   modelID?: string;
   agent?: string;
+  /** Adapter-specific token usage metadata (e.g., Gemini input/output/cached). */
+  tokens?: Record<string, unknown>;
 }
 
 export type SessionPart =
@@ -53,6 +55,8 @@ export type SessionPart =
 export interface SearchQuery {
   cwd?: string;
   text: string;
+  agent?: AgentKind;
+  alias?: string;
 }
 
 /** R-41: Query for fuzzy tool/MCP/skills usage search */
@@ -128,6 +132,9 @@ export interface Adapter {
    * @param topK Maximum results to return. Default: 5.
    */
   findSimilarSessions?(sessionId: string, topK?: number): Promise<SimilarSessionResult[]>;
+
+  /** Release resources (e.g. close SQLite handles). No-op if resources are injected. */
+  destroy?(): void;
 }
 
 export type AdapterFactory = (entry: AgentEntry) => Adapter;
@@ -136,6 +143,9 @@ export interface AdapterFactories {
   opencode: AdapterFactory;
   codex: AdapterFactory;
   claude: AdapterFactory;
+  hermes: AdapterFactory;
+  gemini: AdapterFactory;
+  antigravity: AdapterFactory;
 }
 
 export interface AdapterHandle {
@@ -144,6 +154,8 @@ export interface AdapterHandle {
   version: string;
   listSessions(): Promise<SessionSummary[]>;
   listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
+  /** Optional — only present when the adapter supports session search. */
+  searchSessions?(query: SearchQuery): Promise<SessionSummary[]>;
   /** Optional — only present when the adapter supports session detail retrieval. */
   getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
   /** Optional — only present when the adapter supports session forking (R-39). */

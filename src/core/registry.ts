@@ -9,13 +9,11 @@ import {
   AdapterRegistry,
   SessionDetail,
   SessionReadOptions,
+  SearchQuery,
 } from "./types";
+import { AGENT_ORDER } from "./constants";
 
-const AGENT_ORDER: Record<AgentKind, number> = {
-  opencode: 0,
-  codex: 1,
-  claude: 2,
-};
+
 
 // R-40: In-memory LRU cache for session detail reads.
 // Key = `${entry.alias}:${sessionId}` (alias is unique per registry).
@@ -40,7 +38,13 @@ export function clearDetailCache(): void {
  * Clears the list cache so the session list reflects the updated session.
  */
 export function invalidateDetailCache(alias: string, sessionId: string): void {
-  detailCache.delete(`${alias}:${sessionId}`);
+  // Cache keys include options suffix, so delete all entries matching the prefix.
+  const prefix = `${alias}:${sessionId}:`;
+  for (const key of detailCache.keys()) {
+    if (key.startsWith(prefix)) {
+      detailCache.delete(key);
+    }
+  }
   clearListCache();
 }
 
@@ -117,8 +121,10 @@ function buildHandle(
     throw new Error(`${context} ${errorMessage(error)}`);
   }
 
-  // R-40: Cache key includes alias to scope to this adapter's namespace
-  const cacheKey = (sessionId: string) => `${entry.alias}:${sessionId}`;
+  // R-40: Cache key includes alias and options to scope to this adapter's namespace
+  // and handle different selection/filter modes.
+  const cacheKey = (sessionId: string, options?: SessionReadOptions) => 
+    `${entry.alias}:${sessionId}:${JSON.stringify(options ?? {})}`;
 
   return {
     agent: entry.agent,
@@ -154,12 +160,15 @@ function buildHandle(
         return normalized;
       });
     },
+    searchSessions: adapter.searchSessions
+      ? async (query: SearchQuery) => adapter.searchSessions!(query)
+      : undefined,
     // R-40: In-memory cache wrapping the adapter's getSessionDetail.
     // Repeated calls for the same sessionId return the cached result without
     // re-querying agent storage. Cache is invalidated when updated_at changes.
     getSessionDetail: adapter.getSessionDetail
       ? async (sessionId: string, options?: SessionReadOptions): Promise<SessionDetail> => {
-          const key = cacheKey(sessionId);
+          const key = cacheKey(sessionId, options);
           const cached = detailCache.get(key);
 
           if (cached) {

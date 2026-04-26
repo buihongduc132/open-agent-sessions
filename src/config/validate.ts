@@ -6,13 +6,10 @@ import {
   OpenCodeStorageMode,
 } from "./types";
 
-const ALLOWED_AGENTS: AgentKind[] = ["opencode", "codex", "claude"];
+import { AGENT_ORDER, SUPPORTED_AGENTS } from "../core/constants";
+
+const ALLOWED_AGENTS: AgentKind[] = SUPPORTED_AGENTS;
 const STORAGE_MODES: OpenCodeStorageMode[] = ["auto", "db", "jsonl"];
-const AGENT_ORDER: Record<AgentKind, number> = {
-  opencode: 0,
-  codex: 1,
-  claude: 2,
-};
 
 export function validateConfig(raw: unknown): Config {
   if (raw === null || raw === undefined) {

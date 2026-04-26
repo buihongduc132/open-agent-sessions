@@ -130,9 +130,7 @@ export function TuiAppView({
       try {
         const result = await list(query);
         const ms = Date.now() - t0;
-        console.log(`[PERF] list: ${ms}ms`);
         if (ms > 5000) {
-          console.error(`[PERF SLOW] list took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
             ...prev.slice(-19),
             { label: `list(${JSON.stringify(query)})`, durationMs: ms, timestamp: new Date() },
@@ -141,7 +139,10 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        console.error(`[PERF] list error after ${ms}ms:`, err);
+        setPerfLog((prev) => [
+          ...prev.slice(-19),
+          { label: `list ERROR after ${ms}ms`, durationMs: ms, timestamp: new Date() },
+        ]);
         throw err;
       }
     },
@@ -155,9 +156,7 @@ export function TuiAppView({
       try {
         const result = await getSession(query);
         const ms = Date.now() - t0;
-        console.log(`[PERF] getSession: ${ms}ms`);
         if (ms > 5000) {
-          console.error(`[PERF SLOW] getSession took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
             ...prev.slice(-19),
             { label: `getSession(${query.id})`, durationMs: ms, timestamp: new Date() },
@@ -166,7 +165,10 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        console.error(`[PERF] getSession error after ${ms}ms:`, err);
+        setPerfLog((prev) => [
+          ...prev.slice(-19),
+          { label: `getSession ERROR after ${ms}ms`, durationMs: ms, timestamp: new Date() },
+        ]);
         throw err;
       }
     },
@@ -495,14 +497,18 @@ export function TuiAppView({
     useCallback(
       (key) => {
         if (fatalError) {
-          if (key.ctrl && key.name === "c") {
-            handleExit("ctrl-c");
-          }
-          if (key.name === "q") {
+          if ((key.ctrl && key.name === "c") || key.name === "q") {
             handleExit("quit");
           }
           return;
         }
+
+        // Global Ctrl+C always exits
+        if (key.ctrl && key.name === "c") {
+          handleExit("ctrl-c");
+          return;
+        }
+
         if (view === "tree") {
           handleTreeKey(key);
           return;
@@ -512,13 +518,24 @@ export function TuiAppView({
           return;
         }
         if (view === "detail") {
-          handleDetailKey(key);
+          // In detail view, q/escape/h go back to list
+          if (key.name === "q" || key.name === "escape" || key.name === "h") {
+            setView("list");
+          } else {
+            handleDetailKey(key);
+          }
           return;
         }
+
         // view === "list"
+        // In list view, q exits only if NOT in filter mode
+        if (key.name === "q" && listState.mode === "list") {
+          handleExit("quit");
+          return;
+        }
         handleListKey(key);
       },
-      [fatalError, handleDetailKey, handleExit, handleListKey, handleTreeKey, handleTimelineKey, view, setView]
+      [fatalError, handleDetailKey, handleExit, handleListKey, handleTreeKey, handleTimelineKey, view, setView, listState.mode]
     )
   );
 
@@ -622,11 +639,11 @@ export async function runTuiApp(options: {
 }
 
 function Header({ title, agents }: { title: string; agents?: Config["agents"] }): ReactNode {
+  const enabledAgents = agents?.filter((a) => a.enabled) ?? [];
   const agentLabel =
-    agents
-      ?.filter((a) => a.enabled)
-      .map((a) => `[${a.agent}:${a.alias}]`)
-      .join(" ") ?? "";
+    enabledAgents.length > 3
+      ? `[${enabledAgents.length} agents enabled]`
+      : enabledAgents.map((a) => `[${a.agent}:${a.alias}]`).join(" ");
 
   return (
     <box style={{ height: 1, paddingLeft: 1, paddingRight: 1 }}>

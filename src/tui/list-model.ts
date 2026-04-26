@@ -1,16 +1,13 @@
 import { AgentEntry, AgentKind } from "../config/types";
 import { SessionListError, SessionListResult } from "../core/list";
 import { SessionSummary } from "../core/types";
+import { AGENT_ORDER } from "../core/constants";
 
 // F3: Default page size for initial list load — avoids loading all 7748 sessions
 // on TUI startup. SQL LIMIT is applied at the adapter layer, not just post-slice.
 export const DEFAULT_LIST_LIMIT = 50;
 
-const AGENT_ORDER: Record<AgentKind, number> = {
-  opencode: 0,
-  codex: 1,
-  claude: 2,
-};
+
 
 export type FilterValue<T extends string> = "all" | T;
 
@@ -122,7 +119,7 @@ export function applyKey(
     return { state, effects: [{ type: "exit", reason: "ctrl-c" }] };
   }
 
-  if (key.name === "q") {
+  if (key.name === "q" && state.mode !== "filter") {
     return { state, effects: [{ type: "exit", reason: "quit" }] };
   }
 
@@ -200,7 +197,7 @@ function handleFilterInput(
     return recomputeFiltered(restored, false);
   }
 
-  if (name === "return") {
+  if (name === "return" || name === "enter") {
     const applied: TuiListState = {
       ...state,
       mode: "list",
@@ -386,7 +383,7 @@ function handleListInput(
     return { state: jumpSelection(next, "end"), effects: [] };
   }
 
-  if (name === "return") {
+  if (name === "return" || name === "enter") {
     if (next.allSessions.length === 0) {
       return {
         state: { ...next, statusMessage: "No session selected." },
@@ -493,7 +490,7 @@ function handleCloneInput(
     };
   }
 
-  if (name === "return") {
+  if (name === "return" || name === "enter") {
     const destination = prompt.destinations[prompt.selectedIndex];
     if (!destination) {
       return {
@@ -674,10 +671,12 @@ function applyFilters(
     if (!hasQuery) return true;
     const needle = normalizedQuery;
     const title = session.title.trim().length > 0 ? session.title : session.id;
-    return (
+    const matches = (
       session.id.toLowerCase().includes(needle) ||
+      session.agent.toLowerCase().includes(needle) ||
       title.toLowerCase().includes(needle)
     );
+    return matches;
   });
 }
 

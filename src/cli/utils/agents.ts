@@ -6,30 +6,22 @@
  */
 
 import { AgentEntry, AgentKind } from "../../config/types";
+import { AGENT_ORDER, isAgentKind as isAgentKindCore } from "../../core/constants";
 import type { ParseResult } from "./config";
 
 // ============================================================================
 // Agent Kind Validation
 // ============================================================================
 
-/**
- * Type guard: check if a string is a valid AgentKind.
- *
- * Previously duplicated in detail.ts, read.ts, clone.ts, export.ts, list.ts.
- */
 export function isAgentKind(agent: string): agent is AgentKind {
-  return agent === "opencode" || agent === "codex" || agent === "claude";
+  return isAgentKindCore(agent);
 }
 
 // ============================================================================
 // Agent Listing & Comparison
 // ============================================================================
 
-const AGENT_ORDER: Record<AgentKind, number> = {
-  opencode: 0,
-  codex: 1,
-  claude: 2,
-};
+
 
 /**
  * Compare two agent kinds for deterministic ordering.

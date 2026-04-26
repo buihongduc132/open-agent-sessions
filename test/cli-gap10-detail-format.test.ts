@@ -95,7 +95,9 @@ describe.skipIf(CI)("GAP 10c: `oas detail --format json|text`", () => {
       const sorted = [...parsed].sort((a: any, b: any) =>
         (a.message_count ?? 999) - (b.message_count ?? 999)
       );
-      return sorted[0].id as string;
+      const s = sorted[0];
+      // detail command requires agent:alias:session_id format
+      return `${s.agent}:${s.alias}:${s.id}`;
     } catch {}
     return null;
   }

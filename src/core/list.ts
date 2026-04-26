@@ -2,12 +2,9 @@ import { AgentKind } from "../config/types";
 import { AdapterRegistry, SessionSummary } from "./types";
 import { errorMessage } from "./utils";
 import QuickLRU from "quick-lru";
+import { AGENT_ORDER } from "./constants";
 
-const AGENT_ORDER: Record<AgentKind, number> = {
-  opencode: 0,
-  codex: 1,
-  claude: 2,
-};
+
 
 // F4: In-memory LRU cache for session list results.
 // Key = serialized filter dimensions (agent + alias + q).
@@ -284,7 +281,9 @@ function applyFilters(
     const needle = normalizedQuery as string;
     return (
       session.id.toLowerCase().includes(needle) ||
-      session.title.toLowerCase().includes(needle)
+      session.title.toLowerCase().includes(needle) ||
+      session.agent.toLowerCase().includes(needle) ||
+      session.alias.toLowerCase().includes(needle)
     );
   });
 }
