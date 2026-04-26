@@ -8,6 +8,7 @@ export { createAcpxAdapter } from "./acpx"; // R-31
 export { createHermesAdapter } from "./hermes"; // R-43
 export { createGeminiAdapter } from "./gemini";
 export { createAntigravityAdapter } from "./antigravity";
+export { createPiAdapter } from "./pi";
 
 // Re-export types for convenience so consumers can import from a single place
 export type {
