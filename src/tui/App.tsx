@@ -130,9 +130,7 @@ export function TuiAppView({
       try {
         const result = await list(query);
         const ms = Date.now() - t0;
-        console.log(`[PERF] list: ${ms}ms`);
         if (ms > 5000) {
-          console.error(`[PERF SLOW] list took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
             ...prev.slice(-19),
             { label: `list(${JSON.stringify(query)})`, durationMs: ms, timestamp: new Date() },
@@ -141,7 +139,10 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        console.error(`[PERF] list error after ${ms}ms:`, err);
+        setPerfLog((prev) => [
+          ...prev.slice(-19),
+          { label: `list ERROR after ${ms}ms`, durationMs: ms, timestamp: new Date() },
+        ]);
         throw err;
       }
     },
@@ -155,9 +156,7 @@ export function TuiAppView({
       try {
         const result = await getSession(query);
         const ms = Date.now() - t0;
-        console.log(`[PERF] getSession: ${ms}ms`);
         if (ms > 5000) {
-          console.error(`[PERF SLOW] getSession took ${ms}ms (>5000ms threshold)`);
           setPerfLog((prev) => [
             ...prev.slice(-19),
             { label: `getSession(${query.id})`, durationMs: ms, timestamp: new Date() },
@@ -166,7 +165,10 @@ export function TuiAppView({
         return result;
       } catch (err) {
         const ms = Date.now() - t0;
-        console.error(`[PERF] getSession error after ${ms}ms:`, err);
+        setPerfLog((prev) => [
+          ...prev.slice(-19),
+          { label: `getSession ERROR after ${ms}ms`, durationMs: ms, timestamp: new Date() },
+        ]);
         throw err;
       }
     },
