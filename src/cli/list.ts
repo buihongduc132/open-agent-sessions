@@ -203,26 +203,25 @@ function formatSessionRow(
   childCounts?: Map<string, number>,
   opts?: { full?: boolean; showAlias?: boolean },
 ): string {
-  const showAlias = opts?.showAlias ?? false;
-  const isDefault = session.alias === "default";
-  const label = showAlias || !isDefault
-    ? `[${session.agent}:${session.alias}]`
-    : `[${session.agent}]`;
-  const roleTag = session.parentSessionId ? "[sub]" : "[main]";
-  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
-  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
   const badge = showBadges && !session.parentSessionId
     ? (() => {
         const count = childCounts?.get(session.id) ?? 0;
-        return count > 0 ? `+${count}` : "-";
+        return count > 0 ? ` +${count}` : " -";
       })()
-    : null;
-  const displayTitle = opts?.full ? title : title;
-  if (displayTitle === session.id) {
-    return badge ? `${label} ${roleTag} ${session.id} ${badge}` : `${label} ${roleTag} ${session.id}`;
+    : "";
+
+  const { formatSessionRow: formatRow } = require("./formatters/text");
+  const base = formatRow(session, { ...opts, full: true });
+  const row = `${base}${badge}`;
+  
+  return opts?.full ? row : truncateText(row, 100);
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) {
+    return text;
   }
-  const base = `${label} ${roleTag} ${displayTitle} (${session.id})`;
-  return badge ? `${base} ${badge}` : base;
+  return text.substring(0, maxLength - 3) + "...";
 }
 
 // Formatting helpers: imported from ./utils/agents

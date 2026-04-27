@@ -38,6 +38,7 @@ import {
   createHermesAdapter,
   createGeminiAdapter,
   createAntigravityAdapter,
+  createPiAdapter,
 } from "../src/adapters";
 
 // ============================================================================
@@ -97,6 +98,7 @@ function createAllAgentFactories(cwd: string) {
     hermes: (entry: AgentEntry) => createHermesAdapter(entry as any),
     gemini: (entry: AgentEntry) => createGeminiAdapter(entry as any),
     antigravity: (entry: AgentEntry) => createAntigravityAdapter(entry as any),
+    pi: (entry: AgentEntry) => createPiAdapter(entry as any, {}),
   };
 }
 
@@ -182,6 +184,8 @@ function createSearchService(config: Config): SearchService {
           adapter = createClaudeAdapter(entry as any, {});
         } else if (entry.agent === "acpx") {
           adapter = createAcpxAdapter(entry as any, {});
+        } else if (entry.agent === "pi") {
+          adapter = createPiAdapter(entry as any, {});
         }
 
         if (adapter && adapter.searchSessions) {

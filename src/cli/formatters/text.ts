@@ -51,20 +51,17 @@ export function formatSessionRow(session: SessionSummary, opts?: FormatSessionRo
   const showAlias = opts?.showAlias ?? false;
   const isDefault = session.alias === "default";
   const label = showAlias || !isDefault
-    ? `[${session.agent}:${session.alias}]`.padEnd(25)
-    : `[${session.agent}]`.padEnd(25);
+    ? `[${session.agent}:${session.alias}]`
+    : `[${session.agent}]`;
   const roleTag = session.parentSessionId ? "[sub]" : "[main]";
-  const title = session.title.trim().length > 0 ? session.title : session.id;
-  const sessionId = truncateId(session.id, 20);
-  const messageCount = session.message_count.toString().padStart(4, " ");
-  const lastActivity = formatRelativeTime(session.updated_at);
+  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
+  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
 
-  if (title === session.id) {
-    return `${label} ${roleTag} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
-  }
+  const row = title === session.id
+    ? `${label} ${roleTag} ${session.id}`
+    : `${label} ${roleTag} ${title} (${session.id})`;
 
-  const displayTitle = opts?.full ? title : truncateText(title, 40);
-  return `${label} ${roleTag} ${displayTitle.padEnd(40)} ${sessionId.padEnd(23)} ${messageCount} msg  ${lastActivity}`;
+  return opts?.full ? row : truncateText(row, 100);
 }
 
 /**

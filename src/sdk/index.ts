@@ -82,6 +82,7 @@ export {
   createAcpxAdapter,
   createGeminiAdapter,
   createAntigravityAdapter,
+  createPiAdapter,
 } from "../adapters";
 
 // Normalization

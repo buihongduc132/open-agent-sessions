@@ -23,3 +23,6 @@ export type {
 export type {
   AntigravityAdapterOptions,
 } from "./antigravity";
+export type {
+  PiAdapterOptions,
+} from "./pi";
