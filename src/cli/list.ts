@@ -4,7 +4,7 @@ import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
 import { type ConfigOptions, type ParseResult, resolveConfig, errorResult, errorMessage } from "./utils/config";
 import { sanitizeTitle } from "./utils/format";
-import { formatErrors } from "./formatters/text";
+import { formatErrors, formatSessionRow as formatRowShared, truncateText } from "./formatters/text";
 import { isAgentKind, formatList, listAgents, listAliases, compareAgents } from "./utils/agents";
 import { formatSessionsJson } from "./formatters/json";
 
@@ -206,22 +206,14 @@ function formatSessionRow(
   const badge = showBadges && !session.parentSessionId
     ? (() => {
         const count = childCounts?.get(session.id) ?? 0;
-        return count > 0 ? ` +${count}` : " -";
+        return count > 0 ? ` +${count}` : "";
       })()
     : "";
 
-  const { formatSessionRow: formatRow } = require("./formatters/text");
-  const base = formatRow(session, { ...opts, full: true });
+  const base = formatRowShared(session, { ...opts, full: true });
   const row = `${base}${badge}`;
   
   return opts?.full ? row : truncateText(row, 100);
-}
-
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
-    return text;
-  }
-  return text.substring(0, maxLength - 3) + "...";
 }
 
 // Formatting helpers: imported from ./utils/agents
