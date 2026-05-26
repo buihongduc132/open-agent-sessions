@@ -63,4 +63,4 @@ MUST follow TDD approach:
 - RED -> GREEN -> REFACTOR. 
 MUST delegate SEPARATE sub agents PER tdd step. 
 MUST ensure TESTS are WRITTEN first BEFORE the GREEN. 
-MUST prove this by COMMIT these RED tests first THEN start implementing it. 
+MUST prove this by COMMIT these RED tests first THEN start implementing it.
