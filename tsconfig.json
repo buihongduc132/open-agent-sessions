@@ -10,7 +10,7 @@
     "noEmit": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["bun-types"]
+    "types": ["bun-types", "@oclif/core"]
   },
   "include": ["src"],
   "exclude": ["test"]

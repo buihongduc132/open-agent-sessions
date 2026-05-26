@@ -46,10 +46,17 @@
     "url": "https://github.com/buihongduc132/open-agent-sessions/issues"
   },
   "homepage": "https://github.com/buihongduc132/open-agent-sessions#readme",
+  "oclif": {
+    "bin": "oas",
+    "dirname": "oas",
+    "commands": "./src/commands",
+    "topicSeparator": " "
+  },
   "engines": {
     "bun": ">=1.0.0"
   },
   "dependencies": {
+    "@oclif/core": "^4.10.5",
     "@opentui/core": "^0.1.74",
     "@opentui/react": "^0.1.74",
     "liqe": "^3.8.5",
