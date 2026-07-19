@@ -1,0 +1,3 @@
+{"type":"session","version":3,"id":"sess-hyphen","timestamp":"2026-07-15T11:00:00.000Z","cwd":"/tmp/proj"}
+{"type":"message","id":"m1","parentId":null,"timestamp":"2026-07-15T11:00:05.000Z","message":{"role":"user","content":[{"type":"text","text":"did you check?"}]}}
+{"type":"message","id":"m2","parentId":"m1","timestamp":"2026-07-15T11:00:10.000Z","message":{"role":"assistant","content":[{"type":"text","text":"I used the verifier loop yesterday to confirm the change. Also I prefer VerifierLoop naming but that is just me."}]}}
