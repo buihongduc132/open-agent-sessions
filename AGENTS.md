@@ -79,7 +79,10 @@ The hermes curator (`~/.hermes/hermes-agent/agent/curator.py`) is the canonical 
 | `flow/findings/hermes-curator/candidate-list-format.md` | Shape of the candidate list the model actually sees |
 | `flow/findings/hermes-curator/runtime-and-config.md` | Defaults, `auxiliary.curator` slot precedence, lifecycle gates, fork flags, CLI surface |
 
-Read these BEFORE designing any pi-side equivalent or any session-schema field that captures skill-consolidation activity.
+
+## Skill Usage Analyzer (Pi-side curator input)
+
+Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy matcher (exact/normalized/alias/Damerau-Levenshtein) + sharded JSON filesystem cache. Source: `src/skill-usage/` (impl), `scripts/skill-usage-heatmap.ts` (runner). Requirements: `flow/requirements/skill-usage-analyzer/README.md`. Intention + decisions locked: `flow/intentions/2026-07-19-skill-usage-analyzer.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
