@@ -82,7 +82,10 @@ The hermes curator (`~/.hermes/hermes-agent/agent/curator.py`) is the canonical 
 
 ## Skill Usage Analyzer (Pi-side curator input)
 
-Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy matcher (exact/normalized/alias/Damerau-Levenshtein) + sharded JSON filesystem cache. Source: `src/skill-usage/` (impl), `scripts/skill-usage-heatmap.ts` (runner). Requirements: `flow/requirements/skill-usage-analyzer/README.md`. Intention + decisions locked: `flow/intentions/2026-07-19-skill-usage-analyzer.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`.
+Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy matcher (exact/normalized/alias/Damerau-Levenshtein) + sharded JSON filesystem cache.
+
+- **Library:** `src/skill-usage/` — spec `flow/requirements/skill-usage-analyzer/README.md`, intention `flow/intentions/2026-07-19-skill-usage-analyzer.md`
+- **Runner:** `scripts/skill-usage-heatmap.ts` — usage `flow/requirements/skill-usage-heatmap-script/README.md`, intention `flow/intentions/2026-07-20-skill-usage-heatmap-script.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence

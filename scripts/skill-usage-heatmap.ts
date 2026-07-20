@@ -160,7 +160,3 @@ console.log(`- T2 normalized: ${norm}`);
 console.log(`- T3 alias: ${alias}`);
 console.log(`- T4 fuzzy (filtered for skill-name-shape): ${fuzzy} (maxObservedDistance=${report.maxObservedDistance})`);
 console.log(`- T4 fuzzy DROPPED as common-word noise: ${fuzzy_dropped} (out of ${fuzzy_total} raw)`);
-console.log(`- T1 exact (loads counted separately): ${exact} variant hits`);
-console.log(`- T2 normalized: ${norm}`);
-console.log(`- T3 alias: ${alias}`);
-console.log(`- T4 fuzzy: ${fuzzy} (maxObservedDistance=${report.maxObservedDistance})`);
