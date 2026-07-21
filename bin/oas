@@ -38,6 +38,7 @@ import {
   createHermesAdapter,
   createGeminiAdapter,
   createAntigravityAdapter,
+  createPiAdapter,
 } from "../src/adapters";
 
 // ============================================================================
@@ -97,6 +98,7 @@ function createAllAgentFactories(cwd: string) {
     hermes: (entry: AgentEntry) => createHermesAdapter(entry as any),
     gemini: (entry: AgentEntry) => createGeminiAdapter(entry as any),
     antigravity: (entry: AgentEntry) => createAntigravityAdapter(entry as any),
+    pi: (entry: AgentEntry) => createPiAdapter(entry as any, {}),
   };
 }
 
@@ -104,19 +106,17 @@ function createSessionsService(config: Config): SessionsService {
   const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
 
   return async (query: { cwd: string; timeRange: TimeRangeOptions }) => {
-    const results: SessionSummary[] = [];
     const errors: { agent: string; alias: string; message: string }[] = [];
 
-    for (const adapter of registry.adapters) {
+    const promises = registry.adapters.map(async (adapter) => {
       try {
         if (adapter.listSessionsByTimeRange) {
-          const sessions = await adapter.listSessionsByTimeRange(query.timeRange);
-          results.push(...sessions);
+          return await adapter.listSessionsByTimeRange(query.timeRange);
         } else {
           // Fallback to listSessions if time range not supported
           const sessions = await adapter.listSessions();
           // Apply time filtering manually
-          const filtered = sessions.filter((s) => {
+          return sessions.filter((s) => {
             const updated = Date.parse(s.updated_at);
             if (query.timeRange.since !== undefined && updated < query.timeRange.since) {
               return false;
@@ -126,7 +126,6 @@ function createSessionsService(config: Config): SessionsService {
             }
             return true;
           });
-          results.push(...filtered);
         }
       } catch (error) {
         errors.push({
@@ -134,8 +133,12 @@ function createSessionsService(config: Config): SessionsService {
           alias: adapter.alias,
           message: error instanceof Error ? error.message : String(error),
         });
+        return [];
       }
-    }
+    });
+
+    const sessionLists = await Promise.all(promises);
+    const results = sessionLists.flat();
 
     // Sort by updated_at descending
     results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
@@ -166,10 +169,9 @@ function createReadService(config: Config): ReadService {
 
 function createSearchService(config: Config): SearchService {
   return async (query: SearchQuery) => {
-    const results: SessionSummary[] = [];
-    const errors: { agent: "opencode" | "codex" | "claude" | "acpx"; alias: string; message: string }[] = [];
+    const errors: { agent: string; alias: string; message: string }[] = [];
 
-    for (const entry of config.agents.filter((e) => e.enabled)) {
+    const promises = config.agents.filter((e) => e.enabled).map(async (entry) => {
       try {
         let adapter: ReturnType<typeof createOpenCodeAdapter> | null = null;
 
@@ -182,25 +184,31 @@ function createSearchService(config: Config): SearchService {
           adapter = createClaudeAdapter(entry as any, {});
         } else if (entry.agent === "acpx") {
           adapter = createAcpxAdapter(entry as any, {});
+        } else if (entry.agent === "pi") {
+          adapter = createPiAdapter(entry as any, {});
         }
 
         if (adapter && adapter.searchSessions) {
-          const sessions = await adapter.searchSessions(query);
-          results.push(...sessions);
+          return await adapter.searchSessions(query);
         }
+        return [];
       } catch (error) {
         errors.push({
           agent: entry.agent,
           alias: entry.alias,
           message: error instanceof Error ? error.message : String(error),
         });
+        return [];
       }
-    }
+    });
+
+    const sessionLists = await Promise.all(promises);
+    const results = sessionLists.flat();
 
     // Sort by updated_at descending
     results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
 
-    return { sessions: results, errors };
+    return { sessions: results, errors: errors as any };
   };
 }
 

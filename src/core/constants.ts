@@ -11,6 +11,7 @@ export const AGENT_ORDER: Record<AgentKind, number> = {
   hermes: 3,
   gemini: 4,
   antigravity: 5,
+  pi: 6,
 };
 
 /**

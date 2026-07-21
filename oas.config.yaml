@@ -12,3 +12,24 @@ agents:
     alias: sessions
     enabled: true
     path: ~/.codex/state_5.sqlite
+
+  - agent: hermes
+    alias: hermes
+    enabled: true
+
+  - agent: gemini
+    alias: gemini
+    enabled: true
+
+  - agent: antigravity
+    alias: antigravity
+    enabled: true
+
+  - agent: pi
+    alias: omo
+    enabled: true
+    path: ../vendor-omo/global_profiles/pi/agent/sessions
+
+  - agent: pi
+    alias: pi
+    enabled: true

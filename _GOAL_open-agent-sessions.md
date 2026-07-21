@@ -35,3 +35,6 @@ MUST update document and .matrix-data to match the current progress.
 WHENEVER 1 @verifier REJECT , must go back to the begining of the working chain. (build -> verifier -> 2 later verifier)
 
 MUST ensure DRY , reuse , DO NOT reinvent the wheel. 
+
+
+if you are iteration == 5 , rebase from main then continue

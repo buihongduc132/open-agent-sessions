@@ -63,4 +63,70 @@ MUST follow TDD approach:
 - RED -> GREEN -> REFACTOR. 
 MUST delegate SEPARATE sub agents PER tdd step. 
 MUST ensure TESTS are WRITTEN first BEFORE the GREEN. 
-MUST prove this by COMMIT these RED tests first THEN start implementing it. 
+MUST prove this by COMMIT these RED tests first THEN start implementing it.
+
+## Hermes Curator — Auxiliary-Model Skill Lifecycle Prompts
+
+The hermes curator (`~/.hermes/hermes-agent/agent/curator.py`) is the canonical example of an auxiliary-model-driven skill lifecycle task: it forks an AIAgent on the `auxiliary.curator` slot to do umbrella-building consolidation over agent-created skills. Its full prompts and assembly logic are captured verbatim in `flow/findings/hermes-curator/`: this is the reference design for any future `pi-curator` adapter or any "skill lifecycle" field on the `SessionSummary` schema.
+
+| File | Symbol / topic |
+|------|---------------|
+| `flow/findings/hermes-curator/README.md` | TOC + provenance |
+| `flow/findings/hermes-curator/curator-review-prompt.md` | `CURATOR_REVIEW_PROMPT` — main umbrella-building prompt (the full `user_message`) |
+| `flow/findings/hermes-curator/curator-dry-run-banner.md` | `CURATOR_DRY_RUN_BANNER` — prepended on `--dry-run` |
+| `flow/findings/hermes-curator/prune-builtins-note.md` | inline `builtins_note` — overrides rule #1 when `curator.prune_builtins: true` |
+| `flow/findings/hermes-curator/prompt-assembly.md` | How banner + review prompt + builtins note + candidate list are composed |
+| `flow/findings/hermes-curator/candidate-list-format.md` | Shape of the candidate list the model actually sees |
+| `flow/findings/hermes-curator/runtime-and-config.md` | Defaults, `auxiliary.curator` slot precedence, lifecycle gates, fork flags, CLI surface |
+
+
+## Skill Usage Analyzer (Pi-side curator input)
+
+Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy matcher (exact/normalized/alias/Damerau-Levenshtein) + sharded JSON filesystem cache.
+
+- **Library:** `src/skill-usage/` — spec `flow/requirements/skill-usage-analyzer/README.md`, intention `flow/intentions/2026-07-19-skill-usage-analyzer.md`
+- **Runner:** `scripts/skill-usage-heatmap.ts` — usage `flow/requirements/skill-usage-heatmap-script/README.md`, intention `flow/intentions/2026-07-20-skill-usage-heatmap-script.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **open-agent-sessions** (4533 symbols, 7943 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+
+## Always Do
+
+- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
+- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
+- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
+- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
+
+## Never Do
+
+- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
+- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
+- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
+
+## Resources
+
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/open-agent-sessions/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/open-agent-sessions/clusters` | All functional areas |
+| `gitnexus://repo/open-agent-sessions/processes` | All execution flows |
+| `gitnexus://repo/open-agent-sessions/process/{name}` | Step-by-step execution trace |
+
+## CLI
+
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+
+<!-- gitnexus:end -->

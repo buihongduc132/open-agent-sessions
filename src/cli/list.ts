@@ -4,7 +4,7 @@ import { SessionSummary } from "../core/types";
 import { CliResult } from "./types";
 import { type ConfigOptions, type ParseResult, resolveConfig, errorResult, errorMessage } from "./utils/config";
 import { sanitizeTitle } from "./utils/format";
-import { formatErrors } from "./formatters/text";
+import { formatErrors, formatSessionRow as formatRowShared, truncateText } from "./formatters/text";
 import { isAgentKind, formatList, listAgents, listAliases, compareAgents } from "./utils/agents";
 import { formatSessionsJson } from "./formatters/json";
 
@@ -203,26 +203,17 @@ function formatSessionRow(
   childCounts?: Map<string, number>,
   opts?: { full?: boolean; showAlias?: boolean },
 ): string {
-  const showAlias = opts?.showAlias ?? false;
-  const isDefault = session.alias === "default";
-  const label = showAlias || !isDefault
-    ? `[${session.agent}:${session.alias}]`
-    : `[${session.agent}]`;
-  const roleTag = session.parentSessionId ? "[sub]" : "[main]";
-  const rawTitle = session.title.trim().length > 0 ? session.title : session.id;
-  const title = rawTitle === session.id ? rawTitle : sanitizeTitle(rawTitle);
   const badge = showBadges && !session.parentSessionId
     ? (() => {
         const count = childCounts?.get(session.id) ?? 0;
-        return count > 0 ? `+${count}` : "-";
+        return count > 0 ? ` +${count}` : "";
       })()
-    : null;
-  const displayTitle = opts?.full ? title : title;
-  if (displayTitle === session.id) {
-    return badge ? `${label} ${roleTag} ${session.id} ${badge}` : `${label} ${roleTag} ${session.id}`;
-  }
-  const base = `${label} ${roleTag} ${displayTitle} (${session.id})`;
-  return badge ? `${base} ${badge}` : base;
+    : "";
+
+  const base = formatRowShared(session, { ...opts, full: true });
+  const row = `${base}${badge}`;
+  
+  return opts?.full ? row : truncateText(row, 100);
 }
 
 // Formatting helpers: imported from ./utils/agents
