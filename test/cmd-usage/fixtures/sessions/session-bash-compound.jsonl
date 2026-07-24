@@ -1,0 +1,4 @@
+{"type":"session","version":3,"id":"sess-bash-compound","timestamp":"2026-07-15T11:00:00.000Z","cwd":"/tmp/proj2"}
+{"type":"message","id":"m1","parentId":null,"timestamp":"2026-07-15T11:00:05.000Z","message":{"role":"user","content":[{"type":"text","text":"Run compound commands"}]}}
+{"type":"message","id":"m2","parentId":"m1","timestamp":"2026-07-15T11:00:10.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"call_010","name":"bash","arguments":{"command":"sudo git diff --stat && npm test --ci"}}]}}
+{"type":"message","id":"m3","parentId":"m2","timestamp":"2026-07-15T11:00:15.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"call_011","name":"bash","arguments":{"command":"env FOO=bar mise run deploy-prod"}}]}}
