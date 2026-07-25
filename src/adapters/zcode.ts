@@ -65,6 +65,7 @@ type SessionRow = {
   time_created: number;
   time_updated: number;
   task_type: string | null;
+  parent_id: string | null;
 };
 
 type MessageRow = {
@@ -145,7 +146,7 @@ export function createZcodeAdapter(
     listSessions: (): SessionSummary[] => {
       const rows = db
         .query<SessionRow, []>(
-          "SELECT id, directory, title, time_created, time_updated, task_type FROM session ORDER BY time_updated DESC"
+          "SELECT id, directory, title, time_created, time_updated, task_type, parent_id FROM session WHERE time_archived IS NULL ORDER BY time_updated DESC"
         )
         .all();
 
@@ -167,8 +168,8 @@ export function createZcodeAdapter(
       // limit: 0 or undefined means "all" — omit LIMIT clause entirely
       const effectiveLimit = opts.limit;
       const baseCols =
-        "id, directory, title, time_created, time_updated, task_type FROM session";
-      const whereParts = ["time_updated >= ?", "time_updated <= ?"];
+        "id, directory, title, time_created, time_updated, task_type, parent_id FROM session";
+      const whereParts = ["time_archived IS NULL", "time_updated >= ?", "time_updated <= ?"];
       const params: (number | string)[] = [sinceMs, untilMs];
       if (hasSkip) {
         whereParts.push("id != ?");
@@ -199,7 +200,7 @@ export function createZcodeAdapter(
       // columns NOT NULL, so no IS NULL guard is required.
       const rows = db
         .query<SessionRow, [string, string]>(
-          "SELECT id, directory, title, time_created, time_updated, task_type FROM session WHERE LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(directory) LIKE ? ESCAPE '\\' ORDER BY time_updated DESC"
+          "SELECT id, directory, title, time_created, time_updated, task_type, parent_id FROM session WHERE time_archived IS NULL AND (LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(directory) LIKE ? ESCAPE '\\') ORDER BY time_updated DESC"
         )
         .all(`%${escaped}%`, `%${escaped}%`);
 
@@ -216,7 +217,7 @@ export function createZcodeAdapter(
     ): Promise<SessionDetail> => {
       const row = db
         .query<SessionRow, [string]>(
-          "SELECT id, directory, title, time_created, time_updated, task_type FROM session WHERE id = ?"
+          "SELECT id, directory, title, time_created, time_updated, task_type, parent_id FROM session WHERE id = ?"
         )
         .get(sessionId);
 
@@ -289,7 +290,7 @@ export function createZcodeAdapter(
       for (const tr of toolRows) {
         const row = db
           .query<SessionRow, [string]>(
-            "SELECT id, directory, title, time_created, time_updated, task_type FROM session WHERE id = ?"
+            "SELECT id, directory, title, time_created, time_updated, task_type, parent_id FROM session WHERE time_archived IS NULL AND id = ?"
           )
           .get(tr.session_id);
         if (row) {
@@ -359,6 +360,7 @@ function mapSessionSummary(
     updated_at: new Date(Number(row.time_updated)).toISOString(),
     message_count: countMessages(db, row.id),
     storage: "db",
+    ...(row.parent_id ? { parentSessionId: row.parent_id } : {}),
   };
 }
 

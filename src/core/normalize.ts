@@ -1,7 +1,7 @@
 import { AgentKind } from "../config/types";
 import { SessionSummary, SessionStorageKind } from "./types";
 
-const ALLOWED_AGENTS: AgentKind[] = ["opencode", "codex", "claude", "hermes", "gemini", "antigravity", "pi"];
+const ALLOWED_AGENTS: AgentKind[] = ["opencode", "codex", "claude", "hermes", "gemini", "antigravity", "pi", "zcode"];
 const ALLOWED_STORAGE: SessionStorageKind[] = ["db", "jsonl", "other"];
 
 export function normalizeSessionSummary(
@@ -50,7 +50,11 @@ export function normalizeSessionSummary(
     );
   }
 
-  return {
+  // parentSessionId is optional — carry it through when the adapter populates
+  // it (e.g. hermes from sessions.parent_session_id, zcode from
+  // session.parent_id). Omitted when not set.
+  const parentSessionIdRaw = record.parentSessionId;
+  const summary: SessionSummary = {
     id,
     agent: agent as AgentKind,
     alias,
@@ -60,6 +64,13 @@ export function normalizeSessionSummary(
     message_count: messageCount as number,
     storage: storage as SessionStorageKind,
   };
+  if (parentSessionIdRaw !== undefined && parentSessionIdRaw !== null) {
+    if (typeof parentSessionIdRaw !== "string" || parentSessionIdRaw.length === 0) {
+      throw new Error(`${context}: parentSessionId must be a non-empty string`);
+    }
+    summary.parentSessionId = parentSessionIdRaw;
+  }
+  return summary;
 }
 
 export function normalizeTimestamp(value: unknown, context: string): string {

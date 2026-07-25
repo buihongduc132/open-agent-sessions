@@ -32,7 +32,8 @@ function createTestZcodeDb(): Database {
       time_created integer not null,
       time_updated integer not null,
       task_type text not null default 'interactive',
-      title_source text not null default 'first_input'
+      title_source text not null default 'first_input',
+      time_archived integer
     );
 
     CREATE TABLE message (
@@ -454,4 +455,115 @@ describe("zcode adapter", () => {
       expect(specIso).not.toBe(new Date(1785007107214 / 1000).toISOString());
     });
   });
+
+  // -------------------------------------------------------------------------
+  // MAJOR 3: parentSessionId populated from session.parent_id
+  // -------------------------------------------------------------------------
+
+  describe("parentSessionId", () => {
+    it("populates parentSessionId when session.parent_id is set", () => {
+      insertSession(db, {
+        id: "sess_child",
+        parent_id: "sess_parent",
+        title: "Child session",
+        time_created: 1785000000000,
+        time_updated: 1785000100000,
+      });
+      insertSession(db, {
+        id: "sess_parent",
+        title: "Parent session",
+        time_created: 1785000000000,
+        time_updated: 1785000100000,
+      });
+
+      const sessions = makeAdapter(db).listSessions();
+      const child = sessions.find((s) => s.id === "sess_child")!;
+      const parent = sessions.find((s) => s.id === "sess_parent")!;
+
+      expect(child.parentSessionId).toBe("sess_parent");
+      // Sessions with no parent_id must NOT carry parentSessionId.
+      expect(parent.parentSessionId).toBeUndefined();
+    });
+
+    it("populates parentSessionId via listSessionsByTimeRange too", () => {
+      insertSession(db, {
+        id: "sess_child",
+        parent_id: "sess_parent",
+        title: "Child session",
+        time_created: 1785000000000,
+        time_updated: 1785000100000,
+      });
+
+      const sessions = makeAdapter(db).listSessionsByTimeRange!({
+        since: 0,
+        until: 8640000000000000,
+      });
+      const child = sessions.find((s) => s.id === "sess_child")!;
+      expect(child.parentSessionId).toBe("sess_parent");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // MAJOR 4: archived sessions (time_archived set) excluded from list/search
+  // -------------------------------------------------------------------------
+
+  describe("archive exclusion", () => {
+    it("excludes sessions with time_archived set from listSessions", () => {
+      insertSession(db, {
+        id: "sess_live",
+        title: "Live session",
+        time_created: 1785000000000,
+        time_updated: 1785000100000,
+      });
+      insertSession(db, {
+        id: "sess_archived",
+        title: "Archived session",
+        time_created: 1785000000000,
+        time_updated: 1785000200000,
+      });
+      db.run("UPDATE session SET time_archived = 1785000200000 WHERE id = ?", [
+        "sess_archived",
+      ]);
+
+      const sessions = makeAdapter(db).listSessions();
+      const ids = sessions.map((s) => s.id);
+
+      expect(ids).toContain("sess_live");
+      expect(ids).not.toContain("sess_archived");
+    });
+
+    it("excludes archived sessions from listSessionsByTimeRange", () => {
+      insertSession(db, {
+        id: "sess_archived",
+        title: "Archived session",
+        time_created: 1785000000000,
+        time_updated: 1785000200000,
+      });
+      db.run("UPDATE session SET time_archived = 1785000200000 WHERE id = ?", [
+        "sess_archived",
+      ]);
+
+      const sessions = makeAdapter(db).listSessionsByTimeRange!({
+        since: 0,
+        until: 8640000000000000,
+      });
+      expect(sessions.map((s) => s.id)).not.toContain("sess_archived");
+    });
+
+    it("excludes archived sessions from searchSessions", () => {
+      insertSession(db, {
+        id: "sess_archived",
+        title: "Archived searchtarget",
+        time_created: 1785000000000,
+        time_updated: 1785000200000,
+      });
+      db.run("UPDATE session SET time_archived = 1785000200000 WHERE id = ?", [
+        "sess_archived",
+      ]);
+
+      const results = makeAdapter(db).searchSessions!({ text: "searchtarget" });
+      expect(results.map((s) => s.id)).not.toContain("sess_archived");
+    });
+  });
 });
+
