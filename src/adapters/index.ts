@@ -9,6 +9,7 @@ export { createHermesAdapter } from "./hermes"; // R-43
 export { createGeminiAdapter } from "./gemini";
 export { createAntigravityAdapter } from "./antigravity";
 export { createPiAdapter } from "./pi";
+export { createZcodeAdapter } from "./zcode";
 
 // Re-export types for convenience so consumers can import from a single place
 export type {
@@ -26,3 +27,6 @@ export type {
 export type {
   PiAdapterOptions,
 } from "./pi";
+export type {
+  ZcodeAdapterOptions,
+} from "./zcode";

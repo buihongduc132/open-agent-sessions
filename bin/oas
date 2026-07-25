@@ -39,6 +39,7 @@ import {
   createGeminiAdapter,
   createAntigravityAdapter,
   createPiAdapter,
+  createZcodeAdapter,
 } from "../src/adapters";
 
 // ============================================================================
@@ -99,6 +100,7 @@ function createAllAgentFactories(cwd: string) {
     gemini: (entry: AgentEntry) => createGeminiAdapter(entry as any),
     antigravity: (entry: AgentEntry) => createAntigravityAdapter(entry as any),
     pi: (entry: AgentEntry) => createPiAdapter(entry as any, {}),
+    zcode: (entry: AgentEntry) => createZcodeAdapter(entry as any),
   };
 }
 
