@@ -79,6 +79,7 @@ type PiRecord = {
     content?: PiContentPart[] | string;
     provider?: string;
     model?: string;
+    agent?: string;
     usage?: { input: number; output: number; totalTokens: number };
     errorMessage?: string;
   };
@@ -357,6 +358,7 @@ function parsePiSession(dirPath: string, entry: OtherAgentEntry): SessionSummary
   let messageCount = 0;
   let minTimestamp: string | undefined;
   let maxTimestamp: string | undefined;
+  let parentSessionId: string | undefined;
 
   for (const filePath of files) {
     const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
@@ -370,6 +372,12 @@ function parsePiSession(dirPath: string, entry: OtherAgentEntry): SessionSummary
         record = JSON.parse(raw) as PiRecord;
       } catch {
         continue;
+      }
+
+      // Extract parentSessionId from any event (mirrors claude.ts
+      // parent_session_id / zcode.ts session.parent_id).
+      if (!parentSessionId) {
+        parentSessionId = readOptionalString(record.parentId);
       }
 
       if (record.timestamp) {
@@ -421,7 +429,20 @@ function parsePiSession(dirPath: string, entry: OtherAgentEntry): SessionSummary
     updated_at: maxTimestamp,
     message_count: messageCount,
     storage: "jsonl",
+    ...(parentSessionId ? { parentSessionId } : {}),
   };
+}
+
+/**
+ * Safely coerce an unknown value to a non-empty string, or return undefined.
+ * Mirrors claude.ts readOptionalString.
+ */
+function readOptionalString(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
 }
 
 function parsePiMessages(dirPath: string, label: string): SessionMessage[] {
@@ -463,12 +484,19 @@ function parsePiMessages(dirPath: string, label: string): SessionMessage[] {
         parts.push({ type: "text", text: content });
       }
 
-      messages.push({
+      const message: SessionMessage = {
         id: record.id ?? `${filePath}:${i + 1}`,
         role: role as "user" | "assistant",
         created_at,
         parts,
-      });
+      };
+
+      const modelID = readOptionalString(record.message.model);
+      const agentField = readOptionalString(record.message.agent);
+      if (modelID) message.modelID = modelID;
+      if (agentField) message.agent = agentField;
+
+      messages.push(message);
     }
   }
 
