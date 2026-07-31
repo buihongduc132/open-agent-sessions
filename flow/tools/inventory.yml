@@ -1,0 +1,68 @@
+# flow/tools/inventory.yml — Tools Query + Stats Functionality
+category: tools
+description: "Tool usage query, stats, extraction, and categorization per adapter"
+items:
+  - id: tools-extract-parts
+    title: "Extract tool call parts from session messages"
+    opencode: implemented
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: implemented
+    gemini: implemented
+    antigravity: implemented
+    pi: missing
+    zcode: implemented
+    notes: "opencode src/adapters/opencode.ts:906-909; hermes:410; gemini:288-289; antigravity:247-248; zcode part map. pi/claude/codex/acpx: NO tool parts extracted."
+
+  - id: tools-search-sessions
+    title: "toolSearchSessions (R-41 fuzzy tool/MCP/skills search)"
+    opencode: implemented
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: implemented
+    gemini: missing
+    antigravity: missing
+    pi: missing
+    zcode: implemented
+    notes: "Optional Adapter method. opencode (toolSearchFromDb/Jsonl, src/adapters/opencode.ts:943,1007); hermes:270 (SQL LIKE); zcode:279 (SQL LIKE). 6/9 adapters missing."
+
+  - id: tools-stats-callcount
+    title: "Per-tool call count stats (ToolUsage)"
+    opencode: core
+    codex: core
+    claude: core
+    acpx: core
+    hermes: core
+    gemini: core
+    antigravity: core
+    pi: core
+    zcode: core
+    notes: "Core module only: src/core/subagents.ts:inferSubAgents. Pure function on SessionDetail. Adapter-agnostic. NOT per-adapter."
+
+  - id: tools-categorize
+    title: "Tool → sub-agent category mapping (Shell/FS/Git/Web/Search/...)"
+    opencode: core
+    codex: core
+    claude: core
+    acpx: core
+    hermes: core
+    gemini: core
+    antigravity: core
+    pi: core
+    zcode: core
+    notes: "Core only: src/core/subagents.ts:categorise + TOOL_CATEGORY_MAP (~50 prefixes). Adapter-agnostic."
+
+  - id: tools-mcp-tag
+    title: "Tag tools as MCP (isMcp heuristic)"
+    opencode: core
+    codex: core
+    claude: core
+    acpx: core
+    hermes: core
+    gemini: core
+    antigravity: core
+    pi: core
+    zcode: core
+    notes: "Core only: src/core/subagents.ts:187 isMcp = name.startsWith('MCP_'|'mcp_'). OpenCode-biased. Misses other adapters' MCP tools entirely."

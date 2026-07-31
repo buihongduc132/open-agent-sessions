@@ -1,0 +1,45 @@
+# flow/message_parse/inventory.yml — Message Parsing
+category: message_parse
+description: "Message parsing capabilities (text, tool, reasoning parts, etc.)"
+items:
+  - id: text_parts
+    title: "text parts"
+    pi: implemented
+    zcode: implemented
+    claude: implemented
+    agy: implemented
+
+  - id: tool_parts
+    title: "tool parts"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: implemented
+
+  - id: reasoning_parts
+    title: "reasoning parts"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing
+
+  - id: modelID
+    title: "modelID"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing
+
+  - id: agent_field
+    title: "agent field"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing
+
+  - id: tokens_usage
+    title: "tokens/usage"
+    pi: missing
+    zcode: missing
+    claude: missing
+    agy: missing
