@@ -5,11 +5,15 @@ import { createLabel } from "./label";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
+  ForkResult,
   SearchQuery,
   SessionDetail,
   SessionMessage,
+  SessionPart,
   SessionReadOptions,
   SessionSummary,
+  TimeRangeOptions,
+  ToolSearchQuery,
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
 import { errorMessage } from "../core/utils";
@@ -47,13 +51,23 @@ type PiMessageEntry = {
   timestamp?: string;
   message?: {
     role?: string;
-    content?: Array<{ type: string; text?: string }> | string;
+    content?: PiContentPart[] | string;
     provider?: string;
     model?: string;
     usage?: { input: number; output: number; totalTokens: number };
     errorMessage?: string;
   };
 };
+
+/**
+ * Pi content part shapes (mirrors SessionPart union). text/tool/reasoning
+ * are first-class; anything else passes through verbatim.
+ */
+type PiContentPart =
+  | { type: "text"; text?: string }
+  | { type: "tool"; tool?: string; state?: Record<string, unknown> }
+  | { type: "reasoning"; text?: string }
+  | { type: string; [key: string]: unknown };
 
 type PiRecord = {
   type: string;
@@ -62,7 +76,7 @@ type PiRecord = {
   timestamp?: string;
   message?: {
     role?: string;
-    content?: Array<{ type: string; text?: string }> | string;
+    content?: PiContentPart[] | string;
     provider?: string;
     model?: string;
     usage?: { input: number; output: number; totalTokens: number };
@@ -127,7 +141,7 @@ export function createPiAdapter(
     },
     getSessionDetail: async (
       sessionId: string,
-      _options: SessionReadOptions
+      opts: SessionReadOptions
     ): Promise<SessionDetail> => {
       const label = createLabel(entry);
       const rootPath = resolvePiPath(entry, options);
@@ -136,13 +150,138 @@ export function createPiAdapter(
       for (const dirPath of sessionDirs) {
         const dirId = basename(dirPath);
         if (dirId === sessionId) {
-          const messages = parsePiMessages(dirPath, label);
+          let messages = parsePiMessages(dirPath, label);
           const summary = parsePiSession(dirPath, entry);
+
+          // Apply selection mode (mirrors zcode/hermes verbatim)
+          const selection = opts.selection;
+          if (selection) {
+            switch (selection.mode) {
+              case "first":
+                messages = messages.slice(0, selection.count);
+                break;
+              case "last":
+                messages =
+                  selection.count === 0
+                    ? messages
+                    : messages.slice(-(selection.count ?? 10));
+                break;
+              case "range": {
+                const start = (selection.start ?? 1) - 1;
+                const end = selection.end ?? messages.length;
+                messages = messages.slice(start, end);
+                break;
+              }
+              case "all":
+              default:
+                break;
+            }
+          }
+
+          // Apply role-based filtering (mirrors zcode/hermes verbatim)
+          const effectiveUserOnly = opts.userOnly || opts.selection?.userOnly;
+          if (effectiveUserOnly) {
+            if (opts.role && opts.role !== "user") {
+              messages = [];
+            } else {
+              messages = messages.filter((m) => m.role === "user");
+            }
+          } else if (opts.role) {
+            messages = messages.filter((m) => m.role === opts.role);
+          }
+
           return { ...summary, messages };
         }
       }
 
       throw new Error(`${label} session not found: ${sessionId}`);
+    },
+    listSessionsByTimeRange: (opts: TimeRangeOptions): SessionSummary[] => {
+      const label = createLabel(entry);
+      try {
+        // Default to the full epoch window. since/until are ms-epoch; we
+        // compare against updated_at (ISO-8601 → ms). updated_at is derived
+        // from the max record.timestamp across all events in the session dir.
+        const sinceMs = opts.since != null ? opts.since : 0;
+        const untilMs = opts.until != null ? opts.until : 8640000000000000;
+        const skipId = opts.skipSessionId;
+
+        const rootPath = resolvePiPath(entry, options);
+        const sessionDirs = collectSessionDirs(rootPath);
+
+        let results: SessionSummary[] = [];
+        for (const dirPath of sessionDirs) {
+          try {
+            const session = parsePiSession(dirPath, entry);
+            if (skipId === session.id) continue;
+
+            const updatedMs = Date.parse(session.updated_at);
+            if (Number.isNaN(updatedMs)) continue;
+            if (updatedMs < sinceMs || updatedMs > untilMs) continue;
+            results.push(session);
+          } catch {
+            // Skip dirs that fail to parse
+          }
+        }
+
+        results = sortByIsoDesc(results, "updated_at");
+        // limit: 0 or undefined means "all"
+        if (opts.limit && opts.limit > 0) {
+          results = results.slice(0, opts.limit);
+        }
+        return results;
+      } catch (error) {
+        const message = errorMessage(error);
+        if (message.includes(label)) {
+          throw new Error(message);
+        }
+        throw new Error(`${label} ${message}`);
+      }
+    },
+    toolSearchSessions: (query: ToolSearchQuery): SessionSummary[] => {
+      const label = createLabel(entry);
+      try {
+        const needle = query.tool.toLowerCase();
+        const rootPath = resolvePiPath(entry, options);
+        const sessionDirs = collectSessionDirs(rootPath);
+        const results: SessionSummary[] = [];
+
+        for (const dirPath of sessionDirs) {
+          try {
+            if (sessionUsesTool(dirPath, needle)) {
+              results.push(parsePiSession(dirPath, entry));
+            }
+          } catch {
+            // Skip dirs that fail to parse
+          }
+        }
+
+        return sortByIsoDesc(results, "updated_at");
+      } catch (error) {
+        const message = errorMessage(error);
+        if (message.includes(label)) {
+          throw new Error(message);
+        }
+        throw new Error(`${label} ${message}`);
+      }
+    },
+    forkSession: async (
+      sourceSessionId: string,
+      destAgent: string,
+      destAlias: string
+    ): Promise<ForkResult> => {
+      // STUB: native write to pi session storage is deferred (R-18).
+      // Mirror zcode forkSession — return a well-formed ForkResult.
+      return {
+        newSessionId: `pi-fork-${Date.now()}`,
+        parentSessionId: sourceSessionId,
+        destAgent,
+        destAlias,
+        forkedAt: new Date().toISOString(),
+      };
+    },
+    destroy: () => {
+      // No-op for JSONL-based adapter (no handles to release).
     },
     findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [
       {
@@ -245,7 +384,10 @@ function parsePiSession(dirPath: string, entry: OtherAgentEntry): SessionSummary
         if (!title && record.message.role === "user") {
           const content = record.message.content;
           if (Array.isArray(content)) {
-            const textPart = content.find((c) => c.type === "text" && c.text);
+            const textPart = content.find(
+              (c): c is { type: "text"; text: string } =>
+                c.type === "text" && typeof (c as { text?: unknown }).text === "string" && ((c as { text: string }).text.length > 0)
+            );
             if (textPart?.text) {
               title = textPart.text.slice(0, 120);
             }
@@ -310,14 +452,12 @@ function parsePiMessages(dirPath: string, label: string): SessionMessage[] {
         ? normalizeTimestamp(record.timestamp, context)
         : new Date().toISOString();
 
-      const parts: import("../core/types").SessionPart[] = [];
+      const parts: SessionPart[] = [];
       const content = record.message.content;
 
       if (Array.isArray(content)) {
         for (const part of content) {
-          if (part.type === "text" && part.text) {
-            parts.push({ type: "text", text: part.text });
-          }
+          parts.push(mapContentPart(part));
         }
       } else if (typeof content === "string") {
         parts.push({ type: "text", text: content });
@@ -333,4 +473,66 @@ function parsePiMessages(dirPath: string, label: string): SessionMessage[] {
   }
 
   return messages;
+}
+
+/**
+ * Map a raw pi content part onto the unified SessionPart union.
+ * Mirrors zcode mapParts: text/tool/reasoning are first-class, anything
+ * else passes through verbatim.
+ */
+function mapContentPart(part: PiContentPart): SessionPart {
+  const t = part.type;
+  if (t === "text") {
+    const text = "text" in part && typeof part.text === "string" ? part.text : "";
+    return { type: "text", text };
+  }
+  if (t === "tool") {
+    const p = part as { type: "tool"; tool?: string; state?: Record<string, unknown> };
+    return {
+      type: "tool",
+      tool: typeof p.tool === "string" ? p.tool : "",
+      state: p.state ?? {},
+    };
+  }
+  if (t === "reasoning") {
+    const text = "text" in part && typeof part.text === "string" ? part.text : "";
+    return { type: "reasoning", text };
+  }
+  // Unknown part type — pass through verbatim.
+  return part as SessionPart;
+}
+
+/**
+ * Determine whether any event in the session dir contains a tool-call
+ * content part whose `tool` name case-insensitively contains `needle`.
+ * Mirror of zcode toolSearchSessions (LOWER(tool_name) LIKE).
+ */
+function sessionUsesTool(dirPath: string, needle: string): boolean {
+  const files = collectJsonlFiles(dirPath);
+  for (const filePath of files) {
+    const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i].trim();
+      if (raw.length === 0) continue;
+
+      let record: PiRecord;
+      try {
+        record = JSON.parse(raw) as PiRecord;
+      } catch {
+        continue;
+      }
+
+      if (record.type !== "message" || !record.message) continue;
+      const content = record.message.content;
+      if (!Array.isArray(content)) continue;
+
+      for (const part of content) {
+        if (part.type === "tool") {
+          const toolName = (part as { tool?: string }).tool ?? "";
+          if (toolName.toLowerCase().includes(needle)) return true;
+        }
+      }
+    }
+  }
+  return false;
 }
