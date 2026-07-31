@@ -5,6 +5,7 @@ import { parseLastDuration, parseTimestamp, ParseResult } from "./utils/time-par
 import { formatSessionRow, formatSessionsJson, formatErrors } from "./formatters/text";
 import type { FormatSessionRowOptions } from "./formatters/text";
 import { resolveConfig, errorResult, errorMessage } from "./utils/config";
+import { isAgentKind, formatList, listAgents, listAliases } from "./utils/agents";
 
 const USAGE = `Usage: oas sessions [options]
 
@@ -33,6 +34,8 @@ export type SessionsService = (options: SessionsQuery) => Promise<SessionsResult
 export type SessionsQuery = {
   cwd: string;
   timeRange: TimeRangeOptions;
+  agent?: AgentKind;
+  alias?: string;
 };
 
 export type SessionsResult = {
@@ -54,6 +57,8 @@ export type SessionsOptions = {
   format?: "text" | "json";
   full?: boolean;
   showAlias?: boolean;
+  agent?: string;
+  alias?: string;
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -80,6 +85,17 @@ export async function runSessionsCommand(options: SessionsOptions): Promise<CliR
 
   const enabledEntries = configResult.value.agents.filter((entry) => entry.enabled);
 
+  // Parse agent/alias filters (mirrors src/cli/list.ts pattern)
+  const agentResult = parseAgent(options.agent, enabledEntries);
+  if (!agentResult.ok) {
+    return errorResult(agentResult.error);
+  }
+
+  const aliasResult = parseAlias(options.alias, enabledEntries);
+  if (!aliasResult.ok) {
+    return errorResult(aliasResult.error);
+  }
+
   // Parse time range
   const timeRangeResult = parseTimeRange(options);
   if (!timeRangeResult.ok) {
@@ -92,6 +108,8 @@ export async function runSessionsCommand(options: SessionsOptions): Promise<CliR
   const query: SessionsQuery = {
     cwd: process.cwd(),
     timeRange,
+    agent: agentResult.value,
+    alias: aliasResult.value,
   };
 
   // Fetch sessions
@@ -220,3 +238,45 @@ function parseTimeRange(options: SessionsOptions): ParseResult<TimeRangeOptions>
 // ============================================================================
 
 // Error/formatting helpers: imported from ./utils/config
+
+// Agent/alias parsing helpers: mirror src/cli/list.ts parseAgent/parseAlias.
+function parseAgent(
+  agentValue: string | undefined,
+  entries: AgentEntry[]
+): ParseResult<AgentKind | undefined> {
+  const trimmed = agentValue?.trim();
+  if (!trimmed) {
+    return { ok: true, value: undefined };
+  }
+
+  const available = listAgents(entries);
+  const agent = trimmed as AgentKind;
+  if (!isAgentKind(agent) || !available.includes(agent)) {
+    return {
+      ok: false,
+      error: `Unknown agent "${trimmed}". Available agents: ${formatList(available)}`,
+    };
+  }
+
+  return { ok: true, value: agent };
+}
+
+function parseAlias(
+  aliasValue: string | undefined,
+  entries: AgentEntry[]
+): ParseResult<string | undefined> {
+  const trimmed = aliasValue?.trim();
+  if (!trimmed) {
+    return { ok: true, value: undefined };
+  }
+
+  const available = listAliases(entries);
+  if (!available.includes(trimmed)) {
+    return {
+      ok: false,
+      error: `Unknown alias "${trimmed}". Available aliases: ${formatList(available)}`,
+    };
+  }
+
+  return { ok: true, value: trimmed };
+}
