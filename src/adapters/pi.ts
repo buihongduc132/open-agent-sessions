@@ -154,41 +154,53 @@ export function createPiAdapter(
           let messages = parsePiMessages(dirPath, label);
           const summary = parsePiSession(dirPath, entry);
 
-          // Apply selection mode (mirrors zcode/hermes verbatim)
-          const selection = opts.selection;
-          if (selection) {
-            switch (selection.mode) {
-              case "first":
-                messages = messages.slice(0, selection.count);
-                break;
-              case "last":
-                messages =
-                  selection.count === 0
-                    ? messages
-                    : messages.slice(-(selection.count ?? 10));
-                break;
-              case "range": {
-                const start = (selection.start ?? 1) - 1;
-                const end = selection.end ?? messages.length;
-                messages = messages.slice(start, end);
-                break;
-              }
-              case "all":
-              default:
-                break;
-            }
-          }
+          // Apply mode (takes precedence over selection)
+          if (opts.mode === "last_message") {
+            messages = messages.slice(-1);
+          } else if (opts.mode === "all_no_tools") {
+            messages = messages.map((m) => ({
+              ...m,
+              parts: m.parts.filter((p) => p.type !== "tool"),
+            }));
+          } else {
+            // mode is "all_with_tools" or undefined → use existing selection/role/userOnly logic
 
-          // Apply role-based filtering (mirrors zcode/hermes verbatim)
-          const effectiveUserOnly = opts.userOnly || opts.selection?.userOnly;
-          if (effectiveUserOnly) {
-            if (opts.role && opts.role !== "user") {
-              messages = [];
-            } else {
-              messages = messages.filter((m) => m.role === "user");
+            // Apply selection mode (mirrors zcode/hermes verbatim)
+            const selection = opts.selection;
+            if (selection) {
+              switch (selection.mode) {
+                case "first":
+                  messages = messages.slice(0, selection.count);
+                  break;
+                case "last":
+                  messages =
+                    selection.count === 0
+                      ? messages
+                      : messages.slice(-(selection.count ?? 10));
+                  break;
+                case "range": {
+                  const start = (selection.start ?? 1) - 1;
+                  const end = selection.end ?? messages.length;
+                  messages = messages.slice(start, end);
+                  break;
+                }
+                case "all":
+                default:
+                  break;
+              }
             }
-          } else if (opts.role) {
-            messages = messages.filter((m) => m.role === opts.role);
+
+            // Apply role-based filtering (mirrors zcode/hermes verbatim)
+            const effectiveUserOnly = opts.userOnly || opts.selection?.userOnly;
+            if (effectiveUserOnly) {
+              if (opts.role && opts.role !== "user") {
+                messages = [];
+              } else {
+                messages = messages.filter((m) => m.role === "user");
+              }
+            } else if (opts.role) {
+              messages = messages.filter((m) => m.role === opts.role);
+            }
           }
 
           return { ...summary, messages };
