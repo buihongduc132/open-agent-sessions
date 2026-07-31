@@ -1,0 +1,11 @@
+# flow/resource_mgmt/inventory.yml — Resource Management
+category: resource_mgmt
+description: "Resource management (DB handles, cleanup)"
+items:
+  - id: ownsDb_close
+    title: "ownsDb / close"
+    pi: na
+    zcode: implemented
+    claude: na
+    agy: na
+    notes: "pi/claude/agy = N/A (no DB to close)"
