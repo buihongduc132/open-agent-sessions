@@ -49,7 +49,7 @@ export function loadSkillInventory(dirs: string[]): SkillInventoryEntry[] {
       }
 
       const fm = parseFrontmatter(content);
-      const skillName = fm.name;
+      const skillName = typeof fm.name === "string" ? fm.name : null;
       if (!skillName) continue;
 
       // Dedup by canonical name — first directory wins

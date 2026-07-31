@@ -676,8 +676,10 @@ describe("GAP 6 — Sub-agent sessions shown by default (no filter)", () => {
 
     expect(ses001Line).toMatch(/\+4/);
     expect(ses003Line).toMatch(/\+1/);
-    // ses_002 has no children — must show "-" not "+N"
-    expect(ses002Line).toMatch(/-/);
+    // ses_002 has no children — current impl emits NO badge (empty string)
+    // when childCounts.get(id) is 0/missing. The previous "-" badge was
+    // removed in commit 9ee3682; assert absence of a "+N" badge instead.
+    expect(ses002Line).not.toMatch(/\+\d/);
   });
 
   /**
@@ -907,10 +909,11 @@ describe("GAP 7 — parentSessionId never populated by adapters (downstream CLI 
     expect(brokenResult.exitCode).toBe(0);
     expect(brokenResult.stdout).toContain("ses_root");
     expect(brokenResult.stdout).toContain("ses_child"); // child NOT filtered — adapters dropped parentSessionId!
-    // ses_root shows "-" badge (broken state — no +1 because childCounts is empty)
+    // ses_root shows NO badge in broken state (count=0 → empty string,
+    // not "-"; the dash badge was removed in commit 9ee3682)
     const brokenSesRootLine = brokenResult.stdout.split("\n").find((l) => l.includes("ses_root"));
-    expect(brokenSesRootLine).toMatch(/\s-/);        // shows "-" in broken state
-    expect(brokenSesRootLine).not.toMatch(/\s\+1/);  // never +1 in broken state
+    expect(brokenSesRootLine).not.toMatch(/\s\+\d/);   // no "+N" badge in broken state
+    expect(brokenSesRootLine).not.toMatch(/\s\+1/);     // never +1 in broken state
 
     // With fixed adapters (parentSessionId populated): CLI correctly filters children
     const fixedResult = await runListCommand({ config: baseConfig, list: fixedListService });
@@ -958,8 +961,9 @@ describe("GAP 7 — parentSessionId never populated by adapters (downstream CLI 
     expect(brokenResult.exitCode).toBe(0);
     const brokenLines = brokenResult.stdout.split("\n").filter(Boolean);
     const brokenSes001Line = brokenLines.find((l) => l.includes("ses_001"));
-    // Broken state: shows "-" (no children detected)
-    expect(brokenSes001Line).toMatch(/\s-/);       // ← RED: currently shows "-"
+    // Broken state: no badge (count=0 → empty string; the "-" badge was
+    // removed in commit 9ee3682). Assert absence of "+N" instead.
+    expect(brokenSes001Line).not.toMatch(/\s\+\d/);  // no badge in broken state
     expect(brokenSes001Line).not.toMatch(/\s\+1/); // never shows +1 in broken state
 
     // FIXED state: ses_001 shows "+1" badge (ses_002 has parentSessionId=ses_001)
