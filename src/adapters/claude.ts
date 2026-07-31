@@ -30,6 +30,13 @@ import {
   splitJsonlLines,
 } from "./fs-utils";
 
+// Adapter version read from package.json (replaces hardcoded "1.0.0").
+const PKG_VERSION = (
+  JSON.parse(readFileSync(join(__dirname, "../../package.json"), "utf8")) as {
+    version: string;
+  }
+).version;
+
 type ClaudeAdapterOptions = {
   defaultPath?: string;
   configDir?: string;
@@ -42,6 +49,8 @@ type ClaudeRecord = {
   timestamp?: unknown;
   content?: unknown;
   parent_session_id?: unknown;
+  model?: unknown;
+  agent?: unknown;
 };
 
 export function createClaudeAdapter(
@@ -53,7 +62,7 @@ export function createClaudeAdapter(
   }
 
   return {
-    version: "1.0.0", // TODO: Replace with actual version from package.json or similar
+    version: PKG_VERSION,
     listSessions: () => {
       const label = createLabel(entry);
       try {
@@ -408,12 +417,22 @@ function parseClaudeMessages(filePath: string, label: string): SessionMessage[] 
 
     const parts = mapClaudeContent(record.content);
 
-    messages.push({
+    const message: SessionMessage = {
       id: typeof recordId === "string" ? recordId : `${filePath}:${i + 1}`,
       role: recordType as "user" | "assistant",
       created_at,
       parts,
-    });
+    };
+
+    // modelID: claude records carry model at the top level (mirrors zcode
+    // parsed.model.modelID). agent: record-level subagent identity (mirrors
+    // zcode parsed.agent). Only set when non-empty string.
+    const modelID = readOptionalString(record.model);
+    const agentField = readOptionalString(record.agent);
+    if (modelID) message.modelID = modelID;
+    if (agentField) message.agent = agentField;
+
+    messages.push(message);
   }
 
   return messages;
