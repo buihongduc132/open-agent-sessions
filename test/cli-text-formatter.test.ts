@@ -78,11 +78,12 @@ describe("formatSessionRow", () => {
   test("formats session with title", () => {
     const session = makeSession({ title: "My Session" });
     const result = formatSessionRow(session);
-    
+
+    // Current impl format: `[agent:alias] [main] title (id)` (no message-count column)
     expect(result).toContain("[opencode:personal]");
     expect(result).toContain("My Session");
     expect(result).toContain("session-001");
-    expect(result).toContain("msg");
+    expect(result).toContain("[main]");
   });
 
   test("formats session without title (uses ID)", () => {
@@ -96,10 +97,13 @@ describe("formatSessionRow", () => {
   test("truncates long IDs", () => {
     const session = makeSession({ id: "very-long-session-id-that-should-be-truncated-for-readability" });
     const result = formatSessionRow(session);
-    
-    // ID is truncated to 20 chars + "..."
-    expect(result).toContain("very-long-session-id...");
-    expect(result).not.toContain("that-should-be-truncated");
+
+    // Current impl truncates the WHOLE row to 100 chars (not the ID in isolation).
+    // The ID start is preserved, the tail is cut, and `...` marks the truncation.
+    expect(result).toContain("very-long-session-id"); // ID start still present
+    expect(result).toContain("...");                  // truncation marker
+    expect(result).not.toContain("readability");       // ID tail got cut off
+    expect(result.length).toBeLessThanOrEqual(100);    // row length cap respected
   });
 
   test("truncates long titles", () => {
@@ -112,10 +116,15 @@ describe("formatSessionRow", () => {
     expect(result.length).toBeLessThan(200);
   });
 
-  test("includes message count", () => {
+  // SKIPPED: message_count is no longer rendered in the session row.
+  // The current formatSessionRow produces `[agent:alias] [main] title (id)`
+  // with no MSG column. message_count is still surfaced in `formatSessionDetail`
+  // (see "formats session header with all fields" test). This capability was
+  // removed from the list row in commit 9ee3682 (trimmed list view).
+  test.skip("includes message count", () => {
     const session = makeSession({ message_count: 42 });
     const result = formatSessionRow(session);
-    
+
     expect(result).toContain("42");
     expect(result).toContain("msg");
   });
@@ -123,13 +132,15 @@ describe("formatSessionRow", () => {
   test("aligns columns properly with different data", () => {
     const session1 = makeSession({ id: "short", title: "Short", message_count: 1 });
     const session2 = makeSession({ id: "very-long-id-here", title: "A Much Longer Title Here", message_count: 1000 });
-    
+
     const result1 = formatSessionRow(session1);
     const result2 = formatSessionRow(session2);
-    
-    // Both should have consistent formatting structure
-    expect(result1).toContain("msg");
-    expect(result2).toContain("msg");
+
+    // Both should have consistent formatting structure: label + roleTag + title + (id)
+    expect(result1).toContain("[opencode:personal]");
+    expect(result1).toContain("[main]");
+    expect(result2).toContain("[opencode:personal]");
+    expect(result2).toContain("[main]");
   });
 });
 
@@ -690,17 +701,22 @@ describe("column alignment", () => {
       makeSession({ id: "short", title: "A", message_count: 1 }),
       makeSession({ id: "very-long-session-id-here", title: "A Much Longer Title Here", message_count: 999 }),
     ];
-    
+
     const lines = sessions.map(formatSessionRow);
-    
-    // Both should have consistent structure
+
+    // Both should have consistent structure: label + roleTag + title + (id)
     for (const line of lines) {
       expect(line).toContain("[opencode:personal]");
-      expect(line).toContain("msg");
+      expect(line).toContain("[main]");
     }
   });
 
-  test("pads label to fixed width for column alignment", () => {
+  // SKIPPED: label padding to a fixed width was removed in commit 9ee3682
+  // (trimmed list view). The current formatSessionRow emits the raw
+  // `[agent:alias]` label with no trailing pad, so label end position now
+  // varies with label length. Column alignment is no longer a row-level
+  // guarantee; if it is reintroduced, this test should be revived.
+  test.skip("pads label to fixed width for column alignment", () => {
     // Test with different label lengths (all under 25 chars to test padding)
     const shortLabel = makeSession({ agent: "codex", alias: "a", title: "Test" });
     const mediumLabel = makeSession({ agent: "opencode", alias: "personal", title: "Test" });
@@ -727,7 +743,12 @@ describe("column alignment", () => {
     expect(longerEnd).toBe(26);
   });
 
-  test("ensures columns start at same position regardless of label length", () => {
+  // SKIPPED: column alignment (title at same position regardless of label
+  // length) was removed in commit 9ee3682 (trimmed list view). The current
+  // formatSessionRow emits no label padding, so the title position varies
+  // with `[agent:alias]` length. Revive this test if column alignment is
+  // reintroduced at the row level.
+  test.skip("ensures columns start at same position regardless of label length", () => {
     const sessions = [
       makeSession({ agent: "codex", alias: "a", id: "id1", title: "Title" }),
       makeSession({ agent: "opencode", alias: "work-project", id: "id2", title: "Title" }),
