@@ -1,0 +1,61 @@
+# flow/core_methods/inventory.yml — Core Adapter Methods
+category: core_methods
+description: "Core Adapter interface methods (listSessions, searchSessions, etc.)"
+items:
+  - id: listSessions
+    title: "listSessions()"
+    pi: implemented
+    zcode: implemented
+    claude: implemented
+    agy: implemented
+
+  - id: listSessionsByTimeRange
+    title: "listSessionsByTimeRange()"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing
+
+  - id: searchSessions
+    title: "searchSessions()"
+    pi: implemented
+    zcode: implemented
+    claude: implemented
+    agy: implemented
+
+  - id: toolSearchSessions
+    title: "toolSearchSessions()"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing
+
+  - id: getSessionDetail
+    title: "getSessionDetail()"
+    pi: implemented
+    zcode: implemented
+    claude: implemented
+    agy: implemented
+
+  - id: forkSession
+    title: "forkSession()"
+    pi: missing
+    zcode: stub
+    claude: missing
+    agy: missing
+    notes: "zcode = stub (returns synthetic ID, no write)"
+
+  - id: findSimilarSessions
+    title: "findSimilarSessions()"
+    pi: stub
+    zcode: stub
+    claude: stub
+    agy: stub
+    notes: "all adapters = stub (returns empty/placeholder)"
+
+  - id: destroy
+    title: "destroy()"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing

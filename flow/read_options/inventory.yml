@@ -1,0 +1,45 @@
+# flow/read_options/inventory.yml — SessionReadOptions
+category: read_options
+description: "SessionReadOptions for getSessionDetail (selection, filters, modes)"
+items:
+  - id: selection_mode
+    title: "selection.mode (first/last/range/all)"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: implemented
+
+  - id: selection_count
+    title: "selection.count"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: implemented
+
+  - id: selection_start_end
+    title: "selection.start/end (range)"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing
+
+  - id: role_filter
+    title: "role filter"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: missing
+
+  - id: userOnly
+    title: "userOnly"
+    pi: missing
+    zcode: implemented
+    claude: missing
+    agy: implemented
+
+  - id: mode
+    title: "mode (last_message/all_no_tools/all_with_tools)"
+    pi: missing
+    zcode: missing
+    claude: missing
+    agy: missing

@@ -1,0 +1,94 @@
+# flow/skills/inventory.yml — Skills Query + Stats Functionality
+category: skills
+description: "Skill usage query, stats, and extraction capabilities per adapter"
+items:
+  - id: skills-query
+    title: "Search sessions for skill usage"
+    opencode: missing
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: missing
+    gemini: missing
+    antigravity: missing
+    pi: missing
+    zcode: missing
+    notes: "No adapter exposes skill search. Standalone module src/skill-usage/ scans pi JSONL format only."
+
+  - id: skills-stats
+    title: "Skill usage stats (counts, frequency, top-N)"
+    opencode: missing
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: missing
+    gemini: missing
+    antigravity: missing
+    pi: standalone
+    zcode: missing
+    notes: "Standalone: src/skill-usage/analyzer.ts (SkillUsageReport). pi-format JSONL only. NOT adapter-integrated."
+
+  - id: skills-extract
+    title: "Extract skill reads + mentions from session messages"
+    opencode: missing
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: missing
+    gemini: missing
+    antigravity: missing
+    pi: standalone
+    zcode: missing
+    notes: "Standalone: src/skill-usage/parser.ts (extractSkillReads, extractSkillMentions). pi-format JSONL only."
+
+  - id: skills-inventory-load
+    title: "Load skill inventory (parse <dir>/<name>/SKILL.md)"
+    opencode: na
+    codex: na
+    claude: na
+    acpx: na
+    hermes: na
+    gemini: na
+    antigravity: na
+    pi: standalone
+    zcode: na
+    notes: "Standalone: src/skill-usage/inventory.ts (loadSkillInventory). Cross-cutting util, pi-format only."
+
+  - id: skills-fuzzy-match
+    title: "4-tier fuzzy match (exact/normalized/alias/fuzzy)"
+    opencode: na
+    codex: na
+    claude: na
+    acpx: na
+    hermes: na
+    gemini: na
+    antigravity: na
+    pi: standalone
+    zcode: na
+    notes: "Standalone: src/skill-usage/fuzzy.ts (canonicalize, damerauLevenshtein, matchTier)."
+
+  - id: skills-cache
+    title: "Fingerprint-based cache (skip unchanged sessions)"
+    opencode: na
+    codex: na
+    claude: na
+    acpx: na
+    hermes: na
+    gemini: na
+    antigravity: na
+    pi: standalone
+    zcode: na
+    notes: "Standalone: src/skill-usage/cache.ts (openCache, computeFingerprint). JSON format only; sqlite reserved."
+
+  - id: skills-heatmap-script
+    title: "Weekly skill-usage heatmap CLI script"
+    opencode: na
+    codex: na
+    claude: na
+    acpx: na
+    hermes: na
+    gemini: na
+    antigravity: na
+    pi: standalone
+    zcode: na
+    notes: "scripts/skill-usage-heatmap.ts. Runs weekly. Output: skill usage heatmap. pi-format sessions only."

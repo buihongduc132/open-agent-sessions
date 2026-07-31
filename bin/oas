@@ -22,7 +22,7 @@ import type { ListService as TuiListService, DetailService as TuiDetailService, 
 import { createAdapterRegistry } from "../src/core/registry";
 import { createListService } from "../src/core/list";
 import { createCloneService, type CloneRegistry } from "../src/core/clone";
-import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery, SessionListQuery, SessionListResult } from "../src/core/types";
+import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery, SessionListQuery, SessionListResult, AgentKind } from "../src/core/types";
 
 // Config imports
 import { loadConfigFromFile, type Config } from "../src/config";
@@ -140,7 +140,15 @@ function createSessionsService(config: Config): SessionsService {
     });
 
     const sessionLists = await Promise.all(promises);
-    const results = sessionLists.flat();
+    let results = sessionLists.flat();
+
+    // Post-filter by agent/alias (defense-in-depth)
+    if (query.agent !== undefined) {
+      results = results.filter((s) => s.agent === query.agent);
+    }
+    if (query.alias !== undefined) {
+      results = results.filter((s) => s.alias === query.alias);
+    }
 
     // Sort by updated_at descending
     results.sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
@@ -416,6 +424,8 @@ async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
     format: parsed.options["format"] as "text" | "json" | undefined,
     full: parsed.options["full"] === true,
     showAlias: parsed.options["show-alias"] === true,
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
     config,
     getSessions,
   });
