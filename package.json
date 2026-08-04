@@ -4,6 +4,9 @@
   "description": "Unified session management library for AI coding agents (OpenCode, Codex, Claude)",
   "type": "module",
   "main": "./src/index.ts",
+  "workspaces": [
+    "packages/*"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./sdk": "./src/sdk/index.ts",

@@ -1,0 +1,12 @@
+{
+  "name": "@open-agent-sessions/sdk",
+  "version": "0.1.0",
+  "description": "Public adapter SDK boundary for open-agent-sessions consumers (oas-command-stats et al.).",
+  "type": "module",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "license": "MIT"
+}
