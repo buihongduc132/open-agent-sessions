@@ -111,7 +111,7 @@ describe("OT24 cross-cwd repo grouping query (contract c)", () => {
 
     // Create temp git repo so deriveRepo can find .git
     const tmpRepo = join(tmpdir(), `oas-cs-test-${process.pid}-${Date.now()}`);
-    const { mkdirSync, execSync } = await import("node:fs");
+    const { mkdirSync } = await import("node:fs");
     const { execSync: es } = await import("node:child_process");
     mkdirSync(join(tmpRepo, "src"), { recursive: true });
     es("git init -q", { cwd: tmpRepo });

@@ -15,6 +15,7 @@ import type { DbHandle } from "./duckdb";
 import type { ExtractedEvent, IngestResult, ParsedCommand } from "../types/contract";
 import { assertKnownSchemaVersion } from "./schema";
 import { parseCommand, getParserVersion } from "../parse/mvdan";
+import { deriveEffectiveCwd, deriveRepo } from "../parse/cwd";
 import { setWatermark } from "./duckdb";
 
 /**
@@ -141,6 +142,10 @@ export async function ingestBatch(
           ]
         );
 
+        // Phase 3 (OT24): derive effective_cwd + repo BEFORE insert.
+        const cwdInfo = deriveEffectiveCwd(evt.raw_command ?? "", evt.cwd_hint);
+        const repo = cwdInfo.effective_cwd ? deriveRepo(cwdInfo.effective_cwd) : null;
+
         // VARCHAR[] columns bound as JSON-string + explicit cast —
         // duckdb-node does not auto-bind JS arrays to VARCHAR[] (CA).
         await db.run(
@@ -148,8 +153,9 @@ export async function ingestBatch(
              (agent, alias, session_id, event_id, event_ts,
               program, subcommand, positional_args, flags,
               pipeline_depth, statement_count, cwd_hint,
+              effective_cwd, repo, cwd_scope, subshell_cwd,
               parse_status, parser_version, parser_notes)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?::VARCHAR[], ?::VARCHAR[], ?, ?, ?, ?, ?, ?)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?::VARCHAR[], ?::VARCHAR[], ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT (agent, alias, session_id, event_id) DO NOTHING`,
           [
             evt.agent, evt.alias, evt.session_id, evt.event_id, evt.event_ts,
@@ -157,6 +163,7 @@ export async function ingestBatch(
             JSON.stringify(parsed.positional_args ?? []),
             JSON.stringify(parsed.flags ?? []),
             parsed.pipeline_depth, parsed.statement_count, evt.cwd_hint,
+            cwdInfo.effective_cwd, repo, cwdInfo.cwd_scope, cwdInfo.subshell_cwd,
             parsed.parse_status, parserVersion, parsed.parser_notes,
           ]
         );

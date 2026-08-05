@@ -17,7 +17,7 @@ export interface DbHandle {
   close(): Promise<void>;
 }
 
-const OAS_CS_SCHEMA_VERSION = "0.1.0";
+const OAS_CS_SCHEMA_VERSION = "0.2.0"; // Phase 3 migration: effective_cwd + repo + cwd_scope
 const DUCKDB_VERSION_PINNED = "1.4.4";
 
 const NORMALIZE_FN = (v: any): any => {
