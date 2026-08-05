@@ -124,11 +124,12 @@ describe("OT30 (b): cmd_signature PII-free hash", () => {
     expect(sig).not.toContain("secretvalue");
   });
 
-  it("signature_differs_when_pii_differs_but_cmd_same", () => {
-    // Different secret values → different redacted cmd → different sig
+  it("signature_same_when_pii_value_differs_but_shape_same", () => {
+    // Redaction hides PII value → same shape → same sig.
+    // This is the POINT of redaction: PII value doesn't leak via signature.
     const sig1 = computeSignature("TOKEN=aaa cmd");
     const sig2 = computeSignature("TOKEN=bbb cmd");
-    expect(sig1).not.toBe(sig2);
+    expect(sig1).toBe(sig2);  // identical (PII value hidden)
   });
 });
 

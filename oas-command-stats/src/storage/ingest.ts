@@ -16,6 +16,7 @@ import type { ExtractedEvent, IngestResult, ParsedCommand } from "../types/contr
 import { assertKnownSchemaVersion } from "./schema";
 import { parseCommand, getParserVersion } from "../parse/mvdan";
 import { deriveEffectiveCwd, deriveRepo } from "../parse/cwd";
+import { redact, computeSignature } from "../parse/pii";
 import { setWatermark } from "./duckdb";
 
 /**
@@ -146,6 +147,10 @@ export async function ingestBatch(
         const cwdInfo = deriveEffectiveCwd(evt.raw_command ?? "", evt.cwd_hint);
         const repo = cwdInfo.effective_cwd ? deriveRepo(cwdInfo.effective_cwd) : null;
 
+        // Phase 4 (OT30): redact PII on write; cmd_signature = sha256(redact).
+        const cmdText = redact(evt.raw_command ?? "");
+        const cmdSignature = computeSignature(evt.raw_command ?? "");
+
         // VARCHAR[] columns bound as JSON-string + explicit cast —
         // duckdb-node does not auto-bind JS arrays to VARCHAR[] (CA).
         await db.run(
@@ -154,8 +159,9 @@ export async function ingestBatch(
               program, subcommand, positional_args, flags,
               pipeline_depth, statement_count, cwd_hint,
               effective_cwd, repo, cwd_scope, subshell_cwd,
+              cmd_text, cmd_signature,
               parse_status, parser_version, parser_notes)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?::VARCHAR[], ?::VARCHAR[], ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?::VARCHAR[], ?::VARCHAR[], ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT (agent, alias, session_id, event_id) DO NOTHING`,
           [
             evt.agent, evt.alias, evt.session_id, evt.event_id, evt.event_ts,
@@ -164,6 +170,7 @@ export async function ingestBatch(
             JSON.stringify(parsed.flags ?? []),
             parsed.pipeline_depth, parsed.statement_count, evt.cwd_hint,
             cwdInfo.effective_cwd, repo, cwdInfo.cwd_scope, cwdInfo.subshell_cwd,
+            cmdText, cmdSignature,
             parsed.parse_status, parserVersion, parsed.parser_notes,
           ]
         );
