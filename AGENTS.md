@@ -113,6 +113,16 @@ Ref: 2026-08-05_mvdan-semicolon-newline-statement-count/index.md (src/parse/mvda
 Context: Phase 2 readonly conn. 2nd `new Database(path)` same file/same Bun process → Napi::Error + SIGSEGV. Native crash, uncatchable.
 Solutions: STUB = software-only regex readonly guard (block write SQL). Phase 5 MUST solve via CLI shell-out, FFI, different runtime, OR singleton pool. duckdb-node `readonly` option ALSO segfaults under Bun.
 Ref: 2026-08-05_bun-duckdb-node-segfault-second-instance/index.md (src/storage/duckdb.ts:99)
+
+6: PII regex env-assign lookahead — bare TOKEN=value missed + double-redact iteration
+Context: Phase 4 PII redaction. Original regex required 1+ char before PII keyword → bare `TOKEN=value` not redacted. Fix added lookahead allowing keyword at start. Plus negative lookahead `(?![REDACTED:)` to skip already-redacted values from earlier passes.
+Solutions: Lookahead `(?=[A-Za-z_]?...)` allows zero-prefix keyword. Negative lookahead guards idempotency across 6 ordered regex passes (bearer→AWS→git-https→sshpass→env→cc).
+Ref: 2026-08-05_pii-regex-env-assign-lookahead/index.md (oas-command-stats/src/parse/pii.ts:36)
+
+7: gitnexus_impact skipped Phase 4 — panic-write under delegation infra failure
+Context: Phase 4 GREEN (abf792d) edited ingestBatch/SCHEMA_DDL/OAS_CS_SCHEMA_VERSION/KNOWN_SOURCE_SCHEMA_VERSIONS without running gitnexus_impact or detect_changes. Delegation infra broke (claude session-limit, gemy dead, codex missing, ocxo weak, pi -p MCP deadlock).
+Solutions: Retrospective blast radius via rg (GitNexus index stale — symbols not found). ingestBatch: 21 test callers + 1 re-export, additive change = LOW risk. SCHEMA_DDL: 1 caller (duckdb.ts:80), additive cols. OAS_CS_SCHEMA_VERSION: module-private. KNOWN_SOURCE_SCHEMA_VERSIONS: 3 callers, array-grow = backward-compat. MANDATORY pre-edit: (1) gitnexus_impact upstream (2) gitnexus_impact downstream (3) edit (4) gitnexus_detect_changes (5) commit only if expected scope. Phase 6+: pre-commit hook to enforce.
+Ref: 2026-08-05_gitnexus-impact-skipped-phase4/index.md
 </lesson_learn>
 
 <!-- gitnexus:start -->
