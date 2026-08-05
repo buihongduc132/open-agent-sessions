@@ -14,7 +14,7 @@ import type {
   SessionReadOptions,
   SessionSummary,
   ToolSearchQuery,
-} from "../../src/sdk/index";
+} from "@open-agent-sessions/sdk";
 
 const packageJson = JSON.parse(
   readFileSync(resolve(import.meta.dir, "../../package.json"), "utf8"),
