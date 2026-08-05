@@ -3,10 +3,21 @@
   "version": "0.1.0",
   "description": "Public adapter SDK boundary for open-agent-sessions consumers (oas-command-stats et al.).",
   "type": "module",
-  "main": "./index.ts",
-  "module": "./index.ts",
+  "main": "./dist/sdk/index.js",
+  "types": "./dist/sdk/index.d.ts",
+  "module": "./dist/sdk/index.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "bun build ../../src/sdk/index.ts --outdir dist/sdk --target node --format esm --sourcemap=none && tsc -p tsconfig.json",
+    "prepare": "bun run build",
+    "prepack": "bun run build"
+  },
   "exports": {
-    ".": "./index.ts"
+    ".": {
+      "types": "./dist/sdk/index.d.ts",
+      "import": "./dist/sdk/index.js",
+      "default": "./dist/sdk/index.js"
+    }
   },
   "license": "MIT"
 }

@@ -6,7 +6,7 @@
 // Adapter / SessionSummary here is a SemVer-detectable break, whereas a change
 // to the internal path was previously silent.
 //
-// The package re-exports the canonical SDK entrypoint verbatim (single source
-// of truth in src/sdk/index.ts), so both `@open-agent-sessions/sdk` and the
-// legacy `open-agent-sessions/sdk` subpath stay in lock-step.
+ * The package publishes the built SDK entrypoint. Source remains canonical in
+ * src/sdk/index.ts; the build output is the stable install boundary.
+ */
 export * from "../../src/sdk/index.ts";
