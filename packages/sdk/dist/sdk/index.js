@@ -3066,8 +3066,7 @@ function parseCodexSessionForClone(filePath, targetSessionId, label) {
 import { readFileSync as readFileSync5 } from "node:fs";
 import { homedir as homedir4 } from "node:os";
 import { basename, join as join5 } from "node:path";
-var __dirname = "/home/bhd/Documents/Projects/bhd/oas-command-stats/src/adapters";
-var PKG_VERSION = JSON.parse(readFileSync5(join5(__dirname, "../../package.json"), "utf8")).version;
+var PKG_VERSION = "0.1.0";
 function createClaudeAdapter(entry, options = {}) {
   if (entry.agent !== "claude") {
     throw new Error(`Claude adapter requires agent "claude", got "${entry.agent}"`);

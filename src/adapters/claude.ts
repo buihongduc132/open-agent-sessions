@@ -30,12 +30,9 @@ import {
   splitJsonlLines,
 } from "./fs-utils";
 
-// Adapter version read from package.json (replaces hardcoded "1.0.0").
-const PKG_VERSION = (
-  JSON.parse(readFileSync(join(__dirname, "../../package.json"), "utf8")) as {
-    version: string;
-  }
-).version;
+// Adapter version is part of the source package contract. Keep this constant
+// independent from filesystem paths so bundled SDK consumers resolve anywhere.
+const PKG_VERSION = "0.1.0";
 
 type ClaudeAdapterOptions = {
   defaultPath?: string;
