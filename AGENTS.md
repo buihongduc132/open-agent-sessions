@@ -88,6 +88,33 @@ Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy m
 - **Library:** `src/skill-usage/` — spec `flow/requirements/skill-usage-analyzer/README.md`, intention `flow/intentions/2026-07-19-skill-usage-analyzer.md`
 - **Runner:** `scripts/skill-usage-heatmap.ts` — usage `flow/requirements/skill-usage-heatmap-script/README.md`, intention `flow/intentions/2026-07-20-skill-usage-heatmap-script.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`
 
+<lesson_learn>
+1: Verifier ceremony violations — caveman/structure/showcase/LSL all skipped during verifier run
+Context: Operating as verifier v1 for goal 745f748b, emitted APPROVE verdict correctly but violated 6 behavioral ceremony rules (caveman off, wall of text, no structure, showcase markdown, diplomatic speech, no LSL)
+Solutions: LSL codified at flow/lesson_learn/2026-08-05_verifier-ceremony-violations/. Before any verdict: check caveman mode, structure sections, no-showcase, ≤30 words/line, create LSL if mistake.
+Ref: 2026-08-05_verifier-ceremony-violations/index.md
+
+2: DuckDB VARCHAR[] bind failure — duckdb-node does NOT auto-bind JS arrays to list columns
+Context: Phase 2 GREEN cmd_events INSERT. JS string arrays → VARCHAR[] cols threw "Type VARCHAR with value 'hi' can't be cast to VARCHAR[]".
+Solutions: Bind as JSON.stringify(arr) + explicit `?::VARCHAR[]` cast in SQL. Applies to ALL list-type columns. Cast MUST be in SQL not JS.
+Ref: 2026-08-05_duckdb-varchar-array-bind/index.md (src/storage/ingest.ts:152)
+
+3: DuckDB Date normalize mangling — normalize recursed INTO Date, returned empty {}
+Context: Phase 2 NORMALIZE_FN. typeof Date==="object" → object recursion iterated Date own-keys (none) → TIMESTAMP cols returned as {}.
+Solutions: Early-return `if (v instanceof Date) return v;` BEFORE object recursion. typeof unreliable for class instances — list all pass-through classes first.
+Ref: 2026-08-05_duckdb-date-normalize-mangling/index.md (src/storage/duckdb.ts:22)
+
+4: mvdan semicolon→newline statement_count — printer rewrites `;` to `\n`, old splitter blind
+Context: Phase 2 parse. `a || b ; c` gave statement_count=2 (expected 3). mvdan/sh print() normalizes `;`→`\n`; old token-level `;` splitter missed it.
+Solutions: New countLogicalCommands() walks NORMALIZED string treating `\n`+`;`+`&&`+`||` as separators. Never assume printer preserves source separators.
+Ref: 2026-08-05_mvdan-semicolon-newline-statement-count/index.md (src/parse/mvdan.ts:337)
+
+5: Bun+duckdb-node segfault on 2nd Database instance — uncatchable SIGSEGV
+Context: Phase 2 readonly conn. 2nd `new Database(path)` same file/same Bun process → Napi::Error + SIGSEGV. Native crash, uncatchable.
+Solutions: STUB = software-only regex readonly guard (block write SQL). Phase 5 MUST solve via CLI shell-out, FFI, different runtime, OR singleton pool. duckdb-node `readonly` option ALSO segfaults under Bun.
+Ref: 2026-08-05_bun-duckdb-node-segfault-second-instance/index.md (src/storage/duckdb.ts:99)
+</lesson_learn>
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
