@@ -40,7 +40,7 @@ describe("parse failure → quarantine (OT22)", () => {
     ];
 
     const r = await ingestBatch(db, events);
-    expect(r.committed).toBe(1);
+    expect(r.failed).toBe(1);
 
     // outbox: 1 row (raw captured)
     const ob = await db.all("SELECT * FROM outbox");

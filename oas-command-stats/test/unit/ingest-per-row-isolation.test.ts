@@ -50,9 +50,16 @@ describe("ingestBatch — OT23 poison-row isolation", () => {
     expect(result.committed).toBe(9);
     expect(result.failed).toBe(1);
 
-    // Outbox has 9 rows (the valid ones), NOT 0 (no batch rollback).
+    // Outbox has 10 rows (9 valid processed + 1 poison failed). OT22 contract:
+    // parse-fail STILL writes outbox (raw event captured). NO batch rollback.
     const outboxCount = await db.all("SELECT COUNT(*) AS n FROM outbox");
-    expect(outboxCount[0].n).toBe(9);
+    expect(outboxCount[0].n).toBe(10);
+
+    // Outbox poison row: processing_status='failed'
+    const poisonOb = await db.all(
+      "SELECT processing_status FROM outbox WHERE event_id='evt-4'"
+    );
+    expect(poisonOb[0].processing_status).toBe("failed");
 
     // Quarantine has the 1 poison row.
     const qCount = await db.all("SELECT COUNT(*) AS n FROM cmd_quarantine");

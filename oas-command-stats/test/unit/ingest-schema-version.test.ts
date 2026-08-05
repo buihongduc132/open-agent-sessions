@@ -47,7 +47,7 @@ describe("ingestBatch — OT49-X4 source_schema_version", () => {
 
   it("known_schema_version_proceeds_normally", async () => {
     const db = await openDb(DB_PATH);
-    const knownVer = KNOWN_SOURCE_SCHEMA_VERSIONS[0];
+    const knownVer = KNOWN_SOURCE_SCHEMA_VERSIONS[0]!;
     expect(knownVer).toBeDefined();
 
     const events = [
