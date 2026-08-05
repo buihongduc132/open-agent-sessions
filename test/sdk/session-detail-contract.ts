@@ -7,7 +7,19 @@ import type {
   SessionSummary,
 } from "@open-agent-sessions/sdk";
 
-type ExpectedSessionDetail = SessionSummary & {
+type ExpectedSessionSummary = {
+  id: string;
+  agent: AgentKind;
+  alias: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  storage: SessionStorageKind;
+  parentSessionId?: string;
+};
+
+type ExpectedSessionDetail = ExpectedSessionSummary & {
   parentSessionId?: string;
   clone?: SessionCloneMetadata;
   messages?: SessionMessage[];
