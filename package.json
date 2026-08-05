@@ -27,7 +27,8 @@
     "test:coverage": "bun test --coverage",
     "test:coverage:core": "bun test --coverage --coverage-exclude='src/tui/**'",
     "build": "bun build ./src/index.ts --outdir ./dist --target node",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:sdk-contract": "tsc -p test/sdk/tsconfig.contract.json --noEmit && bun test test/sdk/public-contract.test.ts --no-coverage"
   },
   "keywords": [
     "ai",
