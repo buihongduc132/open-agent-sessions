@@ -9,4 +9,4 @@
 // The package re-exports the canonical SDK entrypoint verbatim (single source
 // of truth in src/sdk/index.ts), so both `@open-agent-sessions/sdk` and the
 // legacy `open-agent-sessions/sdk` subpath stay in lock-step.
-export * from "../../src/sdk/index";
+export * from "../../src/sdk/index.ts";
