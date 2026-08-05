@@ -109,25 +109,32 @@ describe("OT24 cross-cwd repo grouping query (contract c)", () => {
   it("which_repos_use_force_flag_returns_distinct_repos", async () => {
     const db = await openDb(DB_PATH);
 
-    // 3 commands across 2 different cwds, both inside SAME repo
-    // Both should group to same `repo` value (NOT N=1-per-path noise)
+    // Create temp git repo so deriveRepo can find .git
+    const tmpRepo = join(tmpdir(), `oas-cs-test-${process.pid}-${Date.now()}`);
+    const { mkdirSync, execSync } = await import("node:fs");
+    const { execSync: es } = await import("node:child_process");
+    mkdirSync(join(tmpRepo, "src"), { recursive: true });
+    es("git init -q", { cwd: tmpRepo });
+
+    // 3 commands across 3 different cwds, 2 inside SAME repo (myrepo, myrepo/src)
+    // Both myrepo paths should group to same `repo` value (basename of repo root)
     const events = [
       {
         agent: "pi" as const, alias: "t", session_id: "s1", event_id: "e1",
         source_schema_version: "0.1.0", event_ts: new Date(),
-        raw_command: "cd /home/user/myrepo && rm --force build/",
+        raw_command: `cd ${tmpRepo} && rm --force build/`,
         cwd_hint: "/home/user", exit_code: 0, duration_ms: 1,
       },
       {
         agent: "pi" as const, alias: "t", session_id: "s1", event_id: "e2",
         source_schema_version: "0.1.0", event_ts: new Date(),
-        raw_command: "cd /home/user/myrepo/src && rm --force obj/",
+        raw_command: `cd ${tmpRepo}/src && rm --force obj/`,
         cwd_hint: "/home/user", exit_code: 0, duration_ms: 1,
       },
       {
         agent: "pi" as const, alias: "t", session_id: "s1", event_id: "e3",
         source_schema_version: "0.1.0", event_ts: new Date(),
-        raw_command: "cd /tmp/other-repo && rm --force x",
+        raw_command: `cd ${tmpRepo}-other && rm --force x`,
         cwd_hint: "/home/user", exit_code: 0, duration_ms: 1,
       },
     ];
@@ -135,18 +142,22 @@ describe("OT24 cross-cwd repo grouping query (contract c)", () => {
     await ingestBatch(db, events);
 
     // Query: which repos use --force, grouped by repo (NOT by raw cwd)
+    // Use SQL literal (no parameter binding — duckdb-node arg spread issue).
     const rows = await db.all(`
       SELECT repo, COUNT(*) AS n
       FROM cmd_events
-      WHERE has_flag(flags, '--force') OR positional_args_exists_in(positional_args, '--force')
+      WHERE array_contains(flags, '--force')
       GROUP BY repo
       ORDER BY repo
     `);
 
-    // Expect 2 distinct repos (myrepo, other-repo), NOT 3 paths
+    // Expect 2 distinct repos: basename(tmpRepo) + basename(tmpRepo-other)
+    // NOT 3 paths (no N=1-per-path noise)
     expect(rows.length).toBe(2);
+    const expectedRepo = tmpRepo.split("/").pop();
+    const expectedOther = `${tmpRepo.split("/").pop()}-other`;
     const repos = rows.map((r: any) => r.repo).sort();
-    expect(repos).toEqual(["myrepo", "other-repo"]);
+    expect(repos).toEqual([expectedOther, expectedRepo].sort());
     await db.close();
   });
 });
