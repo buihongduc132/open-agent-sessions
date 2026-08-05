@@ -9,6 +9,7 @@
 import { Database } from "duckdb";
 import type { Database as DbCtor } from "duckdb";
 import { join } from "node:path";
+import { openSync, closeSync, unlinkSync } from "node:fs";
 import { SCHEMA_DDL } from "./schema";
 
 export interface DbHandle {
@@ -17,7 +18,7 @@ export interface DbHandle {
   close(): Promise<void>;
 }
 
-const OAS_CS_SCHEMA_VERSION = "0.3.0"; // Phase 4 migration: cmd_text + cmd_signature + retention_hold + sample_excluded
+const OAS_CS_SCHEMA_VERSION = "0.4.0"; // Phase 5 migration: lease + flock
 const DUCKDB_VERSION_PINNED = "1.4.4";
 
 const NORMALIZE_FN = (v: any): any => {
@@ -28,6 +29,10 @@ const NORMALIZE_FN = (v: any): any => {
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(v)) out[k] = NORMALIZE_FN((v as any)[k]);
     return out;
+  }
+  // Normalize semver strings: duckdb version() returns "v1.4.4" → "1.4.4"
+  if (typeof v === "string" && /^v\d+\.\d+\.\d+/.test(v)) {
+    return v.replace(/^v/, "");
   }
   return v;
 };
@@ -79,6 +84,10 @@ async function bootstrap(db: DbCtor): Promise<void> {
   });
   await execAll(SCHEMA_DDL);
 
+  // Phase 5: lease columns are now in CREATE TABLE (fresh DBs).
+  // For existing 0.3.0 DBs, see flow/requirements/ for migration guide.
+  // Runtime migration via ALTER TABLE crashes duckdb-node on reopen after VACUUM (LSL #5).
+
   // Seed schema_meta (idempotent).
   await new Promise<void>((resolve, reject) => {
     db.run(
@@ -88,6 +97,26 @@ async function bootstrap(db: DbCtor): Promise<void> {
       (err: any) => err ? reject(err) : resolve()
     );
   });
+}
+
+
+export interface LockHandle { fd: number; path: string; }
+
+/**
+ * Acquire exclusive file lock on DB path (OT12-1).
+ * Uses O_EXCL|O_CREAT via 'wx' flag — atomic test-and-set on POSIX.
+ * Throws if lock file already exists.
+ */
+export async function acquireDbLock(dbPath: string): Promise<LockHandle> {
+  const lockPath = dbPath + ".lock";
+  const fd = openSync(lockPath, "wx");
+  return { fd, path: lockPath };
+}
+
+/** Release lock — close fd + remove lock file. */
+export async function releaseDbLock(handle: LockHandle): Promise<void> {
+  try { closeSync(handle.fd); } catch {}
+  try { unlinkSync(handle.path); } catch {}
 }
 
 export async function openDb(path: string): Promise<DbHandle> {

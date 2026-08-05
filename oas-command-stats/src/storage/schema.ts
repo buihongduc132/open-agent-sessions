@@ -16,7 +16,7 @@ export class SchemaVersionError extends Error {
 }
 
 /** Currently-known source schema versions from upstream adapters. */
-export const KNOWN_SOURCE_SCHEMA_VERSIONS: string[] = ["0.1.0", "0.2.0", "0.3.0"];
+export const KNOWN_SOURCE_SCHEMA_VERSIONS: string[] = ["0.1.0", "0.2.0", "0.3.0", "0.4.0"];
 
 /** Full DDL for oas-command-stats DuckDB file. */
 export const SCHEMA_DDL = `
@@ -44,6 +44,9 @@ CREATE TABLE IF NOT EXISTS outbox (
   exit_code                INTEGER,
   duration_ms              INTEGER,
   processing_status        VARCHAR NOT NULL DEFAULT 'pending',
+  processing_started_at    TIMESTAMP,
+  lease_owner              VARCHAR,
+  lease_timeout_s          INTEGER,
   retention_hold           BOOLEAN NOT NULL DEFAULT FALSE,
   sample_excluded          BOOLEAN NOT NULL DEFAULT FALSE,
   UNIQUE (agent, alias, session_id, event_id)
@@ -96,6 +99,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
   key    VARCHAR PRIMARY KEY,
   value  VARCHAR NOT NULL
 );
+
 `;
 
 /** Assert that a source_schema_version is known. Throw if not. */
