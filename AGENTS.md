@@ -123,6 +123,11 @@ Ref: 2026-08-05_pii-regex-env-assign-lookahead/index.md (oas-command-stats/src/p
 Context: Phase 4 GREEN (abf792d) edited ingestBatch/SCHEMA_DDL/OAS_CS_SCHEMA_VERSION/KNOWN_SOURCE_SCHEMA_VERSIONS without running gitnexus_impact or detect_changes. Delegation infra broke (claude session-limit, gemy dead, codex missing, ocxo weak, pi -p MCP deadlock).
 Solutions: Retrospective blast radius via rg (GitNexus index stale — symbols not found). ingestBatch: 21 test callers + 1 re-export, additive change = LOW risk. SCHEMA_DDL: 1 caller (duckdb.ts:80), additive cols. OAS_CS_SCHEMA_VERSION: module-private. KNOWN_SOURCE_SCHEMA_VERSIONS: 3 callers, array-grow = backward-compat. MANDATORY pre-edit: (1) gitnexus_impact upstream (2) gitnexus_impact downstream (3) edit (4) gitnexus_detect_changes (5) commit only if expected scope. Phase 6+: pre-commit hook to enforce.
 Ref: 2026-08-05_gitnexus-impact-skipped-phase4/index.md
+
+8: Auditor ceremony violations — 11 violations incl self-verify APPROVED = HARD-CONTRACT BREACH
+Context: Auditor for goal msf02zrg-6cp56a emitted approved with 11 ceremony violations. V9: self-verify hash 7c6a90e1 ≠ independent verifier-loop approval (req 2+ independent verifiers). Correct verdict = disapproved.
+Solutions: LSL codified at flow/lesson_learn/2026-08-06_auditor-ceremony-violations/. Before any verdict: caveman ON, structure present, ≤30 words/line, self-verify ≠ approval, load skills first.
+Ref: 2026-08-06_auditor-ceremony-violations/index.md
 </lesson_learn>
 
 <!-- gitnexus:start -->
