@@ -85,7 +85,7 @@ describe("LD3 (a1): queryRecent — recent cmds+args", () => {
     expect(rows[0]).toHaveProperty("raw_command");
     expect(rows[0]).toHaveProperty("event_ts");
     // Most recent first
-    expect(rows[0].event_ts.getTime()).toBeGreaterThanOrEqual(rows[1].event_ts.getTime());
+    expect(rows[0]!.event_ts.getTime()).toBeGreaterThanOrEqual(rows[1]!.event_ts.getTime());
     await db.close();
   });
 });
@@ -108,7 +108,7 @@ describe("LD3 (a3): queryMostRun — 3 modes", () => {
     const rows = await queryMostRun(db, "raw_count");
     expect(rows[0]).toHaveProperty("program");
     expect(rows[0]).toHaveProperty("n");
-    expect(typeof rows[0].n).toBe("number");
+    expect(typeof rows[0]!.n).toBe("number");
     await db.close();
   });
 
@@ -253,8 +253,8 @@ describe("LD3 (e): saved queries — history.jsonl", () => {
   it("rerun_query_loads_and_returns_template_params", async () => {
     await saveQuery(HISTORY_PATH, { name: "qr", template: "recent", params: { n: 3 } });
     const q = await rerunQuery(HISTORY_PATH, "qr");
-    expect(q.name).toBe("qr");
-    expect(q.params.n).toBe(3);
+    expect(q!.name).toBe("qr");
+    expect(q!.params.n).toBe(3);
   });
 });
 
@@ -273,7 +273,7 @@ describe("LD3 (f): diffFollow — --follow mode", () => {
     const run2 = await queryRecent(db, 10);
     const diff = diffFollow(run1, run2);
     expect(diff.added.length).toBe(1);
-    expect(diff.added[0].event_id).toBe("e-new");
+    expect(diff.added[0]!.event_id).toBe("e-new");
     await db.close();
   });
 });

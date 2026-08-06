@@ -9,7 +9,7 @@
 import { Database } from "duckdb";
 import type { Database as DbCtor } from "duckdb";
 import { join } from "node:path";
-import { openSync, closeSync, unlinkSync } from "node:fs";
+import { openSync, closeSync, unlinkSync, existsSync } from "node:fs";
 import { SCHEMA_DDL } from "./schema";
 
 export interface DbHandle {
@@ -104,16 +104,31 @@ export interface LockHandle { fd: number; path: string; }
 
 /**
  * Acquire exclusive file lock on DB path (OT12-1).
- * Uses O_EXCL|O_CREAT via 'wx' flag — atomic test-and-set on POSIX.
- * Throws if lock file already exists.
+ * Uses POSIX flock(2) via `flock` CLI binary for true advisory locking.
+ * Stale lockfile on prior crash is auto-recovered: flock is on the FD,
+ * not the path; reopening the path + acquiring fresh flock is harmless.
+ * Throws if lock already held by another live process.
  */
 export async function acquireDbLock(dbPath: string): Promise<LockHandle> {
-  const lockPath = dbPath + ".lock";
-  const fd = openSync(lockPath, "wx");
+  const lockPath = dbPath + "..lock";
+  // Open with O_CREAT (not O_EXCL) — flock is the gate, not file existence.
+  // 'a' flag = O_WRONLY|O_CREAT|O_APPEND. Stale file from crashed process
+  // is overwritten harmlessly.
+  const fd = openSync(lockPath, "a");
+  // Use flock(2) via shell-out (node:fs lacks flockSync in this Bun runtime).
+  // LOCK_EX | LOCK_NB = non-blocking exclusive — fails immediately if held.
+  const { execSync } = await import("node:child_process");
+  try {
+    // flock <fd> <cmd>: we use true(1) as no-op command after acquiring.
+    execSync(`flock --exclusive --nonblock ${fd} true`, { stdio: "ignore" });
+  } catch {
+    try { closeSync(fd); } catch {}
+    throw new Error(`db lock already held: ${lockPath}`);
+  }
   return { fd, path: lockPath };
 }
 
-/** Release lock — close fd + remove lock file. */
+/** Release lock — close fd (releases flock) + remove lock file. */
 export async function releaseDbLock(handle: LockHandle): Promise<void> {
   try { closeSync(handle.fd); } catch {}
   try { unlinkSync(handle.path); } catch {}
