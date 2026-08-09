@@ -92,3 +92,5 @@ __pycache__/
 target/
 .pytest_cache/
 .gitnexus
+.fusion
+.pi
