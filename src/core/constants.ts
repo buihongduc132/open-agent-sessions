@@ -12,6 +12,7 @@ export const AGENT_ORDER: Record<AgentKind, number> = {
   gemini: 4,
   antigravity: 5,
   pi: 6,
+  zcode: 7,
 };
 
 /**

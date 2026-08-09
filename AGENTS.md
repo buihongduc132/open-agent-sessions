@@ -40,6 +40,7 @@ The long-term goal is: **Minor agents → Unified Schema → Adapter pattern**, 
 | `openclaw` | Minor | JSONL event stream per session + `sessions.json` metadata index | UUID (`*.jsonl` filenames) | Index at `~/.openclaw/agents/main/sessions/sessions.json`; per-session stream has mixed event types |
 || `pi` / `oh-my-pi (OMP)` | Minor | JSONL event stream + `stats.db` (tokens/costs) + `history.db` (FTS prompts) | `<timestamp>_<id>.jsonl` under `~/.omp/agent/sessions/<slug>/` | Event types: `session`, `model_change`, `thinking_level_change`, `custom_message`, `message`, `compaction` |
 || `hermes` | Mature | SQLite (`~/.hermes/state.db`, WAL mode, schema v6) | UUID | `sessions` table (id, source, model, title, parent_session_id, billing, tokens); `messages` table (role, content, tool_calls JSON, reasoning); FTS5 `messages_fts`; parent chain for context compression |
+|| `zcode` | Mature | SQLite (`~/.zcode/cli/db/db.sqlite`) | `sess_<uuid>` / `sess_subagent_<uuid>` | `session` / `message` / `part` / `tool_usage` tables; `session.parent_id` for parent chain; message role lives inside `message.data` JSON; part type lives inside `part.data` JSON |
 
 ### Adapter Interface
 
@@ -64,6 +65,28 @@ MUST follow TDD approach:
 MUST delegate SEPARATE sub agents PER tdd step. 
 MUST ensure TESTS are WRITTEN first BEFORE the GREEN. 
 MUST prove this by COMMIT these RED tests first THEN start implementing it.
+
+## Hermes Curator — Auxiliary-Model Skill Lifecycle Prompts
+
+The hermes curator (`~/.hermes/hermes-agent/agent/curator.py`) is the canonical example of an auxiliary-model-driven skill lifecycle task: it forks an AIAgent on the `auxiliary.curator` slot to do umbrella-building consolidation over agent-created skills. Its full prompts and assembly logic are captured verbatim in `flow/findings/hermes-curator/`: this is the reference design for any future `pi-curator` adapter or any "skill lifecycle" field on the `SessionSummary` schema.
+
+| File | Symbol / topic |
+|------|---------------|
+| `flow/findings/hermes-curator/README.md` | TOC + provenance |
+| `flow/findings/hermes-curator/curator-review-prompt.md` | `CURATOR_REVIEW_PROMPT` — main umbrella-building prompt (the full `user_message`) |
+| `flow/findings/hermes-curator/curator-dry-run-banner.md` | `CURATOR_DRY_RUN_BANNER` — prepended on `--dry-run` |
+| `flow/findings/hermes-curator/prune-builtins-note.md` | inline `builtins_note` — overrides rule #1 when `curator.prune_builtins: true` |
+| `flow/findings/hermes-curator/prompt-assembly.md` | How banner + review prompt + builtins note + candidate list are composed |
+| `flow/findings/hermes-curator/candidate-list-format.md` | Shape of the candidate list the model actually sees |
+| `flow/findings/hermes-curator/runtime-and-config.md` | Defaults, `auxiliary.curator` slot precedence, lifecycle gates, fork flags, CLI surface |
+
+
+## Skill Usage Analyzer (Pi-side curator input)
+
+Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy matcher (exact/normalized/alias/Damerau-Levenshtein) + sharded JSON filesystem cache.
+
+- **Library:** `src/skill-usage/` — spec `flow/requirements/skill-usage-analyzer/README.md`, intention `flow/intentions/2026-07-19-skill-usage-analyzer.md`
+- **Runner:** `scripts/skill-usage-heatmap.ts` — usage `flow/requirements/skill-usage-heatmap-script/README.md`, intention `flow/intentions/2026-07-20-skill-usage-heatmap-script.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence

@@ -77,7 +77,7 @@ export interface SessionRef {
 // Constants
 // ---------------------------------------------------------------------------
 
-const VALID_AGENTS: AgentKind[] = ["opencode", "codex", "claude", "hermes", "gemini", "antigravity", "pi"];
+const VALID_AGENTS: AgentKind[] = ["opencode", "codex", "claude", "hermes", "gemini", "antigravity", "pi", "zcode"];
 
 // ---------------------------------------------------------------------------
 // Internal state (exported for test reset)

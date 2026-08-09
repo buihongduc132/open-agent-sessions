@@ -146,6 +146,8 @@ export interface AdapterFactories {
   hermes: AdapterFactory;
   gemini: AdapterFactory;
   antigravity: AdapterFactory;
+  pi: AdapterFactory;
+  zcode: AdapterFactory;
 }
 
 export interface AdapterHandle {

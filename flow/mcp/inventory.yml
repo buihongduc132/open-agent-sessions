@@ -1,0 +1,94 @@
+# flow/mcp/inventory.yml — MCP Query + Stats Functionality
+category: mcp
+description: "MCP server discovery, tool listing, usage stats, config parsing per adapter"
+items:
+  - id: mcp-server-discovery
+    title: "Discover/list configured or running MCP servers"
+    opencode: missing
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: missing
+    gemini: missing
+    antigravity: missing
+    pi: missing
+    zcode: missing
+    notes: "NO adapter enumerates MCP servers. Feature does not exist. Would need per-adapter discoverMcpServers() reading native mcp.json/settings."
+
+  - id: mcp-config-parse
+    title: "Parse MCP server config (mcpServers / mcp.json)"
+    opencode: missing
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: missing
+    gemini: missing
+    antigravity: missing
+    pi: missing
+    zcode: missing
+    notes: "src/config/ has NO MCP schema. AgentKind = opencode|codex|claude|hermes|gemini|antigravity|pi|zcode. No acpx, no agy, no mcpServers field."
+
+  - id: mcp-extract-toolcalls
+    title: "Extract MCP tool calls from sessions (server-isolated)"
+    opencode: partial
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: partial
+    gemini: partial
+    antigravity: partial
+    pi: missing
+    zcode: partial
+    notes: "opencode/hermes/zcode/gemini/antigravity extract generic tool parts (no MCP identity). pi/claude/codex/acpx: no tool parts at all. NO adapter isolates MCP-server identity."
+
+  - id: mcp-usage-stats
+    title: "MCP-specific usage stats (per-server call counts)"
+    opencode: missing
+    codex: missing
+    claude: missing
+    acpx: missing
+    hermes: missing
+    gemini: missing
+    antigravity: missing
+    pi: missing
+    zcode: missing
+    notes: "No MCP-specific stats. Only generic tool-call stats via inferSubAgents (src/core/subagents.ts). NO server-name aggregation."
+
+  - id: mcp-isMcp-heuristic
+    title: "Tag tools as MCP via prefix heuristic (isMcp)"
+    opencode: core
+    codex: core
+    claude: core
+    acpx: core
+    hermes: core
+    gemini: core
+    antigravity: core
+    pi: core
+    zcode: core
+    notes: "Core only: src/core/subagents.ts:187 isMcp = name.startsWith('MCP_'|'mcp_'). OpenCode-biased — misses claude/hermes/zcode MCP tools. mcpPlugins[] only catches MCP_* prefix."
+
+  - id: mcp-agy-adapter
+    title: "agy adapter (referenced in tasks but absent)"
+    opencode: na
+    codex: na
+    claude: na
+    acpx: na
+    hermes: na
+    gemini: na
+    antigravity: na
+    pi: na
+    zcode: na
+    notes: "NO src/adapters/agy.ts. NOT in AgentKind (src/config/types.ts). NOT in src/adapters/index.ts. Tasks reference it but code does not have it."
+
+  - id: mcp-acpx-agentkind
+    title: "acpx absent from AgentKind (consistency gap)"
+    opencode: na
+    codex: na
+    claude: na
+    acpx: gap
+    hermes: na
+    gemini: na
+    antigravity: na
+    pi: na
+    zcode: na
+    notes: "acpx adapter exists (src/adapters/acpx.ts) + exported (src/adapters/index.ts) but NOT in AgentKind enum (src/config/types.ts). Type/registry inconsistency."

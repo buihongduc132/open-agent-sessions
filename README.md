@@ -25,6 +25,7 @@ Session List              Session Detail           Fork Tree
 | **Codex sessions** — list, detail | ✅ | ✅ | Reads `~/.codex/state_5.sqlite` |
 | **Claude Desktop sessions** — list, detail | ❌ | ✅ | JSONL-based |
 | **acpx sessions** — list, search, detail | ❌ | ✅ | `~/.acpx/sessions/*.json` |
+| **zcode sessions** — list, search, detail | ✅ | ✅ | SQLite at `~/.zcode/cli/db/db.sqlite` |
 | **Session cloning** — Codex → OpenCode | ✅ | ✅ | Preserves conversation history |
 | **Session forking** — fork across agents | ❌ | ✅ | R-39, CSF format |
 | **Interactive TUI** — browse sessions, clone | ✅ | — | VIM-style keybindings (`j/k/h/l`) |
@@ -219,6 +220,12 @@ agents:
   - agent: acpx
     alias: default
     enabled: false
+
+  # zcode — reads ~/.zcode/cli/db/db.sqlite (override with path)
+  - agent: zcode
+    alias: zcode
+    enabled: true
+    path: ~/.zcode/cli/db/db.sqlite
 ```
 
 ### Storage Modes (OpenCode)

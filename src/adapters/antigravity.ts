@@ -5,12 +5,15 @@ import { createLabel } from "./label";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
+  ForkResult,
   SearchQuery,
   SessionDetail,
   SessionMessage,
   SessionReadOptions,
   SessionSummary,
   SessionPart,
+  TimeRangeOptions,
+  ToolSearchQuery,
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
 import { errorMessage } from "../core/utils";
@@ -36,6 +39,11 @@ type AntigravityLogEntry = {
   created_at: string;
   content?: string;
   tool_calls?: AntigravityToolCall[];
+  // Phase 5 parity fields (mirror pi.ts JSONL adapter):
+  reasoning?: string;           // → reasoning SessionPart
+  model?: string;               // → message.modelID
+  agent?: string;               // → message.agent
+  parent_session_id?: string;   // → SessionSummary.parentSessionId
 };
 
 type AntigravityToolCall = {
@@ -120,18 +128,52 @@ export function createAntigravityAdapter(
 
       let messages = parseAntigravityMessages(logPath, label);
 
-      // Apply selection/filtering
-      if (readOptions.userOnly) {
-        messages = messages.filter(m => m.role === "user");
-      }
-      if (readOptions.selection) {
-        const { mode, count, start, end } = readOptions.selection;
-        if (mode === "last") {
-          messages = (count === 0) ? messages : messages.slice(-(count ?? 10));
-        } else if (mode === "first") {
-          messages = messages.slice(0, count ?? 10);
-        } else if (mode === "range") {
-          messages = messages.slice((start ?? 1) - 1, end ?? messages.length);
+      // Apply mode (takes precedence over selection)
+      if (readOptions.mode === "last_message") {
+        messages = messages.slice(-1);
+      } else if (readOptions.mode === "all_no_tools") {
+        messages = messages.map((m) => ({
+          ...m,
+          parts: m.parts.filter((p) => p.type !== "tool"),
+        }));
+      } else {
+        // mode is "all_with_tools" or undefined → use existing selection/role/userOnly logic
+
+        // Apply selection mode (mirrors pi/claude/zcode verbatim — selection FIRST).
+        const selection = readOptions.selection;
+        if (selection) {
+          switch (selection.mode) {
+            case "first":
+              messages = messages.slice(0, selection.count);
+              break;
+            case "last":
+              messages =
+                selection.count === 0
+                  ? messages
+                  : messages.slice(-(selection.count ?? 10));
+              break;
+            case "range": {
+              const start = (selection.start ?? 1) - 1;
+              const end = selection.end ?? messages.length;
+              messages = messages.slice(start, end);
+              break;
+            }
+            case "all":
+            default:
+              break;
+          }
+        }
+
+        // Apply role-based filtering (mirrors pi/claude/zcode verbatim — AFTER selection).
+        const effectiveUserOnly = readOptions.userOnly || readOptions.selection?.userOnly;
+        if (effectiveUserOnly) {
+          if (readOptions.role && readOptions.role !== "user") {
+            messages = [];
+          } else {
+            messages = messages.filter((m) => m.role === "user");
+          }
+        } else if (readOptions.role) {
+          messages = messages.filter((m) => m.role === readOptions.role);
         }
       }
 
@@ -139,6 +181,99 @@ export function createAntigravityAdapter(
         ...summary,
         messages,
       };
+    },
+    listSessionsByTimeRange: (opts: TimeRangeOptions): SessionSummary[] => {
+      const label = createLabel(entry);
+      try {
+        // Default to the full epoch window. since/until are ms-epoch; we
+        // compare against updated_at (ISO-8601 → ms). updated_at is derived
+        // from the max logEntry.created_at in the session log.
+        const sinceMs = opts.since != null ? opts.since : 0;
+        const untilMs = opts.until != null ? opts.until : 8640000000000000;
+        const skipId = opts.skipSessionId;
+
+        const dataPath = resolveAntigravityPath(entry, options);
+        const brainPath = join(dataPath, "brain");
+        const stat = safeStat(brainPath);
+        if (!stat || !stat.isDirectory()) return [];
+        const uuids = readdirSync(brainPath).filter((name) => UUID_REGEX.test(name));
+
+        let results: SessionSummary[] = [];
+        for (const uuid of uuids) {
+          try {
+            const session = parseAntigravitySession(dataPath, uuid, entry);
+            if (skipId === session.id) continue;
+            const updatedMs = Date.parse(session.updated_at);
+            if (Number.isNaN(updatedMs)) continue;
+            if (updatedMs < sinceMs || updatedMs > untilMs) continue;
+            results.push(session);
+          } catch {
+            // Skip sessions that fail to parse
+          }
+        }
+
+        results = sortByIsoDesc(results, "updated_at");
+        // limit: 0 or undefined means "all"
+        if (opts.limit && opts.limit > 0) {
+          results = results.slice(0, opts.limit);
+        }
+        return results;
+      } catch (error) {
+        const message = errorMessage(error);
+        if (message.includes(label)) {
+          throw new Error(message);
+        }
+        throw new Error(`${label} ${message}`);
+      }
+    },
+    toolSearchSessions: (query: ToolSearchQuery): SessionSummary[] => {
+      const label = createLabel(entry);
+      try {
+        const needle = query.tool.toLowerCase();
+        const dataPath = resolveAntigravityPath(entry, options);
+        const brainPath = join(dataPath, "brain");
+        const stat = safeStat(brainPath);
+        if (!stat || !stat.isDirectory()) return [];
+
+        const uuids = readdirSync(brainPath).filter((name) => UUID_REGEX.test(name));
+        const results: SessionSummary[] = [];
+
+        for (const uuid of uuids) {
+          try {
+            if (sessionUsesTool(dataPath, uuid, needle)) {
+              results.push(parseAntigravitySession(dataPath, uuid, entry));
+            }
+          } catch {
+            // Skip sessions that fail to parse
+          }
+        }
+
+        return sortByIsoDesc(results, "updated_at");
+      } catch (error) {
+        const message = errorMessage(error);
+        if (message.includes(label)) {
+          throw new Error(message);
+        }
+        throw new Error(`${label} ${message}`);
+      }
+    },
+    forkSession: async (
+      sourceSessionId: string,
+      destAgent: string,
+      destAlias: string
+    ): Promise<ForkResult> => {
+      // STUB: native write to agy session storage is deferred (R-18).
+      // Mirror pi/claude/zcode forkSession — return a well-formed ForkResult.
+      return {
+        newSessionId: `agy-fork-${Date.now()}`,
+        parentSessionId: sourceSessionId,
+        destAgent,
+        destAlias,
+        forkedAt: new Date().toISOString(),
+      };
+    },
+    destroy: () => {
+      // No-op for JSONL-based adapter (no handles to release).
     },
     findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [],
   };
@@ -182,6 +317,7 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
   let messageCount = 0;
   let firstTimestamp: string | undefined;
   let lastTimestamp: string | undefined;
+  let parentSessionId: string | undefined;
 
   for (let i = 0; i < lines.length; i++) {
     let logEntry: AntigravityLogEntry;
@@ -189,6 +325,12 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
       logEntry = JSON.parse(lines[i]);
     } catch {
       continue; // Skip malformed lines
+    }
+
+    // Extract parentSessionId from any entry (mirrors pi.ts parentId /
+    // claude.ts parent_session_id — first-write-wins).
+    if (!parentSessionId && logEntry.parent_session_id) {
+      parentSessionId = logEntry.parent_session_id;
     }
 
     const ts = normalizeTimestamp(logEntry.created_at, `Antigravity timestamp invalid in ${logPath}:${i + 1}`);
@@ -215,6 +357,7 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
     updated_at: lastTimestamp || mtime,
     message_count: messageCount,
     storage: "other",
+    ...(parentSessionId ? { parentSessionId } : {}),
   };
 }
 
@@ -241,6 +384,11 @@ function parseAntigravityMessages(logPath: string, label: string): SessionMessag
         parts.push({ type: "text", text: entry.content });
       }
 
+      // Phase 5: reasoning part (mirror pi.ts reasoning content part).
+      if (entry.reasoning) {
+        parts.push({ type: "reasoning", text: entry.reasoning });
+      }
+
       if (entry.tool_calls) {
         for (const tc of entry.tool_calls) {
           parts.push({
@@ -251,14 +399,50 @@ function parseAntigravityMessages(logPath: string, label: string): SessionMessag
         }
       }
 
-      messages.push({
+      const message: SessionMessage = {
         id: `step-${entry.step_index}-${i}`,
         role: entry.source === "MODEL" ? "assistant" : "user",
         created_at,
         parts,
-      });
+      };
+
+      // Phase 5: modelID + agent field (mirror pi.ts record.message.model/agent).
+      if (entry.model) message.modelID = entry.model;
+      if (entry.agent) message.agent = entry.agent;
+
+      messages.push(message);
     }
   }
 
   return messages;
+}
+
+/**
+ * Determine whether any log entry in the session's overview.txt contains a
+ * tool_call whose name case-insensitively contains the needle.
+ * Mirror of pi.ts sessionUsesTool / zcode.ts toolSearchSessions.
+ */
+function sessionUsesTool(dataPath: string, uuid: string, needle: string): boolean {
+  const logPath = join(dataPath, "brain", uuid, ".system_generated", "logs", "overview.txt");
+  const stat = safeStat(logPath);
+  if (!stat) return false;
+
+  const content = readFileSync(logPath, "utf8");
+  const lines = splitJsonlLines(content);
+
+  for (let i = 0; i < lines.length; i++) {
+    let entry: AntigravityLogEntry;
+    try {
+      entry = JSON.parse(lines[i]);
+    } catch {
+      continue;
+    }
+
+    if (!entry.tool_calls) continue;
+    for (const tc of entry.tool_calls) {
+      const toolName = typeof tc.name === "string" ? tc.name : "";
+      if (toolName.toLowerCase().includes(needle)) return true;
+    }
+  }
+  return false;
 }

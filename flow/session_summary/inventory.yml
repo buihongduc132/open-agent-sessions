@@ -1,0 +1,25 @@
+# flow/session_summary/inventory.yml — SessionSummary Fields
+category: session_summary
+description: "SessionSummary fields (parentSessionId, message_count, storage kind)"
+items:
+  - id: parentSessionId
+    title: "parentSessionId"
+    pi: missing
+    zcode: implemented
+    claude: implemented
+    agy: missing
+
+  - id: message_count
+    title: "message_count"
+    pi: implemented
+    zcode: implemented
+    claude: implemented
+    agy: implemented
+
+  - id: storage_kind
+    title: "storage kind (jsonl/db/other)"
+    pi: jsonl
+    zcode: db
+    claude: other
+    agy: other
+    notes: "value = storage type, not impl status"

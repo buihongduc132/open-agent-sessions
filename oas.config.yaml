@@ -17,6 +17,10 @@ agents:
     alias: hermes
     enabled: true
 
+  - agent: zcode
+    alias: zcode
+    enabled: true
+
   - agent: gemini
     alias: gemini
     enabled: true
