@@ -4,8 +4,9 @@
 > Created: 2026-08-15 · Last reconciled: 2026-08-15
 > Status: pending
 > Items: 20 total (0 implemented, 20 pending)
-> Branch: (to be created)
-> Location: flow/plans/skill-usage-perf-correctness.md
+> Branch: skill-usage-perf-correctness (merged to main d007359 → 81cc2fd)
+> Worktree: .worktrees/skill-usage-perf-correctness (branch worktree/skill-usage-perf-correctness @ 81cc2fd)
+> Location: flow/plans/skill-usage-perf-correctness.md (committed 81cc2fd)
 
 ## Requirement (verbatim)
 
