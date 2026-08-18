@@ -1,0 +1,41 @@
+# Open threads — 2026-08-19-oas_default_conversation_output
+status: ongoing
+threads:
+  - id: OT1
+    topic: flag name for full-info mode (--verbose vs granular --reasoning)
+    raised_in: turn4
+    status: open
+    severity: 2
+    note: |
+      Assistant lean: --verbose = single all-info flag (matches user ask), keep --tools
+      granular, --reasoning optional nicety. Cheap to rename; not architecture.
+  - id: OT2
+    topic: default message count (keep --last 10 vs raise to 20 for compact view)
+    raised_in: turn4
+    status: open
+    severity: 1
+    note: |
+      Assistant lean: keep 10 — compact output makes longer counts tempting but that is
+      a behavior change beyond presentation; keep this change presentation-only.
+  - id: OT3
+    topic: sub-agent attribution display in clean mode
+    raised_in: turn4
+    status: open
+    severity: 2
+    note: |
+      Assistant lean: keep a dim agent tag on non-main-assistant replies so reader sees
+      WHO answered — matches user's "user + sub agents" framing. Needs user OK.
+  - id: OT4
+    topic: zcode adapter registry-build throw kills every oas command
+    raised_in: turn3
+    status: resolved
+    resolution: |
+      Fixed 2026-08-19: all 9 adapter factories wrapped (21385e2, eaa7b17) —
+      construction errors deferred to query time via createBrokenAdapter
+      (src/adapters/broken.ts). Broken adapter = per-agent stderr error,
+      other agents keep working. getSessionDetail rejects async (fc57125).
+      12 tests migrated to deferred-throw pattern (3aee9e5). Coding-guard
+      rule committed (guard-orches 235555a). Live-verified: oas session list
+      works with zcode DB missing. Tracked as R-51 in Dolt (done).
+    resolved_in: turn4
+    severity: 4
