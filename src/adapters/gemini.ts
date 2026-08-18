@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import {
   extractContentLineGemini,
   extractContentPartsGemini,
@@ -54,7 +55,23 @@ type GeminiToolCall = {
   timestamp?: string;
 };
 
+/**
+ * Gemini adapter factory.
+ *
+ * Construction errors deferred to query time (OT4) — see ./broken.ts.
+ */
 export function createGeminiAdapter(
+  entry: OtherAgentEntry,
+  options: GeminiAdapterOptions = {}
+): Adapter {
+  try {
+    return buildGeminiAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildGeminiAdapter(
   entry: OtherAgentEntry,
   options: GeminiAdapterOptions = {}
 ): Adapter {

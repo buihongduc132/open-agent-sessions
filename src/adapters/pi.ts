@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
@@ -86,7 +87,23 @@ type PiRecord = {
   [key: string]: unknown;
 };
 
+/**
+ * Pi adapter factory.
+ *
+ * Construction errors deferred to query time (OT4) — see ./broken.ts.
+ */
 export function createPiAdapter(
+  entry: OtherAgentEntry,
+  options: PiAdapterOptions = {}
+): Adapter {
+  try {
+    return buildPiAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildPiAdapter(
   entry: OtherAgentEntry,
   options: PiAdapterOptions = {}
 ): Adapter {
