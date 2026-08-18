@@ -133,7 +133,8 @@ describe("src/adapters/codex.ts coverage", () => {
   });
 
   test("resolveCodexPath throws on invalid agent", () => {
-    expect(() => createCodexAdapter({ agent: "opencode" as any, alias: "x" })).toThrow(/requires agent "codex"/);
+    const __adapter = createCodexAdapter({ agent: "opencode" as any, alias: "x" });
+      expect(() => __adapter.listSessions()).toThrow(/requires agent "codex"/);
   });
 
   test("resolveCodexPath throws on invalid path", () => {

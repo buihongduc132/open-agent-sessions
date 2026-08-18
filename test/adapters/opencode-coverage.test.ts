@@ -1059,13 +1059,15 @@ describe("OpenCode Adapter Coverage Tests", () => {
       mkdirSync(dirPath, { recursive: true });
 
       const entry = makeEntry("main", { mode: "jsonl", jsonl_path: dirPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/JSONL path is not a file/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/JSONL path is not a file/);
     });
 
     test("errors when JSONL path cannot be accessed", () => {
       const entry = makeEntry("main", { mode: "jsonl", jsonl_path: "/nonexistent/path.jsonl" });
       // Error is thrown by resolveOpenCodeStorage before adapter code is reached
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/JSONL not found/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/JSONL not found/);
     });
   });
 
@@ -1082,7 +1084,8 @@ describe("OpenCode Adapter Coverage Tests", () => {
       const entry = makeEntry("main", { mode: "db", db_path: lockedPath });
       
       // This should fail with an error (not necessarily lock error, but error path is covered)
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user", lockRetries: [10] })).toThrow();
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user", lockRetries: [10] });
+      expect(() => __adapter.listSessions()).toThrow();
     });
 
     test("throws error for non-file DB path", () => {
@@ -1090,7 +1093,8 @@ describe("OpenCode Adapter Coverage Tests", () => {
       mkdirSync(dirPath, { recursive: true });
 
       const entry = makeEntry("main", { mode: "db", db_path: dirPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/db_path is not a file/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/db_path is not a file/);
     });
   });
 
@@ -1450,7 +1454,8 @@ describe("OpenCode Adapter Coverage Tests", () => {
       db.run(`CREATE TABLE message (id TEXT PRIMARY KEY)`);
 
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/schema mismatch.*missing tables.*session.*part/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/schema mismatch.*missing tables.*session.*part/);
     });
 
     test("errors with missing columns message", () => {
@@ -1465,7 +1470,8 @@ describe("OpenCode Adapter Coverage Tests", () => {
       db.run(`CREATE TABLE part (id TEXT PRIMARY KEY)`);
 
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/schema mismatch.*missing columns/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/schema mismatch.*missing columns/);
     });
 
     test("includes expected schema in error message", () => {
@@ -1475,7 +1481,8 @@ describe("OpenCode Adapter Coverage Tests", () => {
       db.run(`CREATE TABLE other (id TEXT)`);
 
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/Expected schema/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/Expected schema/);
     });
   });
 
@@ -1512,7 +1519,8 @@ describe("OpenCode Adapter Coverage Tests", () => {
         storage: { mode: "auto" },
       } as unknown as OpenCodeAgentEntry;
 
-      expect(() => createOpenCodeAdapter(invalidEntry, { cwd: "/home/user" })).toThrow(/OpenCode adapter requires agent "opencode"/);
+      const __adapter = createOpenCodeAdapter(invalidEntry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/OpenCode adapter requires agent "opencode"/);
     });
   });
 
