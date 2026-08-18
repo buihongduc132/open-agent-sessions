@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import { extractContentLine, extractContentPartsClaude, extractContentTextClaude } from "./content-utils";
 import { OtherAgentEntry } from "../config/types";
 import {
@@ -53,7 +54,21 @@ type ClaudeRecord = {
   agent?: unknown;
 };
 
+/**
+ * Claude adapter factory. Construction errors deferred to query time (OT4).
+ */
 export function createClaudeAdapter(
+  entry: OtherAgentEntry,
+  options: ClaudeAdapterOptions = {}
+): Adapter {
+  try {
+    return buildClaudeAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildClaudeAdapter(
   entry: OtherAgentEntry,
   options: ClaudeAdapterOptions = {}
 ): Adapter {

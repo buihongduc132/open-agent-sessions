@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { Database } from "bun:sqlite";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import { splitJsonlLines } from "./fs-utils";
 import {
   extractContentPartsCodex,
@@ -42,7 +43,21 @@ type CodexRecord = {
   payload?: Record<string, unknown>;
 };
 
+/**
+ * Codex adapter factory. Construction errors deferred to query time (OT4).
+ */
 export function createCodexAdapter(
+  entry: OtherAgentEntry,
+  options: CodexAdapterOptions = {}
+): Adapter {
+  try {
+    return buildCodexAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildCodexAdapter(
   entry: OtherAgentEntry,
   options: CodexAdapterOptions = {}
 ): Adapter {

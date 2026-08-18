@@ -25,6 +25,7 @@ import { indexSessionEmbeddings } from "../similarity/storage";
 import { findSimilarSessions, type SimilarSessionResult } from "../similarity/search";
 import { errorMessage } from "../core/utils";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import { readTextFile, sortByIsoDesc } from "./fs-utils";
 
 // Expected schema for validation
@@ -115,7 +116,21 @@ type JsonlPartRow = {
   [key: string]: unknown;
 };
 
+/**
+ * OpenCode adapter factory. Construction errors deferred to query time (OT4).
+ */
 export function createOpenCodeAdapter(
+  entry: OpenCodeAgentEntry,
+  options: OpenCodeAdapterOptions = {}
+): Adapter {
+  try {
+    return buildOpenCodeAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(`[${entry.agent}:${entry.alias}]`, error);
+  }
+}
+
+function buildOpenCodeAdapter(
   entry: OpenCodeAgentEntry,
   options: OpenCodeAdapterOptions = {}
 ): Adapter {
