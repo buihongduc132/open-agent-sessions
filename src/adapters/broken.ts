@@ -5,29 +5,40 @@
  * path, schema mismatch, config validation), the registry must still build.
  * A single broken adapter must NOT kill the entire CLI (OT4).
  *
- * The stored error is thrown on the first query. The per-adapter try/catch
- * in src/core/list.ts and bin/oas service wrappers catches it and surfaces
- * `[agent:alias] <error>` as a per-agent error — other adapters keep working.
+ * The stored error surfaces on the first query:
+ * - Sync methods (listSessions*, searchSessions) throw synchronously —
+ *   matching their sync `SessionSummary[]` interface contract; callers
+ *   already wrap them in try/catch (src/core/list.ts, registry handles).
+ * - The async method (getSessionDetail) returns a REJECTED promise —
+ *   a sync throw would escape `.catch()` chains (TS#12192 semantics).
+ *
+ * Either way the per-adapter handlers surface `[agent:alias] <error>` as a
+ * per-agent error — other adapters keep working.
  */
 
 import type { Adapter } from "../core/types";
 import { errorMessage } from "../core/utils";
 
 /**
- * Create an adapter that throws `error` on every query.
- * Registry build succeeds; failure surfaces at query time with agent label.
+ * Create an adapter whose every query fails with the deferred construction
+ * error (labeled). Registry build succeeds; failure surfaces at query time.
  */
 export function createBrokenAdapter(label: string, error: unknown): Adapter {
   const message = `${label} ${errorMessage(error)}`;
-  const throwStored = (): never => {
+
+  const throwSync = (): never => {
+    throw new Error(message);
+  };
+
+  const rejectAsync = async (): Promise<never> => {
     throw new Error(message);
   };
 
   return {
     version: "0.0.0-broken",
-    listSessions: throwStored,
-    listSessionsByTimeRange: throwStored,
-    searchSessions: throwStored,
-    getSessionDetail: throwStored,
+    listSessions: throwSync,
+    listSessionsByTimeRange: throwSync,
+    searchSessions: throwSync,
+    getSessionDetail: rejectAsync,
   };
 }
