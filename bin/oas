@@ -481,6 +481,7 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
     range: parsed.options["range"] as string | undefined,
     userOnly: parsed.options["user-only"] as boolean | undefined,
     tools: parsed.options["tools"] as boolean | undefined,
+    verbose: parsed.options["verbose"] as boolean | undefined,
     role: parsed.options["role"] as string | undefined,
     format: parsed.options["format"] as "text" | "json" | "csf" | "markdown" | "md" | undefined,
     output: parsed.options["output"] as string | undefined,
@@ -669,6 +670,7 @@ function showHelp() {
   console.log("  Session Operations:");
   console.log("    session list [N]      List sessions (default action for 'oas session')");
   console.log("    session read <id>     Read session messages");
+  console.log("    session read <id> --verbose   Full detail output (default: conversation view)");
   console.log("    session detail <id>   Show session detail");
   console.log("    session export <ref>  Export session (csf/markdown/text)");
   console.log("    session clone         Clone session between agents");

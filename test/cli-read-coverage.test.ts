@@ -332,6 +332,7 @@ describe("CLI read: coverage boost", () => {
 
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail),
       });
@@ -377,6 +378,7 @@ describe("CLI read: coverage boost", () => {
 
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail),
       });
@@ -470,6 +472,7 @@ describe("CLI read: coverage boost", () => {
 
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail),
       });
