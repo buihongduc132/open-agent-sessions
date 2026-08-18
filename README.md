@@ -282,11 +282,17 @@ oas read <id> --user-only      # only user messages
 
 # Output
 oas read <id> --format text    # plain text (default)
+oas read <id> --verbose       # full detail output (header block, reasoning, timestamps)
 oas read <id> --format json     # structured JSON
 oas read <id> --output file.md   # write to file
 oas read <id> --all --tools     # include tool messages
 oas read <id> --role assistant  # filter by role
 ```
+
+Default text output is a compact **conversation view**: 2-line header
+(title + `[agent:alias] id`), short `HH:MM` badges, text content only —
+reasoning and tools hidden. Add `--verbose` for the full-detail legacy
+format (metadata block, reasoning blocks, full timestamps).
 
 ### `oas search` — Content search
 
