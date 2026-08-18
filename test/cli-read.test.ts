@@ -515,11 +515,30 @@ describe("cli read", () => {
   // Output Formatting
   // ==========================================================================
   describe("output formatting", () => {
-    test("prints session header with all fields", async () => {
+    test("compact default header: title + [agent:alias] id, no metadata block", async () => {
       const detail = makeSessionDetail();
 
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
+        config: baseConfig,
+        getSession: makeReadService(detail),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("Test Session");
+      expect(result.stdout).toContain("[opencode:personal] session-001");
+      expect(result.stdout).not.toContain("Session [opencode:personal]");
+      expect(result.stdout).not.toContain("created_at:");
+      expect(result.stdout).not.toContain("message_count:");
+      expect(result.stdout).not.toContain("storage: db");
+    });
+
+    test("verbose flag preserves legacy full header", async () => {
+      const detail = makeSessionDetail();
+
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail),
       });
@@ -534,7 +553,7 @@ describe("cli read", () => {
       expect(result.stdout).toContain("storage: db");
     });
 
-    test("shows metadata only when session has 0 messages (no 'No messages.' text)", async () => {
+    test("shows compact header only when session has 0 messages (no 'No messages.' text)", async () => {
       const detail = makeSessionDetail({ messages: [], message_count: 0 });
 
       const result = await runReadCommand({
@@ -544,21 +563,17 @@ describe("cli read", () => {
       });
 
       expect(result.exitCode).toBe(0);
-      // Should show metadata
-      expect(result.stdout).toContain("Session [opencode:personal]");
-      expect(result.stdout).toContain("id: session-001");
-      expect(result.stdout).toContain("title: Test Session");
-      expect(result.stdout).toContain("created_at: 2024-01-01 00:00:00");
-      expect(result.stdout).toContain("updated_at: 2024-01-02 00:00:00");
-      expect(result.stdout).toContain("message_count: 0");
-      expect(result.stdout).toContain("storage: db");
+      // Compact header only
+      expect(result.stdout).toContain("Test Session");
+      expect(result.stdout).toContain("[opencode:personal] session-001");
+      expect(result.stdout).not.toContain("Session [opencode:personal]");
       // Should NOT contain "No messages." or "Messages (0):"
       expect(result.stdout).not.toContain("No messages.");
       expect(result.stdout).not.toContain("Messages (0):");
       expect(result.stdout).not.toContain("Messages (");
     });
 
-    test("displays messages with role and timestamp", async () => {
+    test("displays messages with role badge and content (compact: no count header)", async () => {
       const detail = makeSessionDetail({
         messages: [
           makeMessage("user", "Hello world"),
@@ -573,11 +588,32 @@ describe("cli read", () => {
       });
 
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain("Messages (2):");
+      expect(result.stdout).not.toContain("Messages (");
       expect(result.stdout).toContain("> USER");
       expect(result.stdout).toContain("< ASSISTANT");
       expect(result.stdout).toContain("Hello world");
       expect(result.stdout).toContain("Hi there!");
+    });
+
+    test("verbose mode preserves legacy count header and timestamps", async () => {
+      const detail = makeSessionDetail({
+        messages: [
+          makeMessage("user", "Hello world"),
+          makeMessage("assistant", "Hi there!"),
+        ],
+      });
+
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        verbose: true,
+        config: baseConfig,
+        getSession: makeReadService(detail),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("Messages (2):");
+      expect(result.stdout).toContain("> USER");
+      expect(result.stdout).toContain("< ASSISTANT");
     });
 
     test("displays warning when present", async () => {
@@ -689,6 +725,7 @@ describe("cli read", () => {
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
         range: "1:50",
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail, (_, opts) => {
           receivedOptions = opts;
@@ -744,8 +781,9 @@ describe("cli read", () => {
       expect(receivedOptions?.selection?.mode).toBe("range");
       expect(receivedOptions?.selection?.start).toBe(1);
       expect(receivedOptions?.selection?.end).toBe(1);
-      // Should show metadata only, no messages
-      expect(result.stdout).toContain("Session [opencode:personal]");
+      // Compact: metadata-only compact header, no messages
+      expect(result.stdout).toContain("Test Session");
+      expect(result.stdout).toContain("[opencode:personal] session-001");
       expect(result.stdout).not.toContain("Messages (");
     });
 
@@ -761,6 +799,7 @@ describe("cli read", () => {
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
         first: 50,
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail, (_, opts) => {
           receivedOptions = opts;
@@ -785,6 +824,7 @@ describe("cli read", () => {
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
         last: 50,
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail, (_, opts) => {
           receivedOptions = opts;
@@ -979,6 +1019,7 @@ describe("cli read", () => {
         const result = await runReadCommand({
           session: "opencode:personal:session-001",
           output: outputPath,
+          verbose: true,
           config: baseConfig,
           getSession: makeReadService(detail),
         });

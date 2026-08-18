@@ -197,7 +197,7 @@ describe("CLI read: coverage boost", () => {
   // Lines 475-477, 496-509: Message part formatting
   // ==========================================================================
   describe("message part formatting", () => {
-    test("formats reasoning parts", async () => {
+    test("hides reasoning parts by default (compact conversation mode)", async () => {
       const messages: SessionMessage[] = [
         {
           id: "msg-1",
@@ -212,6 +212,31 @@ describe("CLI read: coverage boost", () => {
 
       const result = await runReadCommand({
         session: "opencode:personal:session-001",
+        config: baseConfig,
+        getSession: makeReadService(detail),
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).not.toContain("[reasoning]");
+      expect(result.stdout).not.toContain("Let me think about this");
+    });
+
+    test("verbose flag shows reasoning parts", async () => {
+      const messages: SessionMessage[] = [
+        {
+          id: "msg-1",
+          role: "assistant",
+          created_at: "2024-01-01T12:00:00Z",
+          parts: [
+            { type: "reasoning", text: "Let me think about this..." },
+          ],
+        },
+      ];
+      const detail = makeSessionDetail({ messages, message_count: 1 });
+
+      const result = await runReadCommand({
+        session: "opencode:personal:session-001",
+        verbose: true,
         config: baseConfig,
         getSession: makeReadService(detail),
       });
