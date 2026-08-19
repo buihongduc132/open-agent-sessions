@@ -1,0 +1,82 @@
+{
+  "runId": "a0789c37-6ae0-4772-a690-7af1c57a8027",
+  "agent": "reviewer",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/progress.md]\n\nInspect branch `feat/gap-impl` in repo `/home/bhd/Documents/Projects/bhd/open-agent-sessions` and answer: are its 16 commits ahead of main genuinely new work or stale/duplicate of merged PRs #11 and #14? Verify directly with git logs, patch-id/cherry equivalence where useful, merge-base, changed files, PR metadata, and base divergence. Return evidence, completion percentage, unique work, superseded relationships, silent-revert risks, and recommendation (merge/skip/complete). Verifier angles: (a) scope and duplicate detection, (b) logic/test correctness signals, (c) branch integration safety. Read-only only. If a safety hook blocks a command, stop and escalate; do not route around.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 1,
+  "model": "bhd-litellm/role-smart-rev:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart-rev:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart-rev:high",
+      "success": false,
+      "exitCode": 1,
+      "error": "401: {\"message\":\"litellm.BadRequestError: OpenAIException - invalid access token or token expired. Received Model Group=role-smart-rev\\nAvailable Model Group Fallbacks=['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']\\nError doing the fallback: litellm.RateLimitError: RateLimitError: OpenAIException - Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-08-06 14:39:28No fallback model group found for original model_group=glm-5.2/sub. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}]. Received Model Group=glm-5.2/sub\\nAvailable Model Group Fallbacks=None\\nError doing the fallback: litellm.RateLimitError: RateLimitError: OpenAIException - Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-08-06 14:39:28No fallback model group found for original model_group=glm-5.2/sub. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}] LiteLLM Retried: 3 times, LiteLLM Max Retries: 3 LiteLLM Retried: 3 times, LiteLLM Max Retries: 3\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"401\"}",
+      "usage": {
+        "input": 42996,
+        "output": 9958,
+        "cacheRead": 365696,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 13
+      }
+    }
+  ],
+  "error": "401: {\"message\":\"litellm.BadRequestError: OpenAIException - invalid access token or token expired. Received Model Group=role-smart-rev\\nAvailable Model Group Fallbacks=['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']\\nError doing the fallback: litellm.RateLimitError: RateLimitError: OpenAIException - Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-08-06 14:39:28No fallback model group found for original model_group=glm-5.2/sub. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}]. Received Model Group=glm-5.2/sub\\nAvailable Model Group Fallbacks=None\\nError doing the fallback: litellm.RateLimitError: RateLimitError: OpenAIException - Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-08-06 14:39:28No fallback model group found for original model_group=glm-5.2/sub. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}] LiteLLM Retried: 3 times, LiteLLM Max Retries: 3 LiteLLM Retried: 3 times, LiteLLM Max Retries: 3\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"401\"}",
+  "acceptance": {
+    "status": "rejected",
+    "evidenceStatus": "rejected",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [
+      {
+        "id": "attestation",
+        "status": "failed",
+        "message": "Structured acceptance report not found."
+      }
+    ],
+    "verifyRuns": [],
+    "childReportParseError": "Structured acceptance report not found."
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/a0789c37-6ae0-4772-a690-7af1c57a8027_reviewer_1_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785915425784
+}

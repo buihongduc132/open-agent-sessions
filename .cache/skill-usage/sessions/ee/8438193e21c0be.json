@@ -1,0 +1,98 @@
+{
+  "fingerprint": "ee8438193e21c0befef8a05143f4c961896ca2dd09e7f5256aa107ef0aad7b76",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:14.005Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T12:24:15.882Z"
+    },
+    {
+      "skill": "ignore-foreign-changes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ignore-foreign-changes",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T11:40:04.545Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T11:49:08.922Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T11:49:08.922Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T12:24:45.765Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T12:38:30.525Z"
+    },
+    {
+      "skill": "oqo-skill-writer",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "oqo-skill-writer",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T17:10:57.894Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T17:10:57.894Z"
+    },
+    {
+      "skill": "e2e-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "e2e-testing",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T17:10:57.894Z"
+    },
+    {
+      "skill": "e2e-testing",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "e2e testing",
+      "source": "text-mention",
+      "sessionId": "019fb77e-1708-7d1e-b518-9aac84b8af5f",
+      "timestamp": "2026-07-31T17:10:57.894Z"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "fingerprint": "89bec9c49a7eaa8dd87f609fbc4b6250893adfed2430c99dc45b0c252000332b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:59:35.634Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f88cc-a14c-7fbc-a480-a3aff9983a5d",
+      "timestamp": "2026-07-22T07:51:20.086Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f88cc-a14c-7fbc-a480-a3aff9983a5d",
+      "timestamp": "2026-07-22T07:51:20.086Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f88cc-a14c-7fbc-a480-a3aff9983a5d",
+      "timestamp": "2026-07-22T07:51:20.086Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "tbd",
+      "source": "text-mention",
+      "sessionId": "019f88cc-a14c-7fbc-a480-a3aff9983a5d",
+      "timestamp": "2026-07-22T07:55:00.373Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f88cc-a14c-7fbc-a480-a3aff9983a5d",
+      "timestamp": "2026-07-22T08:29:23.679Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f88cc-a14c-7fbc-a480-a3aff9983a5d",
+      "timestamp": "2026-07-22T09:15:09.174Z"
+    }
+  ]
+}

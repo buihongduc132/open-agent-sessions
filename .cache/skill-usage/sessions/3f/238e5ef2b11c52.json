@@ -1,0 +1,26 @@
+{
+  "fingerprint": "3f238e5ef2b11c52aaca43c7037b2613717989851fe331f3b872a7893dc54704",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:32.908Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f9310-8cd9-7ce6-a86e-acce6c3de7c3",
+      "timestamp": "2026-07-24T07:26:33.230Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f9310-8cd9-7ce6-a86e-acce6c3de7c3",
+      "timestamp": "2026-07-24T06:44:37.909Z"
+    }
+  ]
+}

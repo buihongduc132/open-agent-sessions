@@ -1,0 +1,71 @@
+{
+  "fingerprint": "ab1365e5de88a6352e3a51bccec3ffaed47ab5692e87ba3a2654713a15844a9c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:03:42.277Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019f9020-2864-7242-945b-682959f75e43",
+      "timestamp": "2026-07-23T10:10:16.446Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9020-2864-7242-945b-682959f75e43",
+      "timestamp": "2026-07-23T03:07:03.206Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9020-2864-7242-945b-682959f75e43",
+      "timestamp": "2026-07-23T03:07:03.206Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f9020-2864-7242-945b-682959f75e43",
+      "timestamp": "2026-07-23T04:18:49.933Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f9020-2864-7242-945b-682959f75e43",
+      "timestamp": "2026-07-23T06:40:05.065Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "all-guards",
+      "source": "text-mention",
+      "sessionId": "019f9020-2864-7242-945b-682959f75e43",
+      "timestamp": "2026-07-23T18:10:11.441Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "all guards",
+      "source": "text-mention",
+      "sessionId": "019f9020-2864-7242-945b-682959f75e43",
+      "timestamp": "2026-07-23T18:10:11.441Z"
+    }
+  ]
+}

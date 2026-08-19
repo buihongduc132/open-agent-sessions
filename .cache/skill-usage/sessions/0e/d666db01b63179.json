@@ -1,0 +1,26 @@
+{
+  "fingerprint": "0ed666db01b63179507491ac71a34fcdb7223f640528683dbe2c4f5c38c2dd10",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:36.666Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019f6f15-38f0-76fd-830b-70f783f855e9",
+      "timestamp": "2026-07-17T08:00:37.944Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f6f15-38f0-76fd-830b-70f783f855e9",
+      "timestamp": "2026-07-17T08:00:37.944Z"
+    }
+  ]
+}

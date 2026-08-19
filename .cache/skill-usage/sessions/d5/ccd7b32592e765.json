@@ -1,0 +1,80 @@
+{
+  "fingerprint": "d5ccd7b32592e76518200702ce030d13b8cbe953155dd5f2066630ccfe2f18a3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:29:01.679Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T11:05:19.359Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T12:19:54.987Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T12:38:29.431Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "abc",
+      "source": "text-mention",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T11:28:06.827Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T11:30:38.644Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T12:19:51.032Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T12:19:51.032Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f74c5-5d2c-7cf2-8838-6c56c0ca6bb1",
+      "timestamp": "2026-07-18T15:41:18.153Z"
+    }
+  ]
+}

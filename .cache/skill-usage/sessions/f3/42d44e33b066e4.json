@@ -1,0 +1,71 @@
+{
+  "fingerprint": "f342d44e33b066e4ca3aac1cfbbb89f985d8f603ea89373074dba7aeee12a056",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:55.020Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fa5ba-489d-77da-b13a-a7c5ab6bc9e5",
+      "timestamp": "2026-07-27T22:20:32.640Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019fa5ba-489d-77da-b13a-a7c5ab6bc9e5",
+      "timestamp": "2026-07-27T21:42:41.824Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa5ba-489d-77da-b13a-a7c5ab6bc9e5",
+      "timestamp": "2026-07-27T21:54:12.697Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fa5ba-489d-77da-b13a-a7c5ab6bc9e5",
+      "timestamp": "2026-07-27T21:54:12.697Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019fa5ba-489d-77da-b13a-a7c5ab6bc9e5",
+      "timestamp": "2026-07-27T21:54:51.127Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fa5ba-489d-77da-b13a-a7c5ab6bc9e5",
+      "timestamp": "2026-07-27T22:20:32.640Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fa5ba-489d-77da-b13a-a7c5ab6bc9e5",
+      "timestamp": "2026-07-27T22:37:19.189Z"
+    }
+  ]
+}

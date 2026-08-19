@@ -1,0 +1,53 @@
+{
+  "fingerprint": "8020866438102d78e7d1bd1148da3e7d4e8087f2dc3bc857eeeda4a3fef94614",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:23.298Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f885a-ac9f-7b93-8210-81a906507e49",
+      "timestamp": "2026-07-22T05:45:20.332Z"
+    },
+    {
+      "skill": "caveman-commit",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman-commit",
+      "source": "text-mention",
+      "sessionId": "019f885a-ac9f-7b93-8210-81a906507e49",
+      "timestamp": "2026-07-22T05:45:20.332Z"
+    },
+    {
+      "skill": "caveman-help",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman-help",
+      "source": "text-mention",
+      "sessionId": "019f885a-ac9f-7b93-8210-81a906507e49",
+      "timestamp": "2026-07-22T05:45:20.332Z"
+    },
+    {
+      "skill": "caveman-review",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman-review",
+      "source": "text-mention",
+      "sessionId": "019f885a-ac9f-7b93-8210-81a906507e49",
+      "timestamp": "2026-07-22T05:45:20.332Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f885a-ac9f-7b93-8210-81a906507e49",
+      "timestamp": "2026-07-22T05:45:20.332Z"
+    }
+  ]
+}

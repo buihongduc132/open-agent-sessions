@@ -1,0 +1,26 @@
+{
+  "fingerprint": "ae5ad86e8f0c4c7e3f932501851ef62decca11b480b32dcf53af08299f6ce4cb",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:18.479Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "media",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "media",
+      "source": "text-mention",
+      "sessionId": "019f6b6f-5327-710d-88c7-fd0b48d4f5fe",
+      "timestamp": "2026-07-16T15:01:17.190Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "browseros",
+      "source": "text-mention",
+      "sessionId": "019f6b6f-5327-710d-88c7-fd0b48d4f5fe",
+      "timestamp": "2026-07-16T15:01:17.190Z"
+    }
+  ]
+}

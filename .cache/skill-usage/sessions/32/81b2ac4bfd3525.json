@@ -1,0 +1,71 @@
+{
+  "fingerprint": "3281b2ac4bfd3525e8fda1370bed98b27888a71e14cfdd5a996ff37be80a5744",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:05.116Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f6b49-b106-7bf8-a7c4-6cc19e692ec1",
+      "timestamp": "2026-07-16T16:22:03.064Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f6b49-b106-7bf8-a7c4-6cc19e692ec1",
+      "timestamp": "2026-07-16T16:22:03.064Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6b49-b106-7bf8-a7c4-6cc19e692ec1",
+      "timestamp": "2026-07-16T16:22:13.470Z"
+    },
+    {
+      "skill": "pi-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-testing",
+      "source": "read-tool",
+      "sessionId": "019f6b49-b106-7bf8-a7c4-6cc19e692ec1",
+      "timestamp": "2026-07-16T16:22:20.992Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6b49-b106-7bf8-a7c4-6cc19e692ec1",
+      "timestamp": "2026-07-16T16:22:36.160Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f6b49-b106-7bf8-a7c4-6cc19e692ec1",
+      "timestamp": "2026-07-16T17:33:03.215Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6b49-b106-7bf8-a7c4-6cc19e692ec1",
+      "timestamp": "2026-07-16T17:42:19.672Z"
+    }
+  ]
+}

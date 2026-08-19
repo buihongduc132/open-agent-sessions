@@ -1,0 +1,107 @@
+{
+  "fingerprint": "a16b27705052c476dd0d5a3185bc3603d5dfe0a53572a750c41e45ddd6c975c3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:13.126Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "read-tool",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T15:25:28.210Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "read-tool",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T15:25:37.316Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T12:28:43.769Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T12:28:43.769Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T12:46:56.162Z"
+    },
+    {
+      "skill": "ignore-foreign-changes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ignore-foreign-changes",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T12:47:01.718Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T15:04:13.230Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "browser-ops",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T15:43:06.593Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T15:46:49.238Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T17:00:05.798Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f9510-5128-7375-9fc3-585afbda91c0",
+      "timestamp": "2026-07-24T17:00:05.798Z"
+    }
+  ]
+}

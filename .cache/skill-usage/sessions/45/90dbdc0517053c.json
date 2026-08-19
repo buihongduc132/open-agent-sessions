@@ -1,0 +1,44 @@
+{
+  "fingerprint": "4590dbdc0517053c62b008eff78d7c7491f69888c4b2b13cc687e95dfe15ff85",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:26.503Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f712f-181d-702f-afeb-2315449aae6d",
+      "timestamp": "2026-07-17T17:51:44.732Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f712f-181d-702f-afeb-2315449aae6d",
+      "timestamp": "2026-07-17T17:51:44.732Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f712f-181d-702f-afeb-2315449aae6d",
+      "timestamp": "2026-07-17T17:51:44.732Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f712f-181d-702f-afeb-2315449aae6d",
+      "timestamp": "2026-07-17T18:12:30.779Z"
+    }
+  ]
+}

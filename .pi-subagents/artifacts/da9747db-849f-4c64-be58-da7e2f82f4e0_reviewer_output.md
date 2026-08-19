@@ -1,0 +1,1 @@
+Let me verify the actual pi JSONL structure for toolResult claims and check the session-activity encoding:

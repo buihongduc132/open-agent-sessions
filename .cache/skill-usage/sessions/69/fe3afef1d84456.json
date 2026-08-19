@@ -1,0 +1,17 @@
+{
+  "fingerprint": "69fe3afef1d844569d8975a8674ec3c290e98d5209c3124f405957b897024b4c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:39.605Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "paperclip",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip",
+      "source": "text-mention",
+      "sessionId": "019fa63b-44c9-7e1c-9e39-d117d7ce5d11",
+      "timestamp": "2026-07-28T01:01:28.921Z"
+    }
+  ]
+}

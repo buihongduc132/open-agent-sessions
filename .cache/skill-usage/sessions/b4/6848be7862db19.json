@@ -1,0 +1,62 @@
+{
+  "fingerprint": "b46848be7862db194a62a37604115cac98351aa713ffea2cc70b75b462d759e3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:14.960Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb9ca-6d4f-7e42-aa38-51206a98f85b",
+      "timestamp": "2026-07-31T04:06:15.339Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fb9ca-6d4f-7e42-aa38-51206a98f85b",
+      "timestamp": "2026-07-31T06:23:50.389Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019fb9ca-6d4f-7e42-aa38-51206a98f85b",
+      "timestamp": "2026-07-31T07:13:57.481Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fb9ca-6d4f-7e42-aa38-51206a98f85b",
+      "timestamp": "2026-07-31T20:11:42.967Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019fb9ca-6d4f-7e42-aa38-51206a98f85b",
+      "timestamp": "2026-07-31T20:11:42.967Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "cli agent",
+      "source": "text-mention",
+      "sessionId": "019fb9ca-6d4f-7e42-aa38-51206a98f85b",
+      "timestamp": "2026-07-31T20:11:42.967Z"
+    }
+  ]
+}

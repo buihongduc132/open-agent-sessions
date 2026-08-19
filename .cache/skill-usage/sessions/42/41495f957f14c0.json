@@ -1,0 +1,152 @@
+{
+  "fingerprint": "4241495f957f14c061bec5b7d8f407e6b47b2b247fe36879b5ced537df90e9fb",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:38.915Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T05:19:58.679Z"
+    },
+    {
+      "skill": "pi-ctx-budget",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-ctx-budget",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T05:19:58.679Z"
+    },
+    {
+      "skill": "pi-email-integration",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-email-integration",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T05:19:58.679Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T05:19:58.679Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T05:19:58.679Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T05:19:58.679Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T05:21:12.451Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T08:56:53.069Z"
+    },
+    {
+      "skill": "creds-auth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "creds-auth",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T08:56:53.069Z"
+    },
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T08:56:53.069Z"
+    },
+    {
+      "skill": "flow-doc-convention",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "flow-doc-convention",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T08:56:53.069Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "tbd",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T09:03:04.436Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T09:31:30.303Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T12:57:18.873Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T14:00:09.670Z"
+    },
+    {
+      "skill": "archon-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "archon-workflow",
+      "source": "text-mention",
+      "sessionId": "019f9563-e5bb-7f53-bd1c-c9a4bc6c303a",
+      "timestamp": "2026-07-26T14:07:31.459Z"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Now let me examine the `bin/oas` entry point and the core service implementations.

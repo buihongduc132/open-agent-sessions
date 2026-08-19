@@ -1,0 +1,134 @@
+{
+  "fingerprint": "4643be89462d5193d57ee0c961737c8ff8e4d38ecd37d141c5005e9e9f7219b9",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:57:09.142Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "read-tool",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T13:22:39.493Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T13:22:39.493Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T15:23:45.623Z"
+    },
+    {
+      "skill": "heartbeat-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "heartbeat-testing",
+      "source": "read-tool",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T15:23:45.623Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "browseros",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T13:23:05.355Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T13:23:05.355Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T13:23:05.355Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T13:28:45.876Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T13:28:45.876Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T14:58:42.501Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "browser-os_",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T14:58:42.501Z"
+    },
+    {
+      "skill": "agent-memory",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-memory",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T14:58:42.501Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T14:58:42.501Z"
+    },
+    {
+      "skill": "wear-hats",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wear-hats",
+      "source": "text-mention",
+      "sessionId": "019fc311-024d-73a2-945b-26b4ae7a0834",
+      "timestamp": "2026-08-02T14:58:42.501Z"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "fingerprint": "e0019145331c0888a9ab853bf6c3d2f9ebfbf76a7ffe51bbb21d2c0c96d98f32",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:26:08.713Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-18T17:57:44.584Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-18T17:58:19.828Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-18T17:58:19.828Z"
+    },
+    {
+      "skill": "paperclip",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "paperclip-",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-19T08:43:56.692Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-19T08:43:56.692Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-19T08:43:56.692Z"
+    },
+    {
+      "skill": "session-work",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "session-works",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-19T08:43:56.692Z"
+    },
+    {
+      "skill": "paperclip",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-21T06:56:53.303Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-21T08:02:20.931Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019f7654-0ea2-7325-a4c2-e335549fa381",
+      "timestamp": "2026-07-21T08:13:23.268Z"
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "fingerprint": "7cf427b7930f268c85c77818e6eb20671698ac161097e12fe06d6c7b686dd589",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:51.824Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:20:41.432Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:20:41.432Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:16:46.167Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:16:46.167Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:20:41.432Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:20:41.432Z"
+    },
+    {
+      "skill": "non-tamper",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "non-tamper",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:24:08.795Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:24:08.795Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T06:54:09.468Z"
+    },
+    {
+      "skill": "to-pi-skill",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-skill",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T07:04:26.045Z"
+    },
+    {
+      "skill": "oqo-skill-writer",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "oqo-skill-writer",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T07:04:26.045Z"
+    },
+    {
+      "skill": "self-evolve",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "self-evolve",
+      "source": "text-mention",
+      "sessionId": "019f8343-6bb3-7936-af13-a4a3e025afe1",
+      "timestamp": "2026-07-21T07:04:26.045Z"
+    }
+  ]
+}

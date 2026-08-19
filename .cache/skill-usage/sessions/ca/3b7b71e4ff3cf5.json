@@ -1,0 +1,53 @@
+{
+  "fingerprint": "ca3b7b71e4ff3cf5489a3ded975c052ee2c3dfa8df4a66602c91fc6b5d67df60",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:02.869Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f6a2a-0eef-7145-811c-0db35e66cc45",
+      "timestamp": "2026-07-16T09:11:00.526Z"
+    },
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f6a2a-0eef-7145-811c-0db35e66cc45",
+      "timestamp": "2026-07-16T09:11:33.344Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6a2a-0eef-7145-811c-0db35e66cc45",
+      "timestamp": "2026-07-16T09:26:13.543Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6a2a-0eef-7145-811c-0db35e66cc45",
+      "timestamp": "2026-07-16T09:26:57.305Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6a2a-0eef-7145-811c-0db35e66cc45",
+      "timestamp": "2026-07-16T09:10:25.247Z"
+    }
+  ]
+}

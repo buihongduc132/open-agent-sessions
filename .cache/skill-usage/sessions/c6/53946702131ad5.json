@@ -1,0 +1,26 @@
+{
+  "fingerprint": "c653946702131ad586d937ef6722fca25308b75068efe0bd0f01278f85126d08",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:35.738Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fad59-cb7a-74d8-932a-2c4d2aba74f3",
+      "timestamp": "2026-07-29T10:43:20.109Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fad59-cb7a-74d8-932a-2c4d2aba74f3",
+      "timestamp": "2026-07-29T10:52:52.805Z"
+    }
+  ]
+}

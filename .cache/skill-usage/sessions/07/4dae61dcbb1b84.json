@@ -1,0 +1,17 @@
+{
+  "fingerprint": "074dae61dcbb1b84d99bde5842f9c5267c66a56fe0f01f5284d73546a6ff08a3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:57.584Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f8cbf-5c10-73e9-8632-3eeabacd6b5d",
+      "timestamp": "2026-07-23T02:13:31.849Z"
+    }
+  ]
+}

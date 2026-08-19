@@ -1,0 +1,89 @@
+{
+  "fingerprint": "71ae51bb6f3f526ae2feaf424984af871ed69d6a95cf32903c5811ded7aae14c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:00.050Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "creds-auth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "creds-auth",
+      "source": "read-tool",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T16:39:46.353Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T15:55:03.621Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T16:36:02.570Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sunset-service",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T16:36:02.570Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T16:42:50.424Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T17:24:01.106Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T17:24:01.106Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T17:51:28.774Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f75ec-d652-7c16-bef8-cc97a891b09a",
+      "timestamp": "2026-07-18T17:51:28.774Z"
+    }
+  ]
+}

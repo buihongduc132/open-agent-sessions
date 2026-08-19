@@ -1,0 +1,53 @@
+{
+  "fingerprint": "28ad110a2ef5fcb3860931343c883454c1a2dc16f5e95d576fda2dc3fa729384",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:10.801Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f6b4a-d433-7618-b89f-23c0bf995467",
+      "timestamp": "2026-07-16T11:08:37.646Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f6b4a-d433-7618-b89f-23c0bf995467",
+      "timestamp": "2026-07-16T11:08:37.646Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f6b4a-d433-7618-b89f-23c0bf995467",
+      "timestamp": "2026-07-16T11:08:37.646Z"
+    },
+    {
+      "skill": "non-tamper",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "non-tamper",
+      "source": "text-mention",
+      "sessionId": "019f6b4a-d433-7618-b89f-23c0bf995467",
+      "timestamp": "2026-07-16T12:02:26.147Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f6b4a-d433-7618-b89f-23c0bf995467",
+      "timestamp": "2026-07-16T12:10:54.923Z"
+    }
+  ]
+}

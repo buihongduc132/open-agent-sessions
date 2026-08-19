@@ -1,0 +1,242 @@
+{
+  "fingerprint": "8fc1f1695c57c7420b5aa8f427c81784dca1c70640aeffd4227ed02178050dc0",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:12.344Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "avoid-psychology-bias",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "avoid-psychology-bias",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:54:39.204Z"
+    },
+    {
+      "skill": "plannotator-compound",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "plannotator-compound",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:54:46.210Z"
+    },
+    {
+      "skill": "project-config-isolation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "project-config-isolation",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:54:53.804Z"
+    },
+    {
+      "skill": "pi-libs-vs-extensions",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-libs-vs-extensions",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:54:56.653Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx-config",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:55:01.628Z"
+    },
+    {
+      "skill": "paperclip-org-structure--c3040c7c81",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-org-structure--c3040c7c81",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:55:06.190Z"
+    },
+    {
+      "skill": "paperclip-reminder--88f198d7fe",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-reminder--88f198d7fe",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:55:08.861Z"
+    },
+    {
+      "skill": "paperclip-skill-creation--dc1bec0698",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-skill-creation--dc1bec0698",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:55:13.039Z"
+    },
+    {
+      "skill": "paperclip-task-unblock--f578b277bc",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-task-unblock--f578b277bc",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:55:16.789Z"
+    },
+    {
+      "skill": "planning-modify",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning-modify",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:55:19.983Z"
+    },
+    {
+      "skill": "archon-workflow-authoring",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "archon-workflow-authoring",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:55:24.143Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T19:35:40.225Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T19:35:40.225Z"
+    },
+    {
+      "skill": "avoid-psychology-bias",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "avoid-psychology-bias",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-21T02:47:55.351Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx-config",
+      "source": "read-tool",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-21T02:56:11.752Z"
+    },
+    {
+      "skill": "paperclip",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "paperclip-",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T11:56:57.551Z"
+    },
+    {
+      "skill": "project-config-isolation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "project-config-isolation",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T12:00:05.074Z"
+    },
+    {
+      "skill": "infra-risk-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "infra-risk-guard",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T12:00:05.074Z"
+    },
+    {
+      "skill": "mise-ansible-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "mise-ansible-deploy",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T12:00:05.074Z"
+    },
+    {
+      "skill": "pi-libs-vs-extensions",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-libs-vs-extensions",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T12:00:05.074Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx-config",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T12:00:05.074Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T12:00:05.074Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T12:00:05.074Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T19:38:42.319Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-20T19:38:42.319Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f7f58-4952-7392-adb6-a1abf35945a3",
+      "timestamp": "2026-07-21T03:02:43.115Z"
+    }
+  ]
+}

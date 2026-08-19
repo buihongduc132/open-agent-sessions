@@ -1,0 +1,83 @@
+{
+  "runId": "475496b3-3a26-4c53-af92-1ac5acaf401e",
+  "agent": "reviewer",
+  "task": "Read-only branch audit. Repo: /home/bhd/Documents/Projects/bhd/open-agent-sessions. Branch/worktree: feat/gap-impl at /home/bhd/Documents/Projects/bhd/oas-16apr-gaps. Determine whether 16 commits ahead of main are genuinely new or stale/duplicate of merged PRs #11 and #14. Inspect git log main..feat/gap-impl, patch-id/cherry equivalence against main and merged refs, changed files, PR metadata, tests, and merge-base. Return evidence, completion %, unique work, superseded relationships, silent-revert risks, recommendation merge/skip/complete. Do not edit, merge, tag, push, checkout, stash, or delete. If safety hook blocks a command, stop and report.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 1,
+  "model": "bhd-litellm/kimi:high",
+  "attemptedModels": [
+    "bhd-litellm/kimi:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/kimi:high",
+      "success": false,
+      "exitCode": 1,
+      "error": "401: {\"message\":\"litellm.BadRequestError: OpenAIException - invalid access token or token expiredNo fallback model group found for original model_group=kimi. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}]. Received Model Group=kimi\\nAvailable Model Group Fallbacks=None\\nError doing the fallback: litellm.BadRequestError: OpenAIException - invalid access token or token expiredNo fallback model group found for original model_group=kimi. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}] LiteLLM Retried: 3 times, LiteLLM Max Retries: 3\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"401\"}",
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 1
+      }
+    }
+  ],
+  "error": "401: {\"message\":\"litellm.BadRequestError: OpenAIException - invalid access token or token expiredNo fallback model group found for original model_group=kimi. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}]. Received Model Group=kimi\\nAvailable Model Group Fallbacks=None\\nError doing the fallback: litellm.BadRequestError: OpenAIException - invalid access token or token expiredNo fallback model group found for original model_group=kimi. Fallbacks=[{'role-smart': ['glm-5.2', 'glm-5.2/sub', 'bailian/qwen3.7-plus', 'kimi']}, {'role-smart-rev': ['bailian/qwen3.7-plus', 'kimi', 'glm-5.2', 'glm-5.2/sub']}, {'role-smart-kimi': ['kimi', 'bailian/qwen3.7-plus', 'glm-5.2', 'glm-5.2/sub']}, {'rag-quick': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}, {'rag-long': ['chutes/Qwen/Qwen3-32B-TEE', 'llmgateway-free']}] LiteLLM Retried: 3 times, LiteLLM Max Retries: 3\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"401\"}",
+  "acceptance": {
+    "status": "rejected",
+    "evidenceStatus": "rejected",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [
+      {
+        "id": "attestation",
+        "status": "failed",
+        "message": "Structured acceptance report not found."
+      }
+    ],
+    "verifyRuns": [],
+    "childReportParseError": "Structured acceptance report not found."
+  },
+  "launchContractDigest": "b0a86c6a4f42537243da00a22ab1dff781a3a5839286a0415230aa05b307a7b5",
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/475496b3-3a26-4c53-af92-1ac5acaf401e_reviewer_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785915756006
+}

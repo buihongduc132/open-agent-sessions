@@ -1,0 +1,122 @@
+{
+  "runId": "88697cea-82e9-4395-bdc4-b559d2b0a386",
+  "agent": "reviewer",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/progress.md]\n\nGOTCHA COVERAGE — DO NOT modify any files. Output your findings as your response only.\n\nYou are reviewing a DESIGN DOCUMENT for a Command Stats Ingestion System (ingests bash command invocations from CLI agent session logs into an analytics DB). Topic of THIS batch: OPS / USE-CASE / QUERY tailoring.\n\nGLOBAL SCOPE — no project-specific assumptions.\n\nWEB SEARCH MANDATORY: For each gotcha, search for how observability/logging tools handle these cases (Datadog, Splunk, Elastic, Honeycomb, Grafana Loki). Cite 3-5 sources per finding.\n\nDO NOT re-analyze whether the design is good. Find what was MISSED.\n\nOriginal items (verbatim):\n\n=== LD1 (locked decision) ===\nprogrammatic-only-no-ui. Programmatic stats only — NO UI (TUI/dashboard/web) in scope for v1. Stats surfaced via SQL queries or CLI output.\n\n=== LD3 (locked decision) ===\nsysops-query-tailoring. Schema + queries tailored to sysops/devops questions: (1) recent cmds + args, (2) most-run cmds ranking, (3) time-of-day histogram for cmd X. Brief-view first, drill-down via oas to exact session.\n\n=== OT4 (open thread) ===\nlive-or-batch. Dashboard (poll every N min) vs ad-hoc query on demand? Design assumed ad-hoc (CLI `oas-stats query`). If live dashboard needed, adds polling layer + caching invalidation.\n\n=== OT10 (open thread) ===\nretention-policy. Outbox: 7 days (configurable). Analytics: 90 days (configurable). Recommendation: start with 7d/90d, tune based on disk usage.\n\n=== OT13 (open thread) ===\nnext-step-choice. Three paths offered: (1) Capture as OpenSpec change (`/opsx:new oas-command-stats`), (2) Spike DuckDB on real data first, (3) Keep exploring (dig into viz, args semantics, cross-agent patterns). User did NOT pick.\n\n=== Additional design context ===\n- 6 sysops query examples defined (recent commands, args for git, most-run, time-of-day histogram, drill-down to session, cross-cwd counts).\n- CLI surface: `oas-stats ingest [--agent X --alias Y] [--force]`, `oas-stats query --last 24h --by program`, `oas-stats status`, `oas-stats reset`.\n- Workflow: 'stats for overview then oas to drill down to the exact session if needed' (user verbatim).\n- Data sources ingest from: pi (~/.pi/agent/sessions JSONL), zcode (~/.zcode/cli/db/db.sqlite), hermes (~/.hermes/state.db SQLite).\n\nYour job:\n1. For EACH of LD1, LD3, OT4, OT10, OT13 — find 2-5 gotchas.\n2. Each gotcha: {rank 1-5, title, what, why_missed, severity, mitigation, sources}.\n3. Rank scale: 1=YAGNI, 2=Minor, 3=Moderate, 4=Significant, 5=Sophisticated.\n4. Consider: privacy/PII in commands, GDPR/retention legal issues, query ergonomics for ops under pressure, alert thresholds, timezones for 'time-of-day' histograms, what 'recent' means across agents on different machines, schema migration pain when no UI.\n5. Return ONLY structured findings. Mark cross-cutting gotchas.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart-rev:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart-rev:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart-rev:high",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 31515,
+        "output": 15646,
+        "cacheRead": 1161728,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 24
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "attested",
+    "evidenceStatus": "attested",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "17 gotchas across LD1(3), LD3(5), OT4(4), OT10(5), OT13(3), each with rank 1-5, title, what, why_missed, severity, mitigation, 3-5 sources. Cross-cutting tags applied (PII: 4 gotchas; temporal: 4 gotchas). No design-goodness re-analysis."
+        }
+      ],
+      "changedFiles": [],
+      "testsAddedOrUpdated": [],
+      "commandsRun": [
+        {
+          "command": "read plan.md / progress.md",
+          "result": "failed",
+          "summary": "Files absent at given paths; design context sourced from task brief + .pi-subagents/artifacts/88697cea-...reviewer_2_input.md (cross-confirmed)."
+        },
+        {
+          "command": "read flow/plans/2026-07-24-cmd-usage-implementation.md",
+          "result": "passed",
+          "summary": "Found pre-existing cmd-usage plan (pi-only, narrower scope); reused classify.ts normalizeArgs/MULTI_VERB as design cross-ref for LD3-G2/G4 mitigation."
+        },
+        {
+          "command": "curl docs.datadoghq.com / grafana.com/docs/loki / elastic.co / opensearch.org (read-only HTTP GETs)",
+          "result": "passed",
+          "summary": "Datadog (SDS, indexes, live-tail .md), Loki (retention/compactor), Elastic (ILM), OpenSearch (ISM), Filebeat (input-log) all returned 200 with extractable content. Splunk docs blocked (403) — cited as well-known facts instead."
+        }
+      ],
+      "validationOutput": [
+        "No file mutations performed (DO-NOT-MODIFY honored).",
+        "Web-search requirement met via direct vendor-doc HTTP probes (DDG/Bing search endpoints blocked; vendor docs reachable).",
+        "Sources cited are reachable URLs (verified HTTP 200) anchored to extracted facts; no fabricated citations.",
+        "Gotcha count per item >= 2 (LD1:3, LD3:5, OT4:4, OT10:5, OT13:3) — contract satisfied."
+      ],
+      "residualRisks": [
+        "Splunk docs (docs.splunk.com) returned HTTP 403 on direct fetch; Splunk-specific citations rely on well-documented facts (frozenTimePeriodInSecs, SEDCMD masking, dual retention knobs) rather than live extract — verify before relying on exact Splunk defaults.",
+        "DuckDB-specific performance/concurrency claims not benchmarked in this batch (delegated to OT13-G2 spike criteria); cited from DuckDB general docs, not measured.",
+        "GDPR Art. 5(1)(e)/(b) characterization is legal domain knowledge, not legal advice; OT10-G1 should be confirmed with counsel if design targets EU users.",
+        "plan.md/progress.md absent — review based on verbatim task brief only; if a fuller design doc exists elsewhere, additional gotchas may apply (e.g., outbox schema, watermark file format handled in sibling reviewer_3 batch)."
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "No diff — read-only review, zero file modifications.",
+      "reviewFindings": [
+        "blocker: none blocking (review-only batch); Critical-severity finding OT10-G1 (90d PII/secrets retention vs GDPR Art. 5(1)(e)) must be resolved before any production ingest of raw command text.",
+        "high: LD1-G1 PII redaction absent at ingest; LD3-G1 time-of-day histogram tz undefined; LD3-G2 'most-run' ranking semantics undefined; LD3-G3 'recent' clock authority undefined across 3 host agents; OT4-G1 query lacks freshness indicator; OT4-G2 materialized views can outlive 7d outbox; OT10-G2 outbox 7d < analytics 90d breaks reprocessing; OT10-G4 DELETE does not scrub DuckDB pages; OT13-G1/G2 next-step menu has no selection criteria or spike success criteria.",
+        "medium: LD1-G3 SQL-only surface poor for ops-under-pressure; LD3-G4 args dump leaks paths/tokens; LD3-G5 histogram undercounts silently on offline agents; OT4-G3 no --follow/watch ergonomics; OT4-G4 ad-hoc query blocks DuckDB writer; OT10-G3 disk is wrong retention metric; OT10-G5 no legal-hold path; OT13-G3 OpenSpec-before-schema-freeze amplifies migration pain.",
+        "cross-cutting: PII (LD1-G1, LD3-G4, OT10-G1, OT10-G4) and temporal/clock-authority (LD3-G1, LD3-G3, OT4-G1, OT10-G2) are the two highest-aggregate-severity threads."
+      ],
+      "manualNotes": "plan.md/progress.md paths in task brief do not exist on disk; the verbatim design items in the brief itself are the complete input. Sibling reviewer batches (0=storage, 1=parsing, 3=deployment/scope/ingestion) cover orthogonal concerns — I deliberately did not duplicate their gotchas except where this batch (ops/use-case/query) shares the cross-cut (PII, temporal)."
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/88697cea-82e9-4395-bdc4-b559d2b0a386_reviewer_2_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785850830446
+}

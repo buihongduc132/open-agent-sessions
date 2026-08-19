@@ -1,0 +1,26 @@
+{
+  "fingerprint": "2b0ede8e69c558e1fec3b01fd59016022b106e48054fc818c38d32a5414105ab",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:06.904Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f8897-a823-7ae5-9e76-3f89176b2f97",
+      "timestamp": "2026-07-22T08:41:48.055Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8897-a823-7ae5-9e76-3f89176b2f97",
+      "timestamp": "2026-07-22T08:12:35.910Z"
+    }
+  ]
+}

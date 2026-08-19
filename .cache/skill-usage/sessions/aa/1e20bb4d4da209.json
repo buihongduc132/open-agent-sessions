@@ -1,0 +1,80 @@
+{
+  "fingerprint": "aa1e20bb4d4da20909cb75bb56d9d540d18e7d980753e0550a2e75a7ce86fe24",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:03:38.229Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-24T20:21:02.031Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-24T20:21:02.031Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-25T00:21:11.293Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-25T03:21:14.326Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-25T07:51:55.696Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-25T10:07:27.039Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-25T11:21:26.475Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "agent delegation",
+      "source": "text-mention",
+      "sessionId": "019f9923-3f26-79ed-bdd5-7790284da9c2",
+      "timestamp": "2026-07-25T11:21:26.475Z"
+    }
+  ]
+}

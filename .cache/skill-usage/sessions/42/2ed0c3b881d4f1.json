@@ -1,0 +1,26 @@
+{
+  "fingerprint": "422ed0c3b881d4f14e63d1265ea6a707b298c8c65a4702235c80d9a7716176b6",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:03.911Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "sophisticated-rule-writing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sophisticated-rule-writing",
+      "source": "read-tool",
+      "sessionId": "019f7670-4137-7a63-9068-d2a5946cf38b",
+      "timestamp": "2026-07-18T18:15:42.834Z"
+    },
+    {
+      "skill": "bug-to-rule",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "bug-to-rule",
+      "source": "text-mention",
+      "sessionId": "019f7670-4137-7a63-9068-d2a5946cf38b",
+      "timestamp": "2026-07-18T15:57:43.500Z"
+    }
+  ]
+}

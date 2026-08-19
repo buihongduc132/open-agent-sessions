@@ -1,0 +1,44 @@
+{
+  "fingerprint": "fa25f101a94ff763bd60118efdf3623a3b9e4a8795433427cc2a08ceb8713567",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:55:26.319Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f93fd-aa3d-792b-8f4d-1bfd195cf2e8",
+      "timestamp": "2026-07-24T13:05:29.500Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f93fd-aa3d-792b-8f4d-1bfd195cf2e8",
+      "timestamp": "2026-07-24T13:28:00.226Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f93fd-aa3d-792b-8f4d-1bfd195cf2e8",
+      "timestamp": "2026-07-24T14:36:07.932Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f93fd-aa3d-792b-8f4d-1bfd195cf2e8",
+      "timestamp": "2026-07-24T14:53:06.947Z"
+    }
+  ]
+}

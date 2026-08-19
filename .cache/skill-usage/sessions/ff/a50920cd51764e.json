@@ -1,0 +1,17 @@
+{
+  "fingerprint": "ffa50920cd51764eb26d39cd2bcaec8f285ec5a4825cc44c81e19ad4d602e687",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:38.945Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fa27b-9036-7b63-923a-f0504e432d21",
+      "timestamp": "2026-07-27T07:50:27.553Z"
+    }
+  ]
+}

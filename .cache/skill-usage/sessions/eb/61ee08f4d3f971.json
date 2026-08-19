@@ -1,0 +1,1133 @@
+{
+  "fingerprint": "eb61ee08f4d3f971b6452d1a4531ec589f394ac8b8e6fe89303bcb8fcb2fc755",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:03.473Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp-config",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx-config",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "agent-memory",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-memory",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "ai-music",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ai-music",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "all-guards",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "apple-services",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "apple-services",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "archon-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "archon-workflow",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "archon-workflow",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "archon-workflows",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "baoyu-content-tools",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "baoyu-content-tools",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "beads",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "bug-to-rule",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "bug-to-rule",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "caveman-commit",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman-commit",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "caveman-help",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman-help",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "caveman-review",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman-review",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "code-organization",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "code-organization",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "codebase-utils",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "codebase-utils",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "computer-use",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "computer-use",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "creative-coding",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "creative-coding",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "creds-auth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "creds-auth",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "cross-matter-checker",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cross-matter-checker",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "curly-section",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "curly-section",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "deploy-local-bin",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deploy-local-bin",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "deploy-lockfile-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deploy-lockfile-guard",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "deploy-remote-vps",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deploy-remote-vps",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "deterministic-execution",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deterministic-execution",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "diagnose-why-work-stopped",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagnose-why-work-stopped",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "doc-skill-proven",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "doc-skill-proven",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "dogfood",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "dogfood",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "e2e-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "e2e-testing",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "env-config-policy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "env-config-policy",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "executing-plans",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "executing-plans",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "expands-contracts",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "expands-contracts",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "finishing-a-development-branch",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "finishing-a-development-branch",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "flow-doc-convention",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "flow-doc-convention",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "gitnexus-debugging",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "gitnexus-debugging",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "gitnexus-exploring",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "gitnexus-exploring",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "gitnexus-impact-analysis",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "gitnexus-impact-analysis",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "gitnexus-pr-review",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "gitnexus-pr-review",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "gitnexus-refactoring",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "gitnexus-refactoring",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "goal-platforms-reference",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "goal-platforms-reference",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "holdpty",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "ignore-foreign-changes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ignore-foreign-changes",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "infra-risk-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "infra-risk-guard",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "kanban-hob-gate-handling",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "kanban-hob-gate-handling",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "local-app-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "local-app-guard",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "matrix-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "matrix-creation",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "mcp-inspector-cli",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "mcp-inspector-cli",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "media",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "media",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "mise-ansible-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "mise-ansible-deploy",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "mise-task-design",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "mise-task-design",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "mlops",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "mlops",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "non-tamper",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "non-tamper",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "notion-usage",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "notion-usage",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "ops-consolidator",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ops-consolidator",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "oqo-skill-writer",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "oqo-skill-writer",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-ceo-role",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-ceo-role",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-converting-plans-to-tasks",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-converting-plans-to-tasks",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-create-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-create-agent",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-create-plugin",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-create-plugin",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-dev",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-dev",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-org-structure",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-org-structure",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-reminder",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-reminder",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-skill-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-skill-creation",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "paperclip-task-unblock",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip-task-unblock",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "para-memory-files",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "para-memory-files",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pdf-documents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pdf-documents",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "permission-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "permission-guard",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pi-ctx-budget",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-ctx-budget",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pi-email-integration",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-email-integration",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pi-libs-vs-extensions",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-libs-vs-extensions",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "plugin-install-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "plugin-install-guard",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pm2-ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pm2-ralph",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "project-config-isolation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "project-config-isolation",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "receiving-code-review",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "receiving-code-review",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "sai-back-forth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sai-back-forth",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "scalfold-agents-md",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "scalfold-agents-md",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "self-evolve",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "self-evolve",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "session-work",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "session-work",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "skillsmp",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "skillsmp",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "slack-msg",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "slack-msg",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "smart-home",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "smart-home",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "social-media",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "social-media",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sunset-service",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "tagging-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tagging-rules",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "teams-first",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-first",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "terminal-bench-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "terminal-bench-loop",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "to-pi-skill",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-skill",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "tone-angry",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tone-angry",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "tone-suite",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tone-suite",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "using-git-worktrees",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "using-git-worktrees",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "verification-before-completion",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verification-before-completion",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "wear-hats",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wear-hats",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "web-design",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-design",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "worst-first-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worst-first-testing",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    },
+    {
+      "skill": "yuanbao",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "yuanbao",
+      "source": "text-mention",
+      "sessionId": "019fa377-722c-7b8f-9fc4-04f3512b7330",
+      "timestamp": "2026-07-27T12:06:35.822Z"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "fingerprint": "109dd52bd1f1307b9a73b6eff8fa8e1e4d6b690aa4e565a59751ccf957f408b8",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:17.560Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T15:20:48.725Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T15:20:48.725Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T16:48:31.038Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T16:48:31.038Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T16:48:31.038Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T17:00:05.900Z"
+    },
+    {
+      "skill": "architect",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "architect",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T17:00:05.900Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T17:09:50.542Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f6b55-fbcf-725d-9fa2-ebb8cf547030",
+      "timestamp": "2026-07-16T17:09:50.542Z"
+    }
+  ]
+}

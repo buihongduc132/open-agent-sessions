@@ -1,0 +1,44 @@
+{
+  "fingerprint": "790082ba221073a422438371f0528daa9f1fc01d891f0de80e1df4a52d7c68e4",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:35.502Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f6e4b-24d7-756e-9081-31847e4d5db4",
+      "timestamp": "2026-07-17T04:18:51.390Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f6e4b-24d7-756e-9081-31847e4d5db4",
+      "timestamp": "2026-07-17T04:25:26.379Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6e4b-24d7-756e-9081-31847e4d5db4",
+      "timestamp": "2026-07-17T07:50:07.049Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6e4b-24d7-756e-9081-31847e4d5db4",
+      "timestamp": "2026-07-17T07:50:07.049Z"
+    }
+  ]
+}

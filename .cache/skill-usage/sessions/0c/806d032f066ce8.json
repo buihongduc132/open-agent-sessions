@@ -1,0 +1,107 @@
+{
+  "fingerprint": "0c806d032f066ce89192d0144883b3c511d3a5853a3fb04452f8965c3ecda98d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:36.576Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T03:17:44.899Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T03:18:18.174Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T03:18:18.174Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T12:15:47.924Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T16:18:09.733Z"
+    },
+    {
+      "skill": "expands-contracts",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "expands-contracts",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T16:18:09.733Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T16:18:09.733Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T16:23:54.357Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T17:55:46.385Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "team-workflow",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T19:19:02.844Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f88f6-aaa4-76fb-8633-c7efe533a38c",
+      "timestamp": "2026-07-23T19:19:02.844Z"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "fingerprint": "d93bd2b8ea63ed8592661a1aefae4964938dfbed29283dbff333829c83247dd4",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:28.438Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T08:22:37.672Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "read-tool",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T08:27:55.972Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T08:35:46.085Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T08:26:14.669Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T08:27:23.811Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T11:20:48.452Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "text-mention",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T12:13:53.287Z"
+    },
+    {
+      "skill": "session-work",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "sessions-work",
+      "source": "text-mention",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T12:22:05.391Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6a00-ea23-7661-a47a-ddab758d5f08",
+      "timestamp": "2026-07-16T15:55:34.843Z"
+    }
+  ]
+}

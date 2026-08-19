@@ -1,0 +1,17 @@
+{
+  "fingerprint": "09af37852c5be5b2b14f3f7b58a488aa141b91c12a965099bc13d17cc6f1bec3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:58.704Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019fb830-0dfb-7310-9666-5666164a0d34",
+      "timestamp": "2026-07-31T12:54:11.737Z"
+    }
+  ]
+}

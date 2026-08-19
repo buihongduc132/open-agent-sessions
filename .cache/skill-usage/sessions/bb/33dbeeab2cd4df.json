@@ -1,0 +1,17 @@
+{
+  "fingerprint": "bb33dbeeab2cd4dfc7d1ede8625ef39c7998b80998c049139c7d4fb941c61ec9",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:12.063Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "sunset-service",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "sunset-services",
+      "source": "text-mention",
+      "sessionId": "019fba49-caad-7840-89d6-d25600910cee",
+      "timestamp": "2026-07-31T22:29:10.856Z"
+    }
+  ]
+}

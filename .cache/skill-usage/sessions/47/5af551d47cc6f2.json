@@ -1,0 +1,98 @@
+{
+  "fingerprint": "475af551d47cc6f2931da61ad0ca07999198862fc845593355f60835aec6885b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:59.691Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T08:13:49.595Z"
+    },
+    {
+      "skill": "agent-teams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-teams",
+      "source": "read-tool",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T08:13:49.595Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T08:11:01.063Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T08:11:01.063Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T08:11:01.063Z"
+    },
+    {
+      "skill": "architect",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "architect",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T08:47:27.460Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T13:04:01.464Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T13:31:06.749Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T15:31:40.993Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f69f8-378e-72d4-b97e-04efe1ee9310",
+      "timestamp": "2026-07-16T15:31:51.055Z"
+    }
+  ]
+}

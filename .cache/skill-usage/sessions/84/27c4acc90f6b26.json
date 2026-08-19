@@ -1,0 +1,53 @@
+{
+  "fingerprint": "8427c4acc90f6b26f1103628e451e952dffd5dea033ffdce2217d517f319969b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:18.796Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fb35e-43fc-7997-b9e2-bf27c5cd2d33",
+      "timestamp": "2026-07-30T13:53:57.426Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fb35e-43fc-7997-b9e2-bf27c5cd2d33",
+      "timestamp": "2026-07-30T13:53:57.426Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb35e-43fc-7997-b9e2-bf27c5cd2d33",
+      "timestamp": "2026-07-30T14:17:53.111Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fb35e-43fc-7997-b9e2-bf27c5cd2d33",
+      "timestamp": "2026-07-30T14:17:53.111Z"
+    },
+    {
+      "skill": "smart-home",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "start-home",
+      "source": "text-mention",
+      "sessionId": "019fb35e-43fc-7997-b9e2-bf27c5cd2d33",
+      "timestamp": "2026-07-30T14:17:53.111Z"
+    }
+  ]
+}

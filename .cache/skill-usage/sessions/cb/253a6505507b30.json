@@ -1,0 +1,17 @@
+{
+  "fingerprint": "cb253a6505507b30fc9d7361b88defd1d4d62661991f8d30d6d55822e0adca0f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:03.497Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f9414-ec83-744d-bdf2-66920c86655b",
+      "timestamp": "2026-07-24T12:21:34.664Z"
+    }
+  ]
+}

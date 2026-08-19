@@ -1,0 +1,44 @@
+{
+  "fingerprint": "e0d71aae701dcd5bf44dcab68c789d9df00a5e02667a58691729617ee5f16bea",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:21.231Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019faf2d-96c1-71c6-9f7e-fc95c107ba7e",
+      "timestamp": "2026-07-29T19:26:04.747Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019faf2d-96c1-71c6-9f7e-fc95c107ba7e",
+      "timestamp": "2026-07-29T23:18:55.514Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019faf2d-96c1-71c6-9f7e-fc95c107ba7e",
+      "timestamp": "2026-07-29T23:18:55.514Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019faf2d-96c1-71c6-9f7e-fc95c107ba7e",
+      "timestamp": "2026-07-29T23:29:20.093Z"
+    }
+  ]
+}

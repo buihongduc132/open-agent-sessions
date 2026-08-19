@@ -1,0 +1,26 @@
+{
+  "fingerprint": "0d634dadee303176be5dcef9f84d7135cf552724b18b4724b7f085b350b87c3a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:02.377Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "heads",
+      "source": "text-mention",
+      "sessionId": "019f8d41-5ba2-7fff-8d65-10e850fefbd9",
+      "timestamp": "2026-07-23T03:45:53.352Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f8d41-5ba2-7fff-8d65-10e850fefbd9",
+      "timestamp": "2026-07-23T04:33:50.685Z"
+    }
+  ]
+}

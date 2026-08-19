@@ -1,0 +1,216 @@
+{
+  "runId": "92ae1b78-01e8-46db-8385-2bb508b19103",
+  "agent": "worker",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/context.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md]\n\nYou are a delegated subagent running from a fork of the parent session. Treat the inherited conversation as reference-only context, not a live thread to continue. Do not continue or answer prior messages as if they are waiting for a reply. Your sole job is to execute the task below and return a focused result for that task using your tools.\n\nTask:\nCreate flow/plans/2026-07-24-cmd-usage-implementation.md in the open-agent-sessions repo at ../open-agent-sessions. This is the IMPLEMENTATION PLAN document.\n\nContext: We're adding a cmd-usage module to open-agent-sessions. The intention doc is being created in parallel. This plan doc must be the step-by-step implementation guide.\n\nThe plan must include:\n1. Phase 1: Extract shared/cache.ts\n   - Extract JsonCache from skill-usage/cache.ts to shared/cache.ts\n   - Make it generic<T>\n   - Update skill-usage/cache.ts to re-export from shared\n   - Verify all skill-usage tests still pass\n2. Phase 2: Implement cmd-usage/classify.ts\n   - tokenize() — no-dep regex (~40 LOC)\n   - splitCompound() — regex on ;|&&|\\|\\||\\|\n   - stripPrefix() — loop: sudo/env/nohup/time/xargs\n   - stripEnvAssign() — ^[A-Z_]+=\\S+ while leading\n   - basename() — /usr/bin/git → git\n   - buildSignature() — MULTI_VERB dict + sub rules\n   - normalizeArgs() — <path>/<hash>/<ref>/<ver>\n   - MULTI_VERB Set<git,npm,mise,docker,kubectl,...>\n   - classify(raw): CmdMatch (pure function)\n   - Write tests FIRST (TDD RED)\n3. Phase 3: Implement cmd-usage/parser.ts\n   - extractBashCommands(file): RawBashCall[]\n   - Walks toolCall blocks where name=\"bash\"\n   - Emits { command: args.command, ts, sessionId, toolCallId }\n   - Write tests FIRST\n4. Phase 4: Implement cmd-usage/enrichers/\n   - types.ts: Enricher interface (name, available(), batchLookup())\n   - atuin-bridge.ts: AtuinEnricher class\n     - constructor(opts: { dbPath?, cacheDir? })\n     - available(): probe dbPath exists + MAX(timestamp) works\n     - freshnessGate(): throttle 30s, SELECT MAX(timestamp), compare knownMax\n     - batchLookup(cmds): FRESH → return cached, STALE → clear + re-query\n     - SQL: SELECT duration, exit FROM history WHERE cwd=? AND command LIKE ? AND timestamp BETWEEN ? AND ? ORDER BY ABS(timestamp - ?) LIMIT 1\n     - Handle SQLITE_BUSY: 1 retry w/ 100ms, else mark UNAVAILABLE\n     - Open readonly + immutable=1\n   - Write tests FIRST\n5. Phase 5: Implement cmd-usage/analyzer.ts\n   - discoverSessions(sessionsDir, scope, cwd?) — scope=\"cwd\" → encoded dir filter, scope=\"all\" → flat scan\n   - filterByMtime(days) — shared w/ skill-usage\n   - openCache<CmdMatch[]>()\n   - Per file: fingerprint → hit/miss → parse+classify\n   - Aggregate by signature → CmdUsageRecord[]\n   - Enricher phase: for each enricher, batchLookup, merge dur/err\n   - Bucket into 7 daily slots\n   - Vacuum + close cache\n   - Return CmdUsageReport\n   - Write tests FIRST\n6. Phase 6: Implement cmd-usage/types.ts\n   - CmdMatch, CmdUsageRecord, CmdUsageReport, CmdUsageOptions\n   - Mirror SkillUsageOptions shape\n7. Phase 7: Implement cmd-usage/index.ts\n   - Public API exports\n8. Phase 8: Update package.json\n   - Bump version 0.1.0 → 0.2.0\n   - No new deps (bun:sqlite is builtin)\n9. Phase 9: Integration test\n   - Run against real pi sessions\n   - Verify tabular output\n   - Verify atuin enrichment (if available)\n10. Phase 10: Documentation\n    - Update README.md with cmd-usage module\n    - Add usage examples\n\nFor each phase, include:\n- Files to create/modify\n- Test files to create\n- Acceptance criteria\n- Estimated LOC\n\nWrite to ../open-agent-sessions/flow/plans/2026-07-24-cmd-usage-implementation.md\n\n---\nUpdate progress at: /home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/progress/92ae1b78-01e8-46db-8385-2bb508b19103/progress.md\n\n## Acceptance Contract\nAcceptance level: reviewed\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Implement the requested change without widening scope\n- criterion-2: Return evidence sufficient for an independent acceptance review\n\nRequired evidence: changed-files, tests-added, commands-run, validation-output, residual-risks, no-staged-files\n\nReview gate: required by reviewer.\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    },\n    {\n      \"id\": \"criterion-2\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart:high",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 212602,
+        "output": 7677,
+        "cacheRead": 513344,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 7
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "checked",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "reviewed",
+      "explicit": false,
+      "inferredReason": [
+        "async write-capable or risky run"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Implement the requested change without widening scope",
+          "evidence": [
+            "changed-files",
+            "tests-added",
+            "commands-run",
+            "validation-output",
+            "residual-risks",
+            "no-staged-files"
+          ],
+          "severity": "required"
+        },
+        {
+          "id": "criterion-2",
+          "must": "Return evidence sufficient for an independent acceptance review",
+          "evidence": [
+            "changed-files",
+            "tests-added",
+            "commands-run",
+            "validation-output",
+            "residual-risks",
+            "no-staged-files"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "changed-files",
+        "tests-added",
+        "commands-run",
+        "validation-output",
+        "residual-risks",
+        "no-staged-files"
+      ],
+      "verify": [],
+      "review": {
+        "agent": "reviewer",
+        "required": true
+      },
+      "stopRules": []
+    },
+    "inferredReason": [
+      "async write-capable or risky run"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Implement the requested change without widening scope",
+        "evidence": [
+          "changed-files",
+          "tests-added",
+          "commands-run",
+          "validation-output",
+          "residual-risks",
+          "no-staged-files"
+        ],
+        "severity": "required"
+      },
+      {
+        "id": "criterion-2",
+        "must": "Return evidence sufficient for an independent acceptance review",
+        "evidence": [
+          "changed-files",
+          "tests-added",
+          "commands-run",
+          "validation-output",
+          "residual-risks",
+          "no-staged-files"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [
+      {
+        "id": "criterion:criterion-1",
+        "status": "passed",
+        "message": "Required criterion 'criterion-1' satisfied."
+      },
+      {
+        "id": "criterion:criterion-2",
+        "status": "passed",
+        "message": "Required criterion 'criterion-2' satisfied."
+      },
+      {
+        "id": "evidence:changed-files",
+        "status": "passed",
+        "message": "changed-files evidence present."
+      },
+      {
+        "id": "evidence:tests-added",
+        "status": "not-applicable",
+        "message": "tests-added evidence explicitly reported as not applicable."
+      },
+      {
+        "id": "evidence:commands-run",
+        "status": "passed",
+        "message": "commands-run evidence present."
+      },
+      {
+        "id": "evidence:validation-output",
+        "status": "passed",
+        "message": "validation-output evidence present."
+      },
+      {
+        "id": "evidence:residual-risks",
+        "status": "passed",
+        "message": "residual-risks evidence present."
+      },
+      {
+        "id": "evidence:no-staged-files",
+        "status": "passed",
+        "message": "no-staged-files evidence present."
+      },
+      {
+        "id": "no-staged-files",
+        "status": "passed",
+        "message": "No staged files detected."
+      }
+    ],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "Created flow/plans/2026-07-24-cmd-usage-implementation.md with all 10 phases as specified: (1) shared/cache.ts extraction, (2) classify.ts, (3) parser.ts, (4) enrichers/, (5) analyzer.ts, (6) types.ts, (7) index.ts, (8) package.json, (9) integration test, (10) documentation. Each phase includes files to create/modify, test files, acceptance criteria, and estimated LOC. No scope widening."
+        },
+        {
+          "id": "criterion-2",
+          "status": "satisfied",
+          "evidence": "File verified: 528 lines, 17,588 bytes. All 10 phases present with required sections. Summary table shows 13 files, ~1152 LOC source, ~1550 LOC tests. Execution order, risks, and success criteria documented. Progress file written to .pi-subagents/artifacts/progress/."
+        }
+      ],
+      "changedFiles": [
+        "flow/plans/2026-07-24-cmd-usage-implementation.md"
+      ],
+      "testsAddedOrUpdated": [],
+      "commandsRun": [
+        {
+          "command": "wc -l ../open-agent-sessions/flow/plans/2026-07-24-cmd-usage-implementation.md",
+          "result": "passed",
+          "summary": "528 lines written"
+        },
+        {
+          "command": "git status --porcelain",
+          "result": "passed",
+          "summary": "No staged files, only untracked"
+        }
+      ],
+      "validationOutput": [
+        "File created: flow/plans/2026-07-24-cmd-usage-implementation.md (17,588 bytes, 528 lines)",
+        "All 10 phases documented with files, tests, acceptance criteria, LOC estimates",
+        "Summary table: 13 files, ~1152 LOC source, ~1550 LOC tests, ~2702 total",
+        "Execution order: Phase 1→6→2→3→4→5→7→8→9→10",
+        "Progress file written to .pi-subagents/artifacts/progress/"
+      ],
+      "residualRisks": [
+        "none"
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "Created implementation plan document for cmd-usage module with 10 phases covering shared/cache extraction, classify, parser, enrichers (atuin-bridge), analyzer, types, index, package.json, integration test, and documentation. Each phase includes files to create/modify, test files, acceptance criteria, and estimated LOC.",
+      "reviewFindings": [
+        "no blockers"
+      ],
+      "manualNotes": "Plan is grounded in actual codebase structure (skill-usage patterns, bun:sqlite precedent from hermes/opencode/codex adapters). All design decisions from exploration session incorporated: no-dep regex tokenizer, MAX(timestamp) gate for atuin, bun:sqlite native, config-driven DB path, 2-mode scope (cwd/all), layered cache (Layer-A JSONL + Layer-B enricher)."
+    },
+    "reviewResult": {
+      "status": "needs-parent-decision",
+      "findings": [
+        {
+          "severity": "non-blocking",
+          "issue": "Reviewed acceptance requires an independent reviewer result.",
+          "rationale": "The run cannot be marked reviewed from child evidence alone."
+        }
+      ]
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/92ae1b78-01e8-46db-8385-2bb508b19103_worker_1_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1784883306879
+}

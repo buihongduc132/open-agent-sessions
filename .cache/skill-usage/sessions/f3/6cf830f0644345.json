@@ -1,0 +1,71 @@
+{
+  "fingerprint": "f36cf830f06443454238a1b3ea100eb28705943794599f20b28899ac3c4a089b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:59.812Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "read-tool",
+      "sessionId": "019f9ecc-a4d8-7d1a-929e-e936646eb7aa",
+      "timestamp": "2026-07-26T13:42:21.925Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "read-tool",
+      "sessionId": "019f9ecc-a4d8-7d1a-929e-e936646eb7aa",
+      "timestamp": "2026-07-26T13:42:29.509Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9ecc-a4d8-7d1a-929e-e936646eb7aa",
+      "timestamp": "2026-07-26T13:41:35.730Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9ecc-a4d8-7d1a-929e-e936646eb7aa",
+      "timestamp": "2026-07-26T13:41:35.730Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9ecc-a4d8-7d1a-929e-e936646eb7aa",
+      "timestamp": "2026-07-26T13:47:56.208Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f9ecc-a4d8-7d1a-929e-e936646eb7aa",
+      "timestamp": "2026-07-26T13:47:56.208Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f9ecc-a4d8-7d1a-929e-e936646eb7aa",
+      "timestamp": "2026-07-26T13:54:26.069Z"
+    }
+  ]
+}

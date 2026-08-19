@@ -1,0 +1,123 @@
+{
+  "runId": "da9747db-849f-4c64-be58-da7e2f82f4e0",
+  "agent": "reviewer",
+  "task": "Verify the flow documents for cmd-usage module implementation are complete and consistent.\n\nFiles to review:\n1. ../open-agent-sessions/flow/intentions/2026-07-24-cmd-usage-module.md\n2. ../open-agent-sessions/flow/plans/2026-07-24-cmd-usage-implementation.md\n\nVerification criteria:\n1. Intention doc captures: problem statement, solution architecture, design decisions (no-dep tokenizer, bun:sqlite, layered cache, CWD filter modes, atuin config-driven path, tabular display, 7-day bucketing)\n2. Plan doc has: phased implementation steps, files to create/modify, test files, acceptance criteria, estimated LOC\n3. Both docs reference scout findings: toolResult blocks exist in pi JSONL, duration computable via timestamp deltas, dir encoding pattern\n4. Plan includes: shared/cache.ts extraction, cmd-usage/ module structure (types, parser, classify, analyzer, enrichers), atuin-bridge.ts\n5. No contradictions between intention and plan\n6. Plan is implementation-ready (can hand to RED/GREEN sub agents)\n\nReturn: APPROVE or REJECT with specific gaps.\n\n## Acceptance Contract\nAcceptance level: reviewed\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Implement the requested change without widening scope\n- criterion-2: Return evidence sufficient for an independent acceptance review\n\nRequired evidence: changed-files, tests-added, commands-run, validation-output, residual-risks, no-staged-files\n\nReview gate: required by reviewer.\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    },\n    {\n      \"id\": \"criterion-2\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 1,
+  "model": "bhd-litellm/role-smart:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart:high",
+      "success": false,
+      "exitCode": 1,
+      "error": "bash failed (exit 1): [pi-bash-guard] default timeout 300s applied (model omitted; no group matched).\n[pi-bash-guard] non-interactive env preamble prepended (closes editor/pager prompts).\n──────────────────────────────────",
+      "usage": {
+        "input": 207777,
+        "output": 8123,
+        "cacheRead": 589440,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 20
+      }
+    }
+  ],
+  "error": "bash failed (exit 1): [pi-bash-guard] default timeout 300s applied (model omitted; no group matched).\n[pi-bash-guard] non-interactive env preamble prepended (closes editor/pager prompts).\n──────────────────────────────────",
+  "acceptance": {
+    "status": "rejected",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "reviewed",
+      "explicit": false,
+      "inferredReason": [
+        "async write-capable or risky run"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Implement the requested change without widening scope",
+          "evidence": [
+            "changed-files",
+            "tests-added",
+            "commands-run",
+            "validation-output",
+            "residual-risks",
+            "no-staged-files"
+          ],
+          "severity": "required"
+        },
+        {
+          "id": "criterion-2",
+          "must": "Return evidence sufficient for an independent acceptance review",
+          "evidence": [
+            "changed-files",
+            "tests-added",
+            "commands-run",
+            "validation-output",
+            "residual-risks",
+            "no-staged-files"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "changed-files",
+        "tests-added",
+        "commands-run",
+        "validation-output",
+        "residual-risks",
+        "no-staged-files"
+      ],
+      "verify": [],
+      "review": {
+        "agent": "reviewer",
+        "required": true
+      },
+      "stopRules": []
+    },
+    "inferredReason": [
+      "async write-capable or risky run"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Implement the requested change without widening scope",
+        "evidence": [
+          "changed-files",
+          "tests-added",
+          "commands-run",
+          "validation-output",
+          "residual-risks",
+          "no-staged-files"
+        ],
+        "severity": "required"
+      },
+      {
+        "id": "criterion-2",
+        "must": "Return evidence sufficient for an independent acceptance review",
+        "evidence": [
+          "changed-files",
+          "tests-added",
+          "commands-run",
+          "validation-output",
+          "residual-risks",
+          "no-staged-files"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [
+      {
+        "id": "attestation",
+        "status": "failed",
+        "message": "Structured acceptance report not found."
+      }
+    ],
+    "verifyRuns": [],
+    "childReportParseError": "Structured acceptance report not found."
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/da9747db-849f-4c64-be58-da7e2f82f4e0_reviewer_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1784883821225
+}

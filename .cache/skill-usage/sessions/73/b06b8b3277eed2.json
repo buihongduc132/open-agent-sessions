@@ -1,0 +1,71 @@
+{
+  "fingerprint": "73b06b8b3277eed264562a1ccfe4a89223cdaafbd0ec5b375c79a87587074012",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:20.668Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019fb27c-ad6e-7205-9da1-c12aee6bebb6",
+      "timestamp": "2026-07-30T11:59:57.071Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fb27c-ad6e-7205-9da1-c12aee6bebb6",
+      "timestamp": "2026-07-30T12:28:49.825Z"
+    },
+    {
+      "skill": "session-work",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "session-work",
+      "source": "text-mention",
+      "sessionId": "019fb27c-ad6e-7205-9da1-c12aee6bebb6",
+      "timestamp": "2026-07-30T12:52:34.981Z"
+    },
+    {
+      "skill": "session-work",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "session work",
+      "source": "text-mention",
+      "sessionId": "019fb27c-ad6e-7205-9da1-c12aee6bebb6",
+      "timestamp": "2026-07-30T12:52:34.981Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb27c-ad6e-7205-9da1-c12aee6bebb6",
+      "timestamp": "2026-07-30T13:56:38.087Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fb27c-ad6e-7205-9da1-c12aee6bebb6",
+      "timestamp": "2026-07-30T14:01:20.368Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019fb27c-ad6e-7205-9da1-c12aee6bebb6",
+      "timestamp": "2026-07-30T19:30:12.363Z"
+    }
+  ]
+}

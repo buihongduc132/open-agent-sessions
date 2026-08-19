@@ -1,0 +1,17 @@
+{
+  "fingerprint": "4cb70ee68aa3da32499bc1e5b04da3405765e7fa6b3d972199365327a40b88b1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:59:54.630Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f958d-f533-7c37-b840-e633e90cfd17",
+      "timestamp": "2026-07-24T18:31:58.467Z"
+    }
+  ]
+}

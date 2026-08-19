@@ -1,0 +1,44 @@
+{
+  "fingerprint": "63e92bb8ef6dfad3338fe73347e988d26fdba9dc59b724076fa4cb042bbecfb4",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:56.575Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-processes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-processes",
+      "source": "read-tool",
+      "sessionId": "019f88a0-a60b-7ae5-8bde-70063ab95464",
+      "timestamp": "2026-07-22T07:17:29.819Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f88a0-a60b-7ae5-8bde-70063ab95464",
+      "timestamp": "2026-07-22T07:08:21.870Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f88a0-a60b-7ae5-8bde-70063ab95464",
+      "timestamp": "2026-07-22T07:28:34.774Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f88a0-a60b-7ae5-8bde-70063ab95464",
+      "timestamp": "2026-07-22T07:39:59.361Z"
+    }
+  ]
+}

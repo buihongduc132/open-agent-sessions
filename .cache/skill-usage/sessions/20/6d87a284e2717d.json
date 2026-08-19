@@ -1,0 +1,26 @@
+{
+  "fingerprint": "206d87a284e2717d635de3a3e6251253e1827f53fc1720b18d10f6368a199ede",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:53.321Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f94ba-48aa-73e0-9624-0201fa22a2b4",
+      "timestamp": "2026-07-24T15:21:09.273Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f94ba-48aa-73e0-9624-0201fa22a2b4",
+      "timestamp": "2026-07-24T15:21:09.273Z"
+    }
+  ]
+}

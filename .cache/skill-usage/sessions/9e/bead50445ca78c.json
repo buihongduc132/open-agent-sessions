@@ -1,0 +1,125 @@
+{
+  "fingerprint": "9ebead50445ca78c24b3447b036161b08b661d54a806b0146299a0699f1352e1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:45.443Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "session-work",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "session-fork",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T02:50:56.801Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T06:32:06.283Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "worst-first-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worst-first-testing",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "e2e-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "e2e-testing",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T07:17:30.872Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-21T08:15:16.322Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-22T06:20:15.484Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019f8282-225d-76a3-9a91-334a604511b2",
+      "timestamp": "2026-07-22T07:57:08.837Z"
+    }
+  ]
+}

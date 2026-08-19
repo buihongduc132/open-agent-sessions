@@ -1,0 +1,44 @@
+{
+  "fingerprint": "616499737d00449efdfaa52df596562c2cfce1b5a0c4395460e3567a63deacfa",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:28:56.367Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fc219-a9c9-797d-b7ed-e75ef0962f5e",
+      "timestamp": "2026-08-02T10:52:02.244Z"
+    },
+    {
+      "skill": "goal-platforms-reference",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "goal-platforms-reference",
+      "source": "text-mention",
+      "sessionId": "019fc219-a9c9-797d-b7ed-e75ef0962f5e",
+      "timestamp": "2026-08-02T10:52:38.808Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fc219-a9c9-797d-b7ed-e75ef0962f5e",
+      "timestamp": "2026-08-02T10:53:27.213Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fc219-a9c9-797d-b7ed-e75ef0962f5e",
+      "timestamp": "2026-08-02T10:53:27.213Z"
+    }
+  ]
+}

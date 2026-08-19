@@ -1,0 +1,17 @@
+{
+  "fingerprint": "cbd27dc159bf2dabfc72ec9bcf5dd2bf799926b376de3c9603136924ad505df1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:57.955Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "plugin-install-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "plugin-install-guard",
+      "source": "read-tool",
+      "sessionId": "019fb60d-3e35-7761-8f46-3c281f3c8ddd",
+      "timestamp": "2026-07-31T02:44:56.680Z"
+    }
+  ]
+}

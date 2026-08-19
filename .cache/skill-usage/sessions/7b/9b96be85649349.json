@@ -1,0 +1,17 @@
+{
+  "fingerprint": "7b9b96be85649349b4108e5461722545192f8c475c55e721aa14b31bf3a06d2f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:59.492Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019f74b0-77ff-73da-88c0-0b35dcfac22b",
+      "timestamp": "2026-07-18T09:55:47.921Z"
+    }
+  ]
+}

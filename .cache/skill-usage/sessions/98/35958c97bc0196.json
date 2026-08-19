@@ -1,0 +1,53 @@
+{
+  "fingerprint": "9835958c97bc0196f26c11515da95adbfa792bb78fa17043e7e9c6fa977fbd67",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:32:01.084Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fbb78-2486-76e0-8906-7e1251c62ae9",
+      "timestamp": "2026-08-01T04:04:18.187Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019fbb78-2486-76e0-8906-7e1251c62ae9",
+      "timestamp": "2026-08-01T04:04:18.187Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fbb78-2486-76e0-8906-7e1251c62ae9",
+      "timestamp": "2026-08-01T04:05:04.914Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fbb78-2486-76e0-8906-7e1251c62ae9",
+      "timestamp": "2026-08-01T04:14:25.956Z"
+    },
+    {
+      "skill": "worst-first-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worst-first-testing",
+      "source": "text-mention",
+      "sessionId": "019fbb78-2486-76e0-8906-7e1251c62ae9",
+      "timestamp": "2026-08-01T04:14:25.956Z"
+    }
+  ]
+}

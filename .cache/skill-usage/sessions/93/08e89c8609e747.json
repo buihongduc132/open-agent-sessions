@@ -1,0 +1,80 @@
+{
+  "fingerprint": "9308e89c8609e747052087f98e0377e0fd644feaa8665c1e746d3ff0e11669a4",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:02.657Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T10:35:35.058Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T10:35:43.908Z"
+    },
+    {
+      "skill": "deployment-creds",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deployment-creds",
+      "source": "read-tool",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T13:23:51.686Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T14:22:10.937Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T14:23:01.659Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T10:13:54.038Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T10:13:54.038Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fc143-e1f3-7160-bc51-a6ef7fe21bb4",
+      "timestamp": "2026-08-02T10:35:35.058Z"
+    }
+  ]
+}

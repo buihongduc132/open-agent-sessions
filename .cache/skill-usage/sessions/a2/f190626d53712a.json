@@ -1,0 +1,44 @@
+{
+  "fingerprint": "a2f190626d53712a23c0265785a77e8736e4666beee01fab9f8b01443808a8b6",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:20.063Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f9563-da96-772f-be32-63ce9b5f6a8d",
+      "timestamp": "2026-07-25T09:19:15.350Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f9563-da96-772f-be32-63ce9b5f6a8d",
+      "timestamp": "2026-07-25T10:24:58.445Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9563-da96-772f-be32-63ce9b5f6a8d",
+      "timestamp": "2026-07-25T10:24:58.445Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9563-da96-772f-be32-63ce9b5f6a8d",
+      "timestamp": "2026-07-25T10:24:58.445Z"
+    }
+  ]
+}

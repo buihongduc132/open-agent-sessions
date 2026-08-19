@@ -1,0 +1,62 @@
+{
+  "fingerprint": "c0e4ea85b4526b7d34448c0d7d677b8d101e88a9afadce3c4bf49d33976665f4",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:00:09.657Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f7512-d10f-7b62-9851-1610e1f0130e",
+      "timestamp": "2026-07-18T12:07:50.582Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7512-d10f-7b62-9851-1610e1f0130e",
+      "timestamp": "2026-07-18T13:24:40.024Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7512-d10f-7b62-9851-1610e1f0130e",
+      "timestamp": "2026-07-18T13:24:40.024Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f7512-d10f-7b62-9851-1610e1f0130e",
+      "timestamp": "2026-07-18T14:30:17.875Z"
+    },
+    {
+      "skill": "worst-first-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worst-first-testing",
+      "source": "text-mention",
+      "sessionId": "019f7512-d10f-7b62-9851-1610e1f0130e",
+      "timestamp": "2026-07-20T04:09:51.782Z"
+    },
+    {
+      "skill": "worst-first-testing",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "worst-first testing",
+      "source": "text-mention",
+      "sessionId": "019f7512-d10f-7b62-9851-1610e1f0130e",
+      "timestamp": "2026-07-20T04:09:51.782Z"
+    }
+  ]
+}

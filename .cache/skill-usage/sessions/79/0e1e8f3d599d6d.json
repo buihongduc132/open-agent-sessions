@@ -1,0 +1,62 @@
+{
+  "fingerprint": "790e1e8f3d599d6df440b7d85148caef15c8b30138ab4e0393a48d75cbc9b7ce",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:53.154Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f6ed4-5027-79c9-b8b9-8cd31b1a5393",
+      "timestamp": "2026-07-17T06:36:56.477Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6ed4-5027-79c9-b8b9-8cd31b1a5393",
+      "timestamp": "2026-07-17T06:38:19.196Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f6ed4-5027-79c9-b8b9-8cd31b1a5393",
+      "timestamp": "2026-07-17T06:39:16.887Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6ed4-5027-79c9-b8b9-8cd31b1a5393",
+      "timestamp": "2026-07-17T06:56:18.143Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "text-mention",
+      "sessionId": "019f6ed4-5027-79c9-b8b9-8cd31b1a5393",
+      "timestamp": "2026-07-17T06:56:18.143Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "pre-commit guard",
+      "source": "text-mention",
+      "sessionId": "019f6ed4-5027-79c9-b8b9-8cd31b1a5393",
+      "timestamp": "2026-07-17T06:56:18.143Z"
+    }
+  ]
+}

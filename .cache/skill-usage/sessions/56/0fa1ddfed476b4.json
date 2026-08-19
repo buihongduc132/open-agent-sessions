@@ -1,0 +1,53 @@
+{
+  "fingerprint": "560fa1ddfed476b4d84bd9b8d85fc94fa37c726b14857705651f76d3d9348470",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:44.247Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9f91-de6e-7448-808a-f544d2145425",
+      "timestamp": "2026-07-25T19:06:02.223Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f9f91-de6e-7448-808a-f544d2145425",
+      "timestamp": "2026-07-26T03:19:53.766Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f9f91-de6e-7448-808a-f544d2145425",
+      "timestamp": "2026-07-26T03:39:49.160Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f9f91-de6e-7448-808a-f544d2145425",
+      "timestamp": "2026-07-26T07:39:08.030Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019f9f91-de6e-7448-808a-f544d2145425",
+      "timestamp": "2026-07-26T09:21:13.275Z"
+    }
+  ]
+}

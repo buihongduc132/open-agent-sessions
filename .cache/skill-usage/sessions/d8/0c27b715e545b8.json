@@ -1,0 +1,89 @@
+{
+  "fingerprint": "d80c27b715e545b8b73d8ccabca7949874c0b4c1271506aca7ee48612829872f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:29:06.273Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T01:12:12.093Z"
+    },
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T01:13:41.206Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T08:25:53.697Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T08:43:14.540Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T01:02:33.352Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T01:12:04.287Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T01:12:04.287Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T08:26:31.122Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f72bb-d9df-7ebc-9b82-69f9b5f6ee2d",
+      "timestamp": "2026-07-18T08:41:38.291Z"
+    }
+  ]
+}

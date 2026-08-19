@@ -1,0 +1,80 @@
+{
+  "fingerprint": "172070cee5fac2e1cc163a6c6757b535daa82504ca6d66b0be0478e910c1bf58",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:19.044Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "read-tool",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-23T19:34:32.416Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-23T19:17:58.442Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-23T19:17:58.442Z"
+    },
+    {
+      "skill": "agent-memory",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-memory",
+      "source": "text-mention",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-23T19:43:54.910Z"
+    },
+    {
+      "skill": "agent-memory",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "agent memory",
+      "source": "text-mention",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-23T19:43:54.910Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-23T19:50:35.543Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-23T19:53:17.513Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f9062-0680-7727-bd69-2676bc6329aa",
+      "timestamp": "2026-07-24T05:46:14.354Z"
+    }
+  ]
+}

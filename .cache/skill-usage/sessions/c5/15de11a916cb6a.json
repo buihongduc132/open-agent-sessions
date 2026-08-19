@@ -1,0 +1,26 @@
+{
+  "fingerprint": "c515de11a916cb6a76b955cf6e1ac988edcb08ef07db90166cff47f95312d408",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:26.946Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "text-mention",
+      "sessionId": "019fb66c-a665-7dda-bc5a-c06050ba1ab6",
+      "timestamp": "2026-07-31T05:06:44.348Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "npm publish",
+      "source": "text-mention",
+      "sessionId": "019fb66c-a665-7dda-bc5a-c06050ba1ab6",
+      "timestamp": "2026-07-31T05:06:44.348Z"
+    }
+  ]
+}

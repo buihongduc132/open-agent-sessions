@@ -1,0 +1,71 @@
+{
+  "fingerprint": "aed9edea68e2580969913ad30f80380272b2cbcf3016206807085ec7af882992",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:22.582Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc338-f48b-7436-83d2-bfd6cc5ff986",
+      "timestamp": "2026-08-02T16:05:47.470Z"
+    },
+    {
+      "skill": "heartbeat-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "heartbeat-testing",
+      "source": "read-tool",
+      "sessionId": "019fc338-f48b-7436-83d2-bfd6cc5ff986",
+      "timestamp": "2026-08-02T16:05:47.470Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "read-tool",
+      "sessionId": "019fc338-f48b-7436-83d2-bfd6cc5ff986",
+      "timestamp": "2026-08-02T16:05:47.470Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fc338-f48b-7436-83d2-bfd6cc5ff986",
+      "timestamp": "2026-08-02T16:05:56.259Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "read-tool",
+      "sessionId": "019fc338-f48b-7436-83d2-bfd6cc5ff986",
+      "timestamp": "2026-08-02T16:05:56.259Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fc338-f48b-7436-83d2-bfd6cc5ff986",
+      "timestamp": "2026-08-02T16:05:56.259Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "browser-os_",
+      "source": "text-mention",
+      "sessionId": "019fc338-f48b-7436-83d2-bfd6cc5ff986",
+      "timestamp": "2026-08-02T16:13:37.650Z"
+    }
+  ]
+}

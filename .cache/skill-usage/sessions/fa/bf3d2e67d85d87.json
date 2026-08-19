@@ -1,0 +1,53 @@
+{
+  "fingerprint": "fabf3d2e67d85d87ca8ae03376cb98368769d9bb3e0088f7c115a4830bbcf41d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:03:29.825Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019f9057-0a4d-7e0a-99b0-ce433081e603",
+      "timestamp": "2026-07-23T10:10:16.446Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9057-0a4d-7e0a-99b0-ce433081e603",
+      "timestamp": "2026-07-23T03:07:03.206Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9057-0a4d-7e0a-99b0-ce433081e603",
+      "timestamp": "2026-07-23T03:07:03.206Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f9057-0a4d-7e0a-99b0-ce433081e603",
+      "timestamp": "2026-07-23T04:18:49.933Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f9057-0a4d-7e0a-99b0-ce433081e603",
+      "timestamp": "2026-07-23T06:40:05.065Z"
+    }
+  ]
+}

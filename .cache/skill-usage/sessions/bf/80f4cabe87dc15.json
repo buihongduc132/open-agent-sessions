@@ -1,0 +1,35 @@
+{
+  "fingerprint": "bf80f4cabe87dc156c4f3901b4d21cb61462b62e544edb3429a3f65e19602414",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:25.481Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019fb3a0-183a-7991-bef5-c83e585fef03",
+      "timestamp": "2026-07-30T11:59:57.071Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fb3a0-183a-7991-bef5-c83e585fef03",
+      "timestamp": "2026-07-30T12:28:49.825Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb3a0-183a-7991-bef5-c83e585fef03",
+      "timestamp": "2026-07-30T14:31:43.273Z"
+    }
+  ]
+}

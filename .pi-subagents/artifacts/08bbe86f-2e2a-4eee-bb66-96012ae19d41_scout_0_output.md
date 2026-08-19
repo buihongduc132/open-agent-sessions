@@ -1,0 +1,1 @@
+Note: there's no `agy` adapter file. Let me verify pi adapter, and confirm which adapters lack toolSearchSessions. Also check if pi adapter has any skill-specific functionality.

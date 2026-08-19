@@ -1,0 +1,62 @@
+{
+  "fingerprint": "c45ca0ce18cc5a49ff8ada098e50b7e012f338e03b364756ce89bff0d98fb272",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:03:27.523Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beethub-notion",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "beethub-notion",
+      "source": "read-tool",
+      "sessionId": "019fabeb-4e05-7541-ad4d-9b508788c7e3",
+      "timestamp": "2026-07-29T03:31:15.205Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "tbd",
+      "source": "text-mention",
+      "sessionId": "019fabeb-4e05-7541-ad4d-9b508788c7e3",
+      "timestamp": "2026-07-29T03:31:35.165Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019fabeb-4e05-7541-ad4d-9b508788c7e3",
+      "timestamp": "2026-07-29T03:53:48.908Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fabeb-4e05-7541-ad4d-9b508788c7e3",
+      "timestamp": "2026-07-29T04:04:56.251Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fabeb-4e05-7541-ad4d-9b508788c7e3",
+      "timestamp": "2026-07-29T04:04:56.251Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019fabeb-4e05-7541-ad4d-9b508788c7e3",
+      "timestamp": "2026-07-29T04:34:03.359Z"
+    }
+  ]
+}

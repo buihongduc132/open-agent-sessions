@@ -1,0 +1,161 @@
+{
+  "fingerprint": "b5676e4e11e26b154766f0393e5db5cab42b6e36690c72d356bbc409e921795a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:32.931Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T06:36:56.477Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T06:38:19.196Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T07:30:55.825Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T17:27:36.388Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T18:12:08.538Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T18:12:23.569Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T06:39:16.887Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T07:32:33.161Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T07:32:33.161Z"
+    },
+    {
+      "skill": "ignore-foreign-changes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ignore-foreign-changes",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T07:57:37.319Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T10:49:01.982Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T17:27:36.388Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T18:08:06.610Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T18:08:06.610Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T18:11:02.373Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "tbd",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T18:13:52.029Z"
+    },
+    {
+      "skill": "tagging-rules",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "tagging-rule",
+      "source": "text-mention",
+      "sessionId": "019f6ec8-9514-7840-9b44-6470d17e990b",
+      "timestamp": "2026-07-17T18:13:52.029Z"
+    }
+  ]
+}

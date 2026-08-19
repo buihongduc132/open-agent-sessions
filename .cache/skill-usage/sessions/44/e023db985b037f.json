@@ -1,0 +1,17 @@
+{
+  "fingerprint": "44e023db985b037fb45fec1982c755c47773a42d872012c2ef23de8d1fc714ea",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:31.040Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "new-model-arrive",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "new-model-arrive",
+      "source": "read-tool",
+      "sessionId": "019f9248-af2d-7536-94c3-e9cd6df27452",
+      "timestamp": "2026-07-24T04:19:07.046Z"
+    }
+  ]
+}

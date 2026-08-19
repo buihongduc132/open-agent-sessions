@@ -1,0 +1,278 @@
+{
+  "fingerprint": "4fb692ce6ac0be7ef06ba35a78ac00b3d59b77db4f0a6ca33259129d8f702685",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:14.353Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "slack-msg",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "slack-msg",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:36.167Z"
+    },
+    {
+      "skill": "permission-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "permission-guard",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:36.167Z"
+    },
+    {
+      "skill": "ops-consolidator",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ops-consolidator",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:36.167Z"
+    },
+    {
+      "skill": "mise-ansible-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "mise-ansible-deploy",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:36.167Z"
+    },
+    {
+      "skill": "mcp-inspector-cli",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "mcp-inspector-cli",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:36.167Z"
+    },
+    {
+      "skill": "local-app-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "local-app-guard",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:46.858Z"
+    },
+    {
+      "skill": "infra-risk-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "infra-risk-guard",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:46.858Z"
+    },
+    {
+      "skill": "ignore-foreign-changes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ignore-foreign-changes",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:46.858Z"
+    },
+    {
+      "skill": "env-config-policy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "env-config-policy",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:46.858Z"
+    },
+    {
+      "skill": "deploy-remote-vps",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deploy-remote-vps",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:46.858Z"
+    },
+    {
+      "skill": "deploy-local-bin",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deploy-local-bin",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:46.858Z"
+    },
+    {
+      "skill": "holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "holdpty",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:59.365Z"
+    },
+    {
+      "skill": "cross-matter-checker",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cross-matter-checker",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:59.365Z"
+    },
+    {
+      "skill": "plan-interview",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "plan-interview",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:59.365Z"
+    },
+    {
+      "skill": "non-tamper",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "non-tamper",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:59.365Z"
+    },
+    {
+      "skill": "tone-angry",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tone-angry",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:59.365Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:13:59.365Z"
+    },
+    {
+      "skill": "deterministic-execution",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deterministic-execution",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:14:13.450Z"
+    },
+    {
+      "skill": "wear-hats",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wear-hats",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:14:13.450Z"
+    },
+    {
+      "skill": "sai-back-forth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sai-back-forth",
+      "source": "read-tool",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:14:13.450Z"
+    },
+    {
+      "skill": "deploy-remote-vps",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deploy-remote-vps",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "ops-consolidator",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ops-consolidator",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "deploy-local-bin",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deploy-local-bin",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "holdpty",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "tone-angry",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tone-angry",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "tone-suite",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tone-suite",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "deterministic-execution",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deterministic-execution",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "slack-msg",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "slack-msg",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    },
+    {
+      "skill": "paperclip",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "paperclip-",
+      "source": "text-mention",
+      "sessionId": "019f7e1f-583e-7ba3-8181-2f61317a21f6",
+      "timestamp": "2026-07-20T06:17:34.455Z"
+    }
+  ]
+}

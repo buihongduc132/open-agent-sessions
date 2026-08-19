@@ -1,0 +1,17 @@
+{
+  "fingerprint": "3cb4f7028a715bfee9c87129f5c1ec130e6cc8e419d8848e1f6580062c2072d1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:39:21.753Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "text-mention",
+      "sessionId": "019f8828-59c5-7455-b22a-db49f2312170",
+      "timestamp": "2026-07-22T04:44:55.719Z"
+    }
+  ]
+}

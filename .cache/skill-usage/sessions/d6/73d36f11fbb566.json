@@ -1,0 +1,26 @@
+{
+  "fingerprint": "d673d36f11fbb5660281f519b4d34879858798ee4738b3430f68b240375cb3b9",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:09.819Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fa891-67e3-75d0-b372-e13b741878f1",
+      "timestamp": "2026-07-28T11:58:02.370Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fa891-67e3-75d0-b372-e13b741878f1",
+      "timestamp": "2026-07-28T12:16:01.976Z"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "fingerprint": "e4b4e02c339a6e699c125d77df520af3bad60e9da9a9285dfb3c739cf40dfda8",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:54.154Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-07-31T20:08:52.281Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-07-31T20:08:52.281Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "all-guard",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-07-31T20:39:27.634Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-07-31T21:07:20.216Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-07-31T22:51:12.701Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-08-01T08:31:23.964Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-08-01T11:59:31.559Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-08-01T15:09:18.453Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fb9a8-7760-7eb9-be6c-af3fdd77727b",
+      "timestamp": "2026-08-02T10:18:18.889Z"
+    }
+  ]
+}

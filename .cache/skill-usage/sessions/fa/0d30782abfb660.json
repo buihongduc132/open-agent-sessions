@@ -1,0 +1,89 @@
+{
+  "fingerprint": "fa0d30782abfb66038c945788d7882ea785d9435e53203e1df9e9b9d87ea19a8",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:02.872Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T05:31:25.469Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T03:25:22.337Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T03:25:48.775Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T03:28:56.790Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T05:34:52.397Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T07:27:27.467Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T08:52:27.589Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "_abw",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T16:50:56.236Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8e76-41ab-730a-9cff-31953a818816",
+      "timestamp": "2026-07-24T17:20:27.655Z"
+    }
+  ]
+}

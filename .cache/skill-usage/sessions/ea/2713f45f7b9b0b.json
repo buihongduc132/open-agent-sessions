@@ -1,0 +1,17 @@
+{
+  "fingerprint": "ea2713f45f7b9b0b5a1025e83e7b00fee49085ee684f8500ac0264aa5dc8acac",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:27.167Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "ralph",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "ralph_",
+      "source": "text-mention",
+      "sessionId": "019f8b22-6653-7b43-a542-d43cf6764832",
+      "timestamp": "2026-07-22T18:42:19.825Z"
+    }
+  ]
+}

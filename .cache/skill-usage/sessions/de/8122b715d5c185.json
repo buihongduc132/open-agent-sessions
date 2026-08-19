@@ -1,0 +1,26 @@
+{
+  "fingerprint": "de8122b715d5c1856fa830648a98e9d522ef14f1f80643b4e962b03f1c24910a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:43.597Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f6a0f-02d6-78a4-b007-8238f95701bd",
+      "timestamp": "2026-07-16T08:40:25.565Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "agents-delegation",
+      "source": "text-mention",
+      "sessionId": "019f6a0f-02d6-78a4-b007-8238f95701bd",
+      "timestamp": "2026-07-16T08:40:25.565Z"
+    }
+  ]
+}

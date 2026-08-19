@@ -1,0 +1,35 @@
+{
+  "fingerprint": "2c09c12381a3ae16eea4b0d900abdbb1796312fdb55d97dd714150af0de99011",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:57.551Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "flow-doc-convention",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "flow-doc-convention",
+      "source": "read-tool",
+      "sessionId": "019f9e9c-b7aa-7496-b003-f6a6521477f4",
+      "timestamp": "2026-07-26T16:31:37.511Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "troubleshootings",
+      "source": "text-mention",
+      "sessionId": "019f9e9c-b7aa-7496-b003-f6a6521477f4",
+      "timestamp": "2026-07-26T16:32:09.641Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9e9c-b7aa-7496-b003-f6a6521477f4",
+      "timestamp": "2026-07-26T16:52:17.490Z"
+    }
+  ]
+}

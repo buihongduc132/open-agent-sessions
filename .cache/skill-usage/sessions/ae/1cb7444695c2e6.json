@@ -1,0 +1,26 @@
+{
+  "fingerprint": "ae1cb7444695c2e65c05240053748c76b345784fa28c16c5894727191eb4d9a5",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:22.176Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "sunset-service",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "sunset-services",
+      "source": "text-mention",
+      "sessionId": "019fbb72-e2d1-77ff-ab4f-7916fa088da0",
+      "timestamp": "2026-08-01T03:58:08.810Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fbb72-e2d1-77ff-ab4f-7916fa088da0",
+      "timestamp": "2026-08-01T04:02:00.459Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "fingerprint": "c0add2cfe9b830a2c8169065f999c8a206d447d2964fcb3ecab7c9c55f0e917e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:20.631Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f7a2e-ca29-70e0-b806-b7cf49a79222",
+      "timestamp": "2026-07-19T11:44:05.516Z"
+    }
+  ]
+}

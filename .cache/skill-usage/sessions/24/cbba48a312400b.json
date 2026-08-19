@@ -1,0 +1,53 @@
+{
+  "fingerprint": "24cbba48a312400b315621a5c4191bdb0ece3bd592e62dce43da59519503211f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:05.019Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "paperclip",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip",
+      "source": "text-mention",
+      "sessionId": "019f885f-9844-7359-a290-9acdeafb7f92",
+      "timestamp": "2026-07-22T05:53:29.841Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f885f-9844-7359-a290-9acdeafb7f92",
+      "timestamp": "2026-07-22T06:13:44.906Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f885f-9844-7359-a290-9acdeafb7f92",
+      "timestamp": "2026-07-22T06:13:44.906Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f885f-9844-7359-a290-9acdeafb7f92",
+      "timestamp": "2026-07-22T08:40:17.881Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f885f-9844-7359-a290-9acdeafb7f92",
+      "timestamp": "2026-07-22T18:26:58.897Z"
+    }
+  ]
+}

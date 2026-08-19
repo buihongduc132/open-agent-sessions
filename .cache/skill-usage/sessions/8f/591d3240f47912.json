@@ -1,0 +1,17 @@
+{
+  "fingerprint": "8f591d3240f4791213966f679530404e7b4f52da27b49dbda5d1c7c115c8e202",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:42.367Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fa062-586e-7516-a145-3bbfd4a53f08",
+      "timestamp": "2026-07-26T21:44:16.667Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "fingerprint": "7de18f94da380115ae28d997fbbb12f764aeca2286e9896da0614f82acfb243e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:27.980Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019fa3d1-50cf-7429-8d04-4ca798d7a8f4",
+      "timestamp": "2026-07-27T13:47:39.065Z"
+    }
+  ]
+}

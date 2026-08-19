@@ -1,0 +1,71 @@
+{
+  "fingerprint": "961d582497d8ff0e25977143537d2f99f2170b6523ba221a98b18f7d642eea5e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:02:07.436Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "heads",
+      "source": "text-mention",
+      "sessionId": "019f8e09-42e4-763f-8424-7109d3d1072d",
+      "timestamp": "2026-07-23T03:45:53.352Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f8e09-42e4-763f-8424-7109d3d1072d",
+      "timestamp": "2026-07-23T04:33:50.685Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f8e09-42e4-763f-8424-7109d3d1072d",
+      "timestamp": "2026-07-23T04:57:59.935Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8e09-42e4-763f-8424-7109d3d1072d",
+      "timestamp": "2026-07-23T05:39:54.923Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8e09-42e4-763f-8424-7109d3d1072d",
+      "timestamp": "2026-07-23T05:39:54.923Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "all-guards",
+      "source": "text-mention",
+      "sessionId": "019f8e09-42e4-763f-8424-7109d3d1072d",
+      "timestamp": "2026-07-23T08:16:43.129Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "all guards",
+      "source": "text-mention",
+      "sessionId": "019f8e09-42e4-763f-8424-7109d3d1072d",
+      "timestamp": "2026-07-23T08:16:43.129Z"
+    }
+  ]
+}

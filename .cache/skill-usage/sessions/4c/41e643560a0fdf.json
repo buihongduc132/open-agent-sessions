@@ -1,0 +1,80 @@
+{
+  "fingerprint": "4c41e643560a0fdf09b2c2be42091ef29ab10b2cc0c0ca87e0b7fdf87dd5a501",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:54.349Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T06:27:37.162Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T06:27:37.162Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T06:47:31.792Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T06:50:29.184Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T07:40:49.935Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T08:01:04.658Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T08:32:10.857Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f833d-acbc-73ca-addd-5bbaa3baae8f",
+      "timestamp": "2026-07-21T08:32:10.857Z"
+    }
+  ]
+}

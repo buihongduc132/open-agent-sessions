@@ -1,0 +1,35 @@
+{
+  "fingerprint": "19273cd6f761e3a5c3479b6e376c7e784e19b764653f6dd575fac1070065b214",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:44.614Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-cmd-palette",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-cmd-palette",
+      "source": "read-tool",
+      "sessionId": "019f8b1c-c113-71af-bca7-58cae2b10c38",
+      "timestamp": "2026-07-22T18:36:02.110Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f8b1c-c113-71af-bca7-58cae2b10c38",
+      "timestamp": "2026-07-22T18:36:39.428Z"
+    },
+    {
+      "skill": "to-pi-skill",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-skill",
+      "source": "text-mention",
+      "sessionId": "019f8b1c-c113-71af-bca7-58cae2b10c38",
+      "timestamp": "2026-07-22T18:36:39.428Z"
+    }
+  ]
+}

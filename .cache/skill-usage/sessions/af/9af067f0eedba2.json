@@ -1,0 +1,53 @@
+{
+  "fingerprint": "af9af067f0eedba2bcaf6e839bd503a680e899b095ad531e21902438b3c632b1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:57:21.576Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6e08-25c5-71f2-a916-38b50e2ad304",
+      "timestamp": "2026-07-17T03:13:17.680Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6e08-25c5-71f2-a916-38b50e2ad304",
+      "timestamp": "2026-07-17T03:12:45.995Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6e08-25c5-71f2-a916-38b50e2ad304",
+      "timestamp": "2026-07-17T03:12:45.995Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "beats",
+      "source": "text-mention",
+      "sessionId": "019f6e08-25c5-71f2-a916-38b50e2ad304",
+      "timestamp": "2026-07-17T06:36:41.142Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6e08-25c5-71f2-a916-38b50e2ad304",
+      "timestamp": "2026-07-17T06:52:05.980Z"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "fingerprint": "7519874406337b1b88f35b6e7d8daa62ea743e1d76a013e04916d0c9fe02584f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:27.202Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:25:00.959Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:31:14.452Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "read-tool",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:33:35.582Z"
+    },
+    {
+      "skill": "zcode-plugin-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "zcode-plugin-creation",
+      "source": "read-tool",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:41:54.917Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:24:44.516Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "text-mention",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:32:58.622Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "npm publish",
+      "source": "text-mention",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:32:58.622Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T04:41:54.917Z"
+    },
+    {
+      "skill": "plugin-install-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "plugin-install-guard",
+      "source": "text-mention",
+      "sessionId": "019f8809-c585-76e7-89a5-d43bb42ee980",
+      "timestamp": "2026-07-22T05:34:42.281Z"
+    }
+  ]
+}

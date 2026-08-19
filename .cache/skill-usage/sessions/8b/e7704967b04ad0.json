@@ -1,0 +1,143 @@
+{
+  "fingerprint": "8be7704967b04ad03bb935130333cf95c22bf099291e9de04af348505c09a2b6",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:35.745Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "fractal-decompose",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "fractal-decompose",
+      "source": "read-tool",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T14:07:15.673Z"
+    },
+    {
+      "skill": "teams-first",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-first",
+      "source": "read-tool",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T16:43:48.955Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T13:43:40.021Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T14:00:03.826Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T14:00:03.826Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "abc",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T14:31:14.017Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "heads",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T14:31:14.017Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T15:29:54.101Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T15:29:54.101Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T15:29:54.101Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T15:39:55.102Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "beats",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T15:39:55.102Z"
+    },
+    {
+      "skill": "teams-first",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-first",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T16:45:23.980Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T18:10:19.553Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6b10-9c0f-732f-aba6-b1a41b3af5a9",
+      "timestamp": "2026-07-16T18:38:47.305Z"
+    }
+  ]
+}

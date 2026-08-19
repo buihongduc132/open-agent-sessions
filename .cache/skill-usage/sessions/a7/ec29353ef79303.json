@@ -1,0 +1,143 @@
+{
+  "fingerprint": "a7ec29353ef79303015197b2ce50c005734682dc5d3c619c12666a44b8c31107",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:53.763Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:44:57.134Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T08:43:14.440Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T08:43:42.434Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "tbd",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-20T12:11:51.695Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:03:37.332Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:03:37.332Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:03:37.332Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:03:37.332Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:03:37.332Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:03:37.332Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:49:39.222Z"
+    },
+    {
+      "skill": "worst-first-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worst-first-testing",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:49:39.222Z"
+    },
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:49:39.222Z"
+    },
+    {
+      "skill": "e2e-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "e2e-testing",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:49:39.222Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f7f6e-6153-797c-83a9-fe5dd13966ac",
+      "timestamp": "2026-07-21T07:56:24.140Z"
+    }
+  ]
+}

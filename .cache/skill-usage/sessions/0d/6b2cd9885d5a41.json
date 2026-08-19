@@ -1,0 +1,98 @@
+{
+  "fingerprint": "0d6b2cd9885d5a41e796b3649b69e87b2b7c73c65d5e34a3e3002baab8409d0c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:14.214Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:40:21.440Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:40:32.640Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:27:55.980Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:27:55.980Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "cli agent",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:27:55.980Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:40:21.440Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:40:21.440Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:42:11.331Z"
+    },
+    {
+      "skill": "skillsmp",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "skillsmp",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:42:11.331Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "cli-agents",
+      "source": "text-mention",
+      "sessionId": "019fb934-c981-7df5-a8dd-fcd8673231dc",
+      "timestamp": "2026-07-31T17:42:11.331Z"
+    }
+  ]
+}

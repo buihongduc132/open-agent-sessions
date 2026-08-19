@@ -1,0 +1,131 @@
+{
+  "runId": "05e01d6e-f5a5-47fa-97a5-61a4b3fc506f",
+  "agent": "reviewer",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/progress.md]\n\nVERIFY inventory accuracy. Cross-check every claim in flow/{skills,tools,mcp}/inventory.yml against actual source code. This is a verifier loop pass/fail gate.\n\nInventory files:\n- flow/skills/inventory.yml (7 items)\n- flow/tools/inventory.yml (5 items)\n- flow/mcp/inventory.yml (7 items)\n\nFor EACH item, verify EVERY adapter field value (implemented/missing/standalone/core/partial/na/gap) against the cited source. Report:\n- VERIFIED (claim matches code)\n- INCORRECT (claim wrong — show actual code evidence)\n- UNVERIFIABLE (claim ambiguous)\n\nKey claims to verify:\n1. skills: only `pi=standalone` (src/skill-usage/*). All adapters = missing skill search.\n2. tools/tools-extract-parts: opencode/hermes/gemini/antigravity/zcode = implemented; pi/claude/codex/acpx = missing.\n3. tools/tools-search-sessions: only opencode/hermes/zcode implemented; rest missing.\n4. tools/tools-stats-callcount + tools-categorize + tools-mcp-tag = `core` for all adapters (src/core/subagents.ts).\n5. mcp/mcp-server-discovery: ALL missing.\n6. mcp/mcp-config-parse: ALL missing.\n7. mcp/mcp-isMcp-heuristic: `core` for all (src/core/subagents.ts:187).\n8. mcp/mcp-agy-adapter: agy does NOT exist in code.\n9. mcp/mcp-acpx-agentkind: acpx in adapters/index.ts but NOT in AgentKind (src/config/types.ts).\n\nEvidence method: rg/grep the cited files. Cite file:line for each verdict.\n\nVerdict at end: PASS or FAIL. If FAIL, list every incorrect field value with the correct value.\n\nOutput format: per-item verdict table + final PASS/FAIL.\n\n---\nUpdate progress at: /home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/progress/05e01d6e-f5a5-47fa-97a5-61a4b3fc506f/progress.md\n\n---\n**Output:**\nWrite your findings to exactly this path: /home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/outputs/05e01d6e-f5a5-47fa-97a5-61a4b3fc506f/verify-inventory.md\nThis path is authoritative for this run.\nIgnore any other output filename or output path mentioned elsewhere, including output destinations in the base agent prompt, system prompt, or task instructions.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart:high",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 53995,
+        "output": 6662,
+        "cacheRead": 278080,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 11
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "attested",
+    "evidenceStatus": "attested",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "All 19 inventory items verified against cited source with file:line evidence; verdict PASS, zero INCORRECT."
+        }
+      ],
+      "changedFiles": [],
+      "testsAddedOrUpdated": [],
+      "commandsRun": [
+        {
+          "command": "rg -n \"agy\" src/",
+          "result": "passed",
+          "summary": "0 matches — agy adapter absent"
+        },
+        {
+          "command": "rg -n \"toolSearchSessions\" src/adapters/",
+          "result": "passed",
+          "summary": "only opencode/hermes/zcode implement"
+        },
+        {
+          "command": "rg type:tool in each adapter + isMcp/categorise/TOOL_CATEGORY_MAP in subagents.ts",
+          "result": "passed",
+          "summary": "tool parts at opencode:908/hermes:410/gemini:288/antigravity:247/zcode:438; isMcp @ subagents.ts:187"
+        },
+        {
+          "command": "rg \"acpx\" src/config/types.ts src/core/types.ts; head src/adapters/acpx.ts",
+          "result": "passed",
+          "summary": "acpx exported index.ts:7 + acpx.ts:78 but absent from AgentKind"
+        },
+        {
+          "command": "rg \"mcpServers|discoverMcp|McpServer\" src/",
+          "result": "passed",
+          "summary": "0 matches — MCP discovery/config-parse absent"
+        },
+        {
+          "command": "rg skill-usage exports + heatmap script",
+          "result": "passed",
+          "summary": "all claimed skill-usage functions exist at cited locations"
+        }
+      ],
+      "validationOutput": [
+        "skills/inventory.yml: 7/7 VERIFIED",
+        "tools/inventory.yml: 5/5 VERIFIED (45 adapter fields)",
+        "mcp/inventory.yml: 7/7 VERIFIED",
+        "Final: PASS — all claims match source"
+      ],
+      "residualRisks": [
+        "none — static read-only verification, no code changed"
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "no changes — read-only verification pass",
+      "reviewFindings": [
+        "no blockers — all 19 inventory items match source code; verdict PASS"
+      ],
+      "manualNotes": "Inventory files are accurate; aggregator notes correctly flag isMcp OpenCode-prefix bias as real limitation."
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/05e01d6e-f5a5-47fa-97a5-61a4b3fc506f_reviewer_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785498822049
+}

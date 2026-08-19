@@ -1,0 +1,44 @@
+{
+  "fingerprint": "398ccdfaf75aa50b3f8b194c69ed9ad8eebe8cd3be760aac281523b0ac297f7a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:28.143Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bug-to-rule",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "bug-to-rule",
+      "source": "text-mention",
+      "sessionId": "019f7677-5941-7eb3-84b4-0af81880c4ea",
+      "timestamp": "2026-07-18T15:57:43.500Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f7677-5941-7eb3-84b4-0af81880c4ea",
+      "timestamp": "2026-07-18T19:05:28.410Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7677-5941-7eb3-84b4-0af81880c4ea",
+      "timestamp": "2026-07-18T19:05:28.410Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7677-5941-7eb3-84b4-0af81880c4ea",
+      "timestamp": "2026-07-18T19:05:28.410Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "fingerprint": "66b4cf1f3c07183a794d4d6d5ed193093846067ca17e3deb5d07127cfdaf7b2d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:31.457Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "model-fallback",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "model-fallback",
+      "source": "read-tool",
+      "sessionId": "019f6e4c-645d-78a4-97a2-84db3b26812a",
+      "timestamp": "2026-07-17T05:15:44.602Z"
+    }
+  ]
+}

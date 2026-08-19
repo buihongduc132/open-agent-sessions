@@ -1,0 +1,35 @@
+{
+  "fingerprint": "4d0c89a4cb9b68f1faebf18c880484343c2d133c9f4ecad88f18a31cfb53fb7c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:22.215Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "wear-hats",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wear-hats",
+      "source": "text-mention",
+      "sessionId": "019f9e86-009d-7e22-9df8-cc88d102d8e3",
+      "timestamp": "2026-07-26T13:04:09.512Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019f9e86-009d-7e22-9df8-cc88d102d8e3",
+      "timestamp": "2026-07-26T13:04:09.512Z"
+    },
+    {
+      "skill": "worst-first-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worst-first-testing",
+      "source": "text-mention",
+      "sessionId": "019f9e86-009d-7e22-9df8-cc88d102d8e3",
+      "timestamp": "2026-07-26T13:04:09.512Z"
+    }
+  ]
+}

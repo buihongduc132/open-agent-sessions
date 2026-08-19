@@ -1,0 +1,98 @@
+{
+  "fingerprint": "3cf7c64cd444785a9d9d8f577d4b61e67dc4d25ef25f2f2f7e54ad663a512b6e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:51.306Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "read-tool",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:28:43.054Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "read-tool",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:41:54.469Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "read-tool",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:42:10.748Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T14:37:42.111Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:06:33.507Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:06:33.507Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:19:29.156Z"
+    },
+    {
+      "skill": "holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "holdpty",
+      "source": "text-mention",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:29:30.470Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:29:30.470Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "text-mention",
+      "sessionId": "019f89a9-beaa-7e62-883b-d7af72ea04b5",
+      "timestamp": "2026-07-22T15:43:14.973Z"
+    }
+  ]
+}

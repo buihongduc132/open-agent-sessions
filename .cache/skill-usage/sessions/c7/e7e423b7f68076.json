@@ -1,0 +1,17 @@
+{
+  "fingerprint": "c7e7e423b7f68076082e5e66482d1aa4294e75a0d687a1c7924369a5e260f46d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:02.935Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bug-to-rule",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bug-to-rules",
+      "source": "text-mention",
+      "sessionId": "019fa3c4-5a1f-77e4-930c-7f46f65cdc69",
+      "timestamp": "2026-07-27T10:12:57.188Z"
+    }
+  ]
+}

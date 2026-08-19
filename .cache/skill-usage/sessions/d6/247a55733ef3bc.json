@@ -1,0 +1,17 @@
+{
+  "fingerprint": "d6247a55733ef3bc8368b00e73bda1c91fc0945775d8750995fe10a60edc136d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:28:51.352Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f88d3-bd31-76a1-b3c1-6b05af651a65",
+      "timestamp": "2026-07-22T08:30:01.020Z"
+    }
+  ]
+}

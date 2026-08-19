@@ -1,0 +1,44 @@
+{
+  "fingerprint": "beb7c32a5ab4c3c5b654011507b07ad69b7b4877507a3765f9852d584fffb592",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:06.253Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f92de-70e8-79b0-bd6c-46cd6c3fbb0a",
+      "timestamp": "2026-07-24T01:01:28.554Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f92de-70e8-79b0-bd6c-46cd6c3fbb0a",
+      "timestamp": "2026-07-24T01:01:28.554Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f92de-70e8-79b0-bd6c-46cd6c3fbb0a",
+      "timestamp": "2026-07-24T01:27:36.919Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f92de-70e8-79b0-bd6c-46cd6c3fbb0a",
+      "timestamp": "2026-07-24T02:41:16.061Z"
+    }
+  ]
+}

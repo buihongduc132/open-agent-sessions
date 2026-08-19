@@ -1,0 +1,35 @@
+{
+  "fingerprint": "89438b50f57873fed25ae9fc3db994fbbd644e84f63699cd48d8c498f041138f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:06.401Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8ca1-72cf-7fbd-b958-97403dfe4824",
+      "timestamp": "2026-07-23T01:55:39.513Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sunset-service",
+      "source": "text-mention",
+      "sessionId": "019f8ca1-72cf-7fbd-b958-97403dfe4824",
+      "timestamp": "2026-07-23T01:55:39.513Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "sunset service",
+      "source": "text-mention",
+      "sessionId": "019f8ca1-72cf-7fbd-b958-97403dfe4824",
+      "timestamp": "2026-07-23T01:55:39.513Z"
+    }
+  ]
+}

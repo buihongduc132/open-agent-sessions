@@ -1,0 +1,35 @@
+{
+  "fingerprint": "34383b5a1601bcb9c51d4c85d48cff19c6af3be446343c6ec9e224b3619145d0",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:37.511Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f8cc6-ec52-7bf1-8cb7-110dd0da597d",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f8cc6-ec52-7bf1-8cb7-110dd0da597d",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8cc6-ec52-7bf1-8cb7-110dd0da597d",
+      "timestamp": "2026-07-22T18:26:15.600Z"
+    }
+  ]
+}

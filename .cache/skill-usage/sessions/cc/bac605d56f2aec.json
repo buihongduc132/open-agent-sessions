@@ -1,0 +1,35 @@
+{
+  "fingerprint": "ccbac605d56f2aecb07c79f0b47d1d9c6a50f037e7a49f24ed588e3f24925766",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:03.036Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f6c55-c771-714f-a8de-ad9068dcdfeb",
+      "timestamp": "2026-07-16T19:15:48.387Z"
+    },
+    {
+      "skill": "agent-teams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-teams",
+      "source": "read-tool",
+      "sessionId": "019f6c55-c771-714f-a8de-ad9068dcdfeb",
+      "timestamp": "2026-07-16T19:17:36.924Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6c55-c771-714f-a8de-ad9068dcdfeb",
+      "timestamp": "2026-07-16T19:32:09.208Z"
+    }
+  ]
+}

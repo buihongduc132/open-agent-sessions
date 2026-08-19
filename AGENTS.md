@@ -88,6 +88,10 @@ Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy m
 - **Library:** `src/skill-usage/` — spec `flow/requirements/skill-usage-analyzer/README.md`, intention `flow/intentions/2026-07-19-skill-usage-analyzer.md`
 - **Runner:** `scripts/skill-usage-heatmap.ts` — usage `flow/requirements/skill-usage-heatmap-script/README.md`, intention `flow/intentions/2026-07-20-skill-usage-heatmap-script.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`
 
+## oas-command-stats (separate repo)
+
+Companion repo `../oas-command-stats/` consumes OAS adapters as `@open-agent-sessions/sdk` to ingest bash command stats into DuckDB. Design + gotcha findings + locked decisions live at `../oas-command-stats/flow/findings/2026-08-04_oas-command-stats/` (NOT in this repo).
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 

@@ -1,0 +1,26 @@
+{
+  "fingerprint": "67610169338234919e262fa2db08804ab21766b831c3dbf4b61364c9db37d4c7",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:00.574Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "codeql-identifier-taint",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "codeql-identifier-taint",
+      "source": "read-tool",
+      "sessionId": "019fa851-876c-7371-bf1e-881f368643c3",
+      "timestamp": "2026-07-28T10:41:37.033Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "all-guards",
+      "source": "read-tool",
+      "sessionId": "019fa851-876c-7371-bf1e-881f368643c3",
+      "timestamp": "2026-07-28T10:41:37.033Z"
+    }
+  ]
+}

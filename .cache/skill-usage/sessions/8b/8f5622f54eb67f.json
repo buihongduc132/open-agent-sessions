@@ -1,0 +1,89 @@
+{
+  "fingerprint": "8b8f5622f54eb67f86533db5f38d6225c9ef5278e4a79a0b59aa3a7f31b32ec7",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:00:16.986Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T11:53:05.727Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T11:57:21.759Z"
+    },
+    {
+      "skill": "creds-auth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "creds-auth",
+      "source": "read-tool",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T11:59:34.561Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T10:50:55.348Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T10:53:34.022Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T10:53:34.022Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T11:28:48.598Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T11:54:44.887Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "text-mention",
+      "sessionId": "019fadc0-382e-71e0-8c9d-4e12d7b07b8d",
+      "timestamp": "2026-07-29T12:07:55.490Z"
+    }
+  ]
+}

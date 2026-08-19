@@ -1,0 +1,17 @@
+{
+  "fingerprint": "a2b38a24ebaaa3ff185d6485f2f2202b7ed12f53ff3db349b382890969ae4f30",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:52.739Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "enterprise-postmortem",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "enterprise-postmortem",
+      "source": "read-tool",
+      "sessionId": "019fa22e-c363-7f04-82d4-3d41d7a73887",
+      "timestamp": "2026-07-27T06:07:09.645Z"
+    }
+  ]
+}

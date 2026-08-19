@@ -1,0 +1,44 @@
+{
+  "fingerprint": "7e1125d5c8ab73af0abbb397927c08a9b37a0039683a4574e446eb2bc64dad5d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:15.418Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fbb76-9dbc-7122-95ea-6ccab75a97d9",
+      "timestamp": "2026-08-01T07:03:23.034Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fbb76-9dbc-7122-95ea-6ccab75a97d9",
+      "timestamp": "2026-08-01T07:07:28.733Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fbb76-9dbc-7122-95ea-6ccab75a97d9",
+      "timestamp": "2026-08-02T09:12:45.633Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019fbb76-9dbc-7122-95ea-6ccab75a97d9",
+      "timestamp": "2026-08-02T09:12:45.633Z"
+    }
+  ]
+}

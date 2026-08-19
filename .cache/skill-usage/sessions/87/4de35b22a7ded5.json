@@ -1,0 +1,62 @@
+{
+  "fingerprint": "874de35b22a7ded53b0e1a53925033b381f2044240789899dbe8437a3e7f7ca9",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:57:11.184Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb108-fef8-7838-a356-b002351a4151",
+      "timestamp": "2026-07-30T03:40:12.788Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fb108-fef8-7838-a356-b002351a4151",
+      "timestamp": "2026-07-30T04:19:24.611Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx",
+      "source": "text-mention",
+      "sessionId": "019fb108-fef8-7838-a356-b002351a4151",
+      "timestamp": "2026-07-30T04:28:59.890Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fb108-fef8-7838-a356-b002351a4151",
+      "timestamp": "2026-07-30T05:58:57.758Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fb108-fef8-7838-a356-b002351a4151",
+      "timestamp": "2026-07-30T05:58:57.758Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fb108-fef8-7838-a356-b002351a4151",
+      "timestamp": "2026-07-30T08:36:38.067Z"
+    }
+  ]
+}

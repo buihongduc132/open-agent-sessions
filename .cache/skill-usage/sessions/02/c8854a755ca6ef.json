@@ -1,0 +1,26 @@
+{
+  "fingerprint": "02c8854a755ca6ef63410cc1f58fe6279034ca8dda60ece46f1f58da3eaac15f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:44.898Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f6e18-dad9-768b-846a-230972c65d98",
+      "timestamp": "2026-07-17T03:27:52.063Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6e18-dad9-768b-846a-230972c65d98",
+      "timestamp": "2026-07-17T04:11:39.128Z"
+    }
+  ]
+}

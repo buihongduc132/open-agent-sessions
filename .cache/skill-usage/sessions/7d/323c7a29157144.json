@@ -1,0 +1,17 @@
+{
+  "fingerprint": "7d323c7a291571441aceb3d0c24cf620906bc2b8a4c91e8eb7da2d8266689891",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:41.118Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f9b9b-4a0d-715a-aa81-86597c18e627",
+      "timestamp": "2026-07-25T23:30:34.461Z"
+    }
+  ]
+}

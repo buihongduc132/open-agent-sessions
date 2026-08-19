@@ -1,0 +1,26 @@
+{
+  "fingerprint": "e1557cb0ad0e543586fe6198ccad811c63a358d9c04f1e80089500ec1983c5c8",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:17.715Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f8810-45a6-7764-999b-1d99dc4626d7",
+      "timestamp": "2026-07-22T04:10:56.288Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8810-45a6-7764-999b-1d99dc4626d7",
+      "timestamp": "2026-07-22T04:27:29.262Z"
+    }
+  ]
+}

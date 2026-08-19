@@ -1,0 +1,26 @@
+{
+  "fingerprint": "273cae19cb96f91accf13de76890ccb96220bc991468a731f4a896b411fa2a56",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:55.474Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019f749a-4357-7ca2-b290-ddbda4794bae",
+      "timestamp": "2026-07-18T09:55:47.921Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f749a-4357-7ca2-b290-ddbda4794bae",
+      "timestamp": "2026-07-18T10:11:39.836Z"
+    }
+  ]
+}

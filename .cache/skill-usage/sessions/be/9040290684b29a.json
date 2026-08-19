@@ -1,0 +1,35 @@
+{
+  "fingerprint": "be9040290684b29a3e436759d133e8493a3169867e00fa239be25e8c49f7cc91",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:11.869Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6eb5-f431-7748-857b-c85a885217b9",
+      "timestamp": "2026-07-17T06:16:58.709Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6eb5-f431-7748-857b-c85a885217b9",
+      "timestamp": "2026-07-17T06:28:08.318Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f6eb5-f431-7748-857b-c85a885217b9",
+      "timestamp": "2026-07-17T06:28:08.318Z"
+    }
+  ]
+}

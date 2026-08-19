@@ -1,0 +1,26 @@
+{
+  "fingerprint": "d7275d879ed3f0a7746e9a800aa61c2e4a94bce6ce0aab2e46bc61e411b1bcc9",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:53.138Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f931a-53c7-7b03-a6e5-d15de7d0b7a9",
+      "timestamp": "2026-07-24T04:30:22.890Z"
+    },
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f931a-53c7-7b03-a6e5-d15de7d0b7a9",
+      "timestamp": "2026-07-24T07:47:15.128Z"
+    }
+  ]
+}

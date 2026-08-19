@@ -1,0 +1,71 @@
+{
+  "fingerprint": "8bd0874c90253169585a1d4ece978a08486270646369ec0a8c280da9936eaf0e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:21.077Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6ae2-dc43-7c8c-bf66-8d74932f141c",
+      "timestamp": "2026-07-16T12:31:54.940Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6ae2-dc43-7c8c-bf66-8d74932f141c",
+      "timestamp": "2026-07-16T13:12:57.386Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f6ae2-dc43-7c8c-bf66-8d74932f141c",
+      "timestamp": "2026-07-16T12:31:31.106Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6ae2-dc43-7c8c-bf66-8d74932f141c",
+      "timestamp": "2026-07-16T12:31:31.106Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6ae2-dc43-7c8c-bf66-8d74932f141c",
+      "timestamp": "2026-07-16T12:31:31.106Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx",
+      "source": "text-mention",
+      "sessionId": "019f6ae2-dc43-7c8c-bf66-8d74932f141c",
+      "timestamp": "2026-07-16T13:25:16.496Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6ae2-dc43-7c8c-bf66-8d74932f141c",
+      "timestamp": "2026-07-16T13:25:46.908Z"
+    }
+  ]
+}

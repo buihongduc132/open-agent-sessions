@@ -1,0 +1,26 @@
+{
+  "fingerprint": "a2cacb1390a017b2761b700d0c853047b5ff093161592836efc16a03cb18fbb8",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:45.929Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f69fb-9bdc-7d1e-84e1-82f39d15720f",
+      "timestamp": "2026-07-16T12:26:40.322Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f69fb-9bdc-7d1e-84e1-82f39d15720f",
+      "timestamp": "2026-07-16T12:26:40.322Z"
+    }
+  ]
+}

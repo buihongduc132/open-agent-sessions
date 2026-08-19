@@ -1,0 +1,35 @@
+{
+  "fingerprint": "f7ac67f06298459fee2faec9e7416942bcff30a9114d9dce938ff2420d4cfaee",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:19.637Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f93fe-9310-754e-a209-922297def731",
+      "timestamp": "2026-07-24T12:38:28.573Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f93fe-9310-754e-a209-922297def731",
+      "timestamp": "2026-07-24T15:07:29.164Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019f93fe-9310-754e-a209-922297def731",
+      "timestamp": "2026-07-24T15:07:29.164Z"
+    }
+  ]
+}

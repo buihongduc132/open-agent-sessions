@@ -1,0 +1,17 @@
+{
+  "fingerprint": "99627fca16f118b67f2b15b8e2f8fe5f8abf0842e4dcde0918f16b7e03451688",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:32.143Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f71ed-928c-745f-a001-b587608536dc",
+      "timestamp": "2026-07-17T21:17:26.034Z"
+    }
+  ]
+}

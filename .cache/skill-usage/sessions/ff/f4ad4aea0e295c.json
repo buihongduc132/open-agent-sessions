@@ -1,0 +1,71 @@
+{
+  "fingerprint": "fff4ad4aea0e295c799a8d745fc74751b42dae30eac3d1be62061afd5396328b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:01:36.023Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fa21f-8cff-757c-a234-10bb899a9116",
+      "timestamp": "2026-07-27T07:44:55.652Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "read-tool",
+      "sessionId": "019fa21f-8cff-757c-a234-10bb899a9116",
+      "timestamp": "2026-07-27T07:45:09.474Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fa21f-8cff-757c-a234-10bb899a9116",
+      "timestamp": "2026-07-27T07:50:36.405Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fa21f-8cff-757c-a234-10bb899a9116",
+      "timestamp": "2026-07-27T07:50:46.766Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "browseros",
+      "source": "text-mention",
+      "sessionId": "019fa21f-8cff-757c-a234-10bb899a9116",
+      "timestamp": "2026-07-27T07:44:55.652Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fa21f-8cff-757c-a234-10bb899a9116",
+      "timestamp": "2026-07-27T07:44:55.652Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "text-mention",
+      "sessionId": "019fa21f-8cff-757c-a234-10bb899a9116",
+      "timestamp": "2026-07-27T07:45:09.474Z"
+    }
+  ]
+}

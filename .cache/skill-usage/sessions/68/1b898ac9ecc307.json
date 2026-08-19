@@ -1,0 +1,107 @@
+{
+  "fingerprint": "681b898ac9ecc307b7cb68b71a34771fadcabed7511e270a1d166a5bc704e6ad",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:07.057Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T17:41:18.903Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:38:16.452Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:38:28.365Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T17:48:59.716Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:34:33.026Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:37:30.357Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:37:30.357Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:37:30.357Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:42:27.864Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:42:27.864Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fb939-502f-771c-a2bf-040494157a91",
+      "timestamp": "2026-07-31T18:42:27.864Z"
+    }
+  ]
+}

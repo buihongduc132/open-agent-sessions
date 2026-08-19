@@ -1,0 +1,71 @@
+{
+  "fingerprint": "b4945b7076f63b9d18551e7864c69b71161120cf386a55a452b28631371459cd",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:03.832Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019f8fc0-35fb-7799-8c1b-337b9ae29d49",
+      "timestamp": "2026-07-23T16:15:14.778Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8fc0-35fb-7799-8c1b-337b9ae29d49",
+      "timestamp": "2026-07-23T16:15:32.254Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f8fc0-35fb-7799-8c1b-337b9ae29d49",
+      "timestamp": "2026-07-23T16:38:41.635Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8fc0-35fb-7799-8c1b-337b9ae29d49",
+      "timestamp": "2026-07-23T16:38:55.871Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8fc0-35fb-7799-8c1b-337b9ae29d49",
+      "timestamp": "2026-07-23T16:38:55.871Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f8fc0-35fb-7799-8c1b-337b9ae29d49",
+      "timestamp": "2026-07-23T17:02:52.607Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f8fc0-35fb-7799-8c1b-337b9ae29d49",
+      "timestamp": "2026-07-23T17:33:38.665Z"
+    }
+  ]
+}

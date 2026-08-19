@@ -1,0 +1,53 @@
+{
+  "fingerprint": "ec05bb02df7bb0fbfa3e03f10b938e640cfb685cd53e317de2867e38b94bf962",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:55:19.189Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019facb4-85ad-7289-86db-3272e418caa2",
+      "timestamp": "2026-07-29T07:12:44.230Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019facb4-85ad-7289-86db-3272e418caa2",
+      "timestamp": "2026-07-29T07:15:50.783Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019facb4-85ad-7289-86db-3272e418caa2",
+      "timestamp": "2026-07-29T08:30:55.054Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019facb4-85ad-7289-86db-3272e418caa2",
+      "timestamp": "2026-07-29T07:12:44.230Z"
+    },
+    {
+      "skill": "computer-use",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "computer-use",
+      "source": "text-mention",
+      "sessionId": "019facb4-85ad-7289-86db-3272e418caa2",
+      "timestamp": "2026-07-29T08:33:28.112Z"
+    }
+  ]
+}

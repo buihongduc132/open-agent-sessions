@@ -1,0 +1,26 @@
+{
+  "fingerprint": "fd1a3ff0d4e09ead551447a4f786ae128d9227c3e7ae4905d925cc681477f8ab",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:07.593Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019fa000-7df9-7c5d-88a5-7498a4f5b4dc",
+      "timestamp": "2026-07-26T19:50:10.247Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fa000-7df9-7c5d-88a5-7498a4f5b4dc",
+      "timestamp": "2026-07-26T19:54:24.129Z"
+    }
+  ]
+}

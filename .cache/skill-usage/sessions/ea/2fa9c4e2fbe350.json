@@ -1,0 +1,62 @@
+{
+  "fingerprint": "ea2fa9c4e2fbe350c9fd3eb22089c6340c5715843a6ebfd36605f481239e087a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:39.789Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f9e93-b4c1-739d-8e2a-26668af8d33b",
+      "timestamp": "2026-07-26T13:19:13.782Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f9e93-b4c1-739d-8e2a-26668af8d33b",
+      "timestamp": "2026-07-26T13:19:13.782Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019f9e93-b4c1-739d-8e2a-26668af8d33b",
+      "timestamp": "2026-07-26T13:19:13.782Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019f9e93-b4c1-739d-8e2a-26668af8d33b",
+      "timestamp": "2026-07-26T13:19:13.782Z"
+    },
+    {
+      "skill": "pi-ctx-budget",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-ctx-budget",
+      "source": "text-mention",
+      "sessionId": "019f9e93-b4c1-739d-8e2a-26668af8d33b",
+      "timestamp": "2026-07-26T13:19:13.782Z"
+    },
+    {
+      "skill": "pi-email-integration",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-email-integration",
+      "source": "text-mention",
+      "sessionId": "019f9e93-b4c1-739d-8e2a-26668af8d33b",
+      "timestamp": "2026-07-26T13:19:13.782Z"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "fingerprint": "5c0b726ed29b43131f4b17825a0ba33c5e3abeba39d61469ec25c662aa34ce22",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:20.222Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019f9f39-8217-7b0d-b852-cf299f967e6a",
+      "timestamp": "2026-07-26T16:43:40.170Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "troubleshootings",
+      "source": "text-mention",
+      "sessionId": "019f9f39-8217-7b0d-b852-cf299f967e6a",
+      "timestamp": "2026-07-26T16:51:33.763Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f9f39-8217-7b0d-b852-cf299f967e6a",
+      "timestamp": "2026-07-26T16:51:33.763Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f9f39-8217-7b0d-b852-cf299f967e6a",
+      "timestamp": "2026-07-26T19:27:08.355Z"
+    }
+  ]
+}

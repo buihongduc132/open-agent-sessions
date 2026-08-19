@@ -1,0 +1,80 @@
+{
+  "fingerprint": "35aa3e8300fb773158d97a354c0242cf6b8bebe545545975ec2c0ca766b125d6",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:37.113Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-16T19:50:39.577Z"
+    },
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-16T19:50:39.577Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-16T19:50:39.577Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-16T19:26:22.523Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-16T19:38:39.316Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-17T04:01:15.218Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-17T04:01:15.218Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f6c60-cbdf-7594-b697-ec066149b151",
+      "timestamp": "2026-07-17T04:02:56.991Z"
+    }
+  ]
+}

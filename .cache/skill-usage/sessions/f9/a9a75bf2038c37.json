@@ -1,0 +1,35 @@
+{
+  "fingerprint": "f9a9a75bf2038c371fe7609effa66abc1b540189bc868de978877ccd339083ce",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:16.304Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "architect",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "architect",
+      "source": "text-mention",
+      "sessionId": "019fb786-d4bf-7a74-b806-062744174d48",
+      "timestamp": "2026-07-31T09:38:52.754Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fb786-d4bf-7a74-b806-062744174d48",
+      "timestamp": "2026-07-31T09:38:52.754Z"
+    },
+    {
+      "skill": "goal-platforms-reference",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "goal-platforms-reference",
+      "source": "text-mention",
+      "sessionId": "019fb786-d4bf-7a74-b806-062744174d48",
+      "timestamp": "2026-07-31T09:39:37.941Z"
+    }
+  ]
+}

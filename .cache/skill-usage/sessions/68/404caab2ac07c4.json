@@ -1,0 +1,62 @@
+{
+  "fingerprint": "68404caab2ac07c4584cf93d50b8bb87d928a89bc9ffa8b363454ba459815977",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:43.850Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fa84c-e123-79ee-bc33-7f598a4e76dd",
+      "timestamp": "2026-07-28T10:45:18.431Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "b-d",
+      "source": "text-mention",
+      "sessionId": "019fa84c-e123-79ee-bc33-7f598a4e76dd",
+      "timestamp": "2026-07-28T11:01:06.484Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa84c-e123-79ee-bc33-7f598a4e76dd",
+      "timestamp": "2026-07-28T11:20:14.153Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fa84c-e123-79ee-bc33-7f598a4e76dd",
+      "timestamp": "2026-07-28T11:20:14.153Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fa84c-e123-79ee-bc33-7f598a4e76dd",
+      "timestamp": "2026-07-28T19:18:43.891Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fa84c-e123-79ee-bc33-7f598a4e76dd",
+      "timestamp": "2026-07-29T03:23:14.149Z"
+    }
+  ]
+}

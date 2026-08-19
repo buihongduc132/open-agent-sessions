@@ -1,0 +1,62 @@
+{
+  "fingerprint": "c229052d75ce766bd0f5067ef0ce61bc9fea268cd4ba5c40dc79ad07b01df366",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:43.165Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "read-tool",
+      "sessionId": "019fa358-626c-7558-b911-21ff70f16e59",
+      "timestamp": "2026-07-27T11:59:07.995Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "read-tool",
+      "sessionId": "019fa358-626c-7558-b911-21ff70f16e59",
+      "timestamp": "2026-07-27T11:59:36.408Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "read-tool",
+      "sessionId": "019fa358-626c-7558-b911-21ff70f16e59",
+      "timestamp": "2026-07-27T11:59:41.794Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "read-tool",
+      "sessionId": "019fa358-626c-7558-b911-21ff70f16e59",
+      "timestamp": "2026-07-27T11:59:54.728Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "read-tool",
+      "sessionId": "019fa358-626c-7558-b911-21ff70f16e59",
+      "timestamp": "2026-07-27T12:00:14.017Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019fa358-626c-7558-b911-21ff70f16e59",
+      "timestamp": "2026-07-27T11:59:00.379Z"
+    }
+  ]
+}

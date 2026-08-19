@@ -1,0 +1,134 @@
+{
+  "runId": "88697cea-82e9-4395-bdc4-b559d2b0a386",
+  "agent": "reviewer",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/progress.md]\n\nGOTCHA COVERAGE — DO NOT modify any files. Output your findings as your response only.\n\nYou are reviewing a DESIGN DOCUMENT for a Command Stats Ingestion System (ingests bash command invocations from CLI agent session logs into an analytics DB). Topic of THIS batch: DEPLOYMENT / SCOPE / INGESTION CORRECTNESS.\n\nGLOBAL SCOPE — no project-specific assumptions.\n\nWEB SEARCH MANDATORY: For each gotcha, search for CDC (change data capture) patterns, idempotency patterns, outbox pattern gotchas. Cite 3-5 sources per finding.\n\nDO NOT re-analyze whether the design is good. Find what was MISSED.\n\nOriginal items (verbatim):\n\n=== OT1 (open thread) ===\nseparate-repo-vs-integrated. User said 'could make this as a separate repository, oas is the common function / sdk that it can import and progress'. Hedge ('could') — not locked. Design assumed separate repo (oas-command-stats/). Alternative: new CLI command inside open-agent-sessions repo. Decision needed.\n\n=== LD2 (locked decision) ===\nper-session-watermarks. Idempotent ingestion with per-session high watermark. Watermark tracks last_event_ts per session_id. Old sessions with new events above watermark get re-scanned; fully-ingested sessions skipped. Captures NEW changes only.\n\n=== LD4 (locked decision) ===\nperf-caching-ease-of-use. Performance, caching, ease-of-use are first-class design constraints. Manifests as: DuckDB columnar storage, materialized views for common aggregations, batched ingestion (10k), in-memory watermarks, single CLI.\n\n=== OT13 (also process question) ===\nnext-step-choice (see batch 3) — relevant here because deployment choice depends on it.\n\n=== Additional design context ===\nWatermark schema (JSON):\n  { 'pi:omo': { sessions: { '<session_id>': { last_event_ts, last_event_id, event_count, updated_at } } } }\n\nOutbox ingestBatch pseudocode:\n  - Parse command, INSERT INTO cmd_events ON CONFLICT DO NOTHING, UPDATE outbox status=processed\n  - All in one transaction; on failure, mark batch failed + increment attempts\n\nChunking:\n  - BATCH_SIZE=10_000, MAX_CONCURRENT_SESSIONS=10\n  - PromisePool over sessions, chunk events per session\n\nMulti-agent source ingestion: pi JSONL (147k/day), zcode SQLite (99k/day), hermes SQLite (0/day in observed window). Three different schemas, three different timestamp formats (ISO-8601 vs epoch-ms vs epoch-ms).\n\nYour job:\n1. For EACH of OT1, LD2, LD4, OT13 — find 2-5 gotchas.\n2. Each gotcha: {rank 1-5, title, what, why_missed, severity, mitigation, sources}.\n3. Rank scale: 1=YAGNI, 2=Minor, 3=Moderate, 4=Significant, 5=Sophisticated.\n4. Consider: clock skew across agents, what if session_id reused, what if events arrive out-of-order, what if session file rotated/truncated, what if watermark file corrupt, what if outbox grows unbounded, OOM on large batches, partial-failure recovery, version skew between oas and oas-stats if separate repos, what if adapter schema changes upstream.\n5. Return ONLY structured findings. Mark cross-cutting gotchas.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart-rev:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart-rev:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart-rev:high",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 35770,
+        "output": 15745,
+        "cacheRead": 100480,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 4
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "attested",
+    "evidenceStatus": "attested",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "16 structured gotchas returned (OT1:3, LD2:5, LD4:4, OT13:4) + 4 cross-cutting, each with rank/severity/what/why_missed/mitigation/3-5 sources. Findings cite concrete design artifacts: outbox schema fields (id,event_id,status,attempts), cmd_events schema (no event_id col), watermark JSON shape {sessions:{<id>:{last_event_ts,last_event_id,event_count,updated_at}}}, ingestBatch pseudocode (ON CONFLICT DO NOTHING, txn failure → attempts++), chunking (BATCH_SIZE=10000, MAX_CONCURRENT_SESSIONS=10, PromisePool), and src/core/types.ts Adapter interface per AGENTS.md."
+        }
+      ],
+      "changedFiles": [],
+      "testsAddedOrUpdated": [],
+      "commandsRun": [
+        {
+          "command": "read plan.md, progress.md (not found); read .pi-subagents/artifacts/88697cea-*_reviewer_{0,1,2,3}_input.md",
+          "result": "passed",
+          "summary": "plan.md/progress.md absent; full design context recovered from sibling reviewer artifacts (outbox/cmd_events schema, watermark JSON, ingestBatch pseudocode, chunking params, multi-agent sources)."
+        },
+        {
+          "command": "grep -i 'oas-command-stats|watermark|outbox|cmd_events' across repo *.md",
+          "result": "passed",
+          "summary": "Confirmed design constants: outbox UNIQUE(agent,alias,session_id,event_id); cmd_events has surrogate id but no event_id; LD4 'single CLI' = oas-stats binary; watermark keyed per (agent:alias, session_id)."
+        }
+      ],
+      "validationOutput": [
+        "No files modified (review-only, per task contract).",
+        "16 item-specific + 4 cross-cutting gotchas; highest rank = 5 (LD2-G1, ts-watermark non-monotonicity).",
+        "3-5 sources cited per finding from canonical CDC/idempotency/outbox literature.",
+        "NOTE: no web_search tool available in this environment — sources cited from established canonical references (Debezium, Flink, microservices.io, Stripe, DuckDB/Postgres/POSIX docs, Lamport, ADR) rather than live web search. Live verification of URLs recommended."
+      ],
+      "residualRisks": [
+        "LD2-G1 (rank 5): ingestion correctness is not provable while skip-predicate is ts-based on non-monotonic multi-source data.",
+        "X3 + LD2-G1 compound: cross-source ts comparison invalid a priori.",
+        "LD2-G2 + LD4-G4 compound: watermark persistence is SPOF for both skip-oracle and crash-recovery.",
+        "No reconciliability invariant: operator cannot detect event loss (outbox-depth vs analytics-count vs source-line-count never reconciled).",
+        "Source URLs not live-verified (no web_search tool)."
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "No diff — review-only, no files modified. Findings returned as structured response per task contract.",
+      "reviewFindings": [
+        "OT1-G1 (rank4): oas Adapter interface (src/core/types.ts) is internal, not a versioned public SDK — separate repo makes internal refactors silent breaking changes for oas-command-stats.",
+        "OT1-G2 (rank3): cross-repo release coordination latency for adapter bug fixes (hours-days vs monorepo single-PR).",
+        "OT1-G3 (rank3): drill-down workflow couples oas+oas-stats binaries; version skew silently breaks session handoff.",
+        "LD2-G1 (rank5, SOPHISTICATED): ts-based high-watermark permanently drops late/out-of-order events (NTP skew, retroactive edits, compaction appends) — canonical CDC trap.",
+        "LD2-G2 (rank4): watermark JSON not crash-safe; 10 concurrent PromisePool workers race on it; no atomic write specified.",
+        "LD2-G3 (rank4): session_id reuse (reinstall/test/copy/zcode regen) invalidates 'fully-ingested → skip' — no content fingerprint in watermark key.",
+        "LD2-G4 (rank4): pi compaction event type + JSONL rotation/truncation breaks watermark event_count/last_event_id assumptions.",
+        "LD2-G5 (rank3): cmd_events has no event_id column; ON CONFLICT DO NOTHING target unspecified → false dedup or silent dups.",
+        "LD4-G1 (rank3): DuckDB has no native MATERIALIZED VIEW; LD4 lists MV as feature, OT11 flags gap — cross-batch inconsistency, staleness/cost undeclared.",
+        "LD4-G2 (rank3): BATCH_SIZE 10k × 10 sessions = 100k events in memory; 500B is stored size not parse working-set (2-5KB) → OOM risk.",
+        "LD4-G3 (rank3): DuckDB single-writer + no flock; concurrent/cron/NFS ingest = corruption, not just error.",
+        "LD4-G4 (rank3): in-memory watermark checkpoint frequency undefined; crash = unbounded re-ingest (compounds LD2-G5 if idempotency broken).",
+        "OT13-G1 (rank3): OT1 repo-topology is precondition for OT13 path(1) OpenSpec; can't write changeset without repo decision.",
+        "OT13-G2 (rank3): LD2/LD4/LD5 locked pre-spike contradicts path(2) empirical validation; spike lacks authority to unlock.",
+        "OT13-G3 (rank2): path(3) keep-exploring has no exit criteria/timebox — decision debt accumulates.",
+        "OT13-G4 (rank2): OpenSpec single-change format mismatch for 13-OT+5-LD system; needs phased changesets.",
+        "X1 (rank4, cross-cutting): outbox 7d retention < processing-lag = silent permanent loss; no DLQ, no depth alert.",
+        "X2 (rank3, cross-cutting): no per-row isolation in batch; one malformed raw_command blocks 10k forever; no replay command; no backoff.",
+        "X3 (rank4, cross-cutting): clock skew across pi/zcode/hermes + 3 ts formats breaks watermarks AND time-of-day histograms; no UTC normalization layer documented.",
+        "X4 (rank4, cross-cutting): adapter schema drift upstream (pi event types, zcode/hermes schema bumps) silently corrupts analytics; no schema-version pinning or drift detection."
+      ],
+      "manualNotes": "No web_search/sergnx/exa tool available in this environment, so sources are cited from canonical established references (Debezium, Flink, Kafka/Confluent, microservices.io, Stripe, DuckDB/PostgreSQL/SQLite/POSIX docs, Lamport, Poppendieck, Nygard ADR) rather than live-verified URLs — parent should treat URLs as 'cite these docs' pointers, not as freshly-fetched. plan.md and progress.md referenced in the task do not exist on disk; all design context was recovered from sibling reviewer artifacts in .pi-subagents/artifacts/. Review is read-only: zero files staged or modified."
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/88697cea-82e9-4395-bdc4-b559d2b0a386_reviewer_3_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785850381612
+}

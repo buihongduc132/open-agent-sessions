@@ -1,0 +1,17 @@
+{
+  "fingerprint": "42195f0eecb8bfec82b9296d1a4485e33d1fe7ef87bde212d7be7ed037b9ef3b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:21.743Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "text-mention",
+      "sessionId": "019fb236-7412-72dd-bf86-a6b16385f9bf",
+      "timestamp": "2026-07-30T08:52:33.961Z"
+    }
+  ]
+}

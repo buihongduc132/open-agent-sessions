@@ -1,0 +1,44 @@
+{
+  "fingerprint": "b7db3609dc51f841d7f0f91340b8aa4ce29ea6902bd38def910915978e3b6021",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:00.085Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f918e-a78b-7bce-9c16-e16472c105e8",
+      "timestamp": "2026-07-24T00:38:35.482Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f918e-a78b-7bce-9c16-e16472c105e8",
+      "timestamp": "2026-07-24T00:38:35.482Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "text-mention",
+      "sessionId": "019f918e-a78b-7bce-9c16-e16472c105e8",
+      "timestamp": "2026-07-24T00:38:35.482Z"
+    },
+    {
+      "skill": "archon-workflow",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "archon-workflows",
+      "source": "text-mention",
+      "sessionId": "019f918e-a78b-7bce-9c16-e16472c105e8",
+      "timestamp": "2026-07-24T00:38:35.482Z"
+    }
+  ]
+}

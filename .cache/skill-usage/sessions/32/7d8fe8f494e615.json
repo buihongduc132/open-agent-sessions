@@ -1,0 +1,35 @@
+{
+  "fingerprint": "327d8fe8f494e6157d81c6990a0fa27ecf58fabae29af14baaca7ff3d86b82f6",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:16.256Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f91b0-6c1e-707c-b059-d29cb3c30b01",
+      "timestamp": "2026-07-24T01:35:03.803Z"
+    },
+    {
+      "skill": "session-work",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "session-works",
+      "source": "text-mention",
+      "sessionId": "019f91b0-6c1e-707c-b059-d29cb3c30b01",
+      "timestamp": "2026-07-24T01:19:15.960Z"
+    },
+    {
+      "skill": "ignore-foreign-changes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ignore-foreign-changes",
+      "source": "text-mention",
+      "sessionId": "019f91b0-6c1e-707c-b059-d29cb3c30b01",
+      "timestamp": "2026-07-24T01:35:28.738Z"
+    }
+  ]
+}

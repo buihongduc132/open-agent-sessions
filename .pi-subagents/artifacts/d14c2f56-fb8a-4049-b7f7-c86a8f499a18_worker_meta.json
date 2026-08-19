@@ -1,0 +1,120 @@
+{
+  "runId": "d14c2f56-fb8a-4049-b7f7-c86a8f499a18",
+  "agent": "worker",
+  "task": "Fix bug: `oas session list --agent pi` returns zcode sessions (filter silently ignored).\n\n**Root cause:** `runSessionsCommand` in `src/cli/sessions.ts` builds `SessionsQuery = { cwd, timeRange }` — has NO `agent`/`alias` fields. `SessionsOptions` type also lacks them. `bin/oas` handleSessionsCommand doesn't pass `--agent`/`--alias` from parsed.options. So the filter is dropped on the floor despite being advertised in help text.\n\n**Reference impl:** `src/cli/list.ts` `runListCommand` DOES support `--agent`/`--alias` correctly via `SessionListQuery` — copy that pattern.\n\n**TDD approach (STRICT — RED first, separate commit, then GREEN):**\n\nWorktree: `/home/bhd/Documents/Projects/bhd/open-agent-sessions` (main repo, on a new branch `fix/session-list-agent-filter`)\n\n**RED phase first:**\n1. Create `test/cli-sessions-agent-filter.test.ts` with tests that WILL fail against current code:\n   - `oas session list --agent pi --last 8h` returns ONLY pi sessions (no zcode)\n   - `oas session list --agent zcode --last 8h` returns ONLY zcode sessions\n   - `oas session list --alias omo` filters by alias\n   - `oas session list --agent pi --alias omo` combines both filters\n   - `oas session list` (no filter) returns sessions from all agents (regression check)\n2. Use existing test patterns from `test/cli-sessions.test.ts` for setup (mock adapters, etc.)\n3. Commit RED: `git commit -m \"test(sessions): RED — agent/alias filter ignored by session list\"`\n\n**GREEN phase (separate commit):**\n1. `src/cli/sessions.ts`:\n   - Add `agent?: AgentKind` and `alias?: string` to `SessionsOptions` type\n   - Add `agent?: AgentKind` and `alias?: string` to `SessionsQuery` type\n   - In `runSessionsCommand`: parse/validate `agent` via `parseAgent` (copy from list.ts) and `alias` via `parseAlias`, set into query\n   - Pass query.agent/query.alias to getSessions\n2. `bin/oas` handleSessionsCommand: pass `agent: parsed.options[\"agent\"]` and `alias: parsed.options[\"alias\"]` to runSessionsCommand\n3. Update `createSessionsService` (wherever it lives — find via grep) to honor query.agent/alias — likely needs to filter adapters or post-filter results. Mirror what `createListService` does in `src/core/list.ts`.\n4. Run tests, all pass.\n5. Commit GREEN: `git commit -m \"fix(sessions): honor --agent/--alias in session list\"`\n\n**Verification:**\n- `bun test test/cli-sessions-agent-filter.test.ts` → all pass\n- `bun run typecheck` → 0 errors\n- `bun test` (full regression) → no new failures vs baseline\n- Manual: `./bin/oas session list --agent pi --last 8h --limit 20` returns ONLY pi sessions\n\n**Constraints:**\n- DO NOT touch `src/cli/list.ts` (it's correct, just the reference)\n- DO NOT strip `--agent` from help text — fix the impl, not the docs\n- If createSessionsService signature change is invasive, prefer post-filter approach (filter result.sessions by agent/alias after fetch) to minimize blast radius\n- One writer per worktree — you own this branch\n\nReport back: commit hashes for RED and GREEN, test counts before/after, typecheck result.\n\n---\n**Output:**\nWrite your findings to exactly this path: /home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/session-agent-filter-fix-output.md\nThis path is authoritative for this run.\nIgnore any other output filename or output path mentioned elsewhere, including output destinations in the base agent prompt, system prompt, or task instructions.\n\n## Acceptance Contract\nAcceptance level: checked\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Implement the requested change without widening scope\n- criterion-2: Return evidence sufficient for an independent acceptance review\n\nRequired evidence: changed-files, tests-added, commands-run, residual-risks, no-staged-files\n\nReview gate: required by reviewer.\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    },\n    {\n      \"id\": \"criterion-2\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 1,
+  "model": "bhd-litellm/role-smart:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart:high",
+      "success": false,
+      "exitCode": 1,
+      "error": "Subagent completed without making edits for an implementation task.\nIt appears to have returned planning or scratchpad output instead of applying changes.",
+      "usage": {
+        "input": 87256,
+        "output": 274,
+        "cacheRead": 21632,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 3
+      }
+    }
+  ],
+  "error": "Subagent completed without making edits for an implementation task.\nIt appears to have returned planning or scratchpad output instead of applying changes.",
+  "acceptance": {
+    "status": "rejected",
+    "evidenceStatus": "rejected",
+    "explicit": true,
+    "effectiveAcceptance": {
+      "level": "checked",
+      "explicit": true,
+      "inferredReason": [
+        "async write-capable or risky run"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Implement the requested change without widening scope",
+          "evidence": [
+            "changed-files",
+            "tests-added",
+            "commands-run",
+            "residual-risks",
+            "no-staged-files"
+          ],
+          "severity": "required"
+        },
+        {
+          "id": "criterion-2",
+          "must": "Return evidence sufficient for an independent acceptance review",
+          "evidence": [
+            "changed-files",
+            "tests-added",
+            "commands-run",
+            "residual-risks",
+            "no-staged-files"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "changed-files",
+        "tests-added",
+        "commands-run",
+        "residual-risks",
+        "no-staged-files"
+      ],
+      "verify": [],
+      "review": {
+        "agent": "reviewer",
+        "required": true
+      },
+      "stopRules": []
+    },
+    "inferredReason": [
+      "async write-capable or risky run"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Implement the requested change without widening scope",
+        "evidence": [
+          "changed-files",
+          "tests-added",
+          "commands-run",
+          "residual-risks",
+          "no-staged-files"
+        ],
+        "severity": "required"
+      },
+      {
+        "id": "criterion-2",
+        "must": "Return evidence sufficient for an independent acceptance review",
+        "evidence": [
+          "changed-files",
+          "tests-added",
+          "commands-run",
+          "residual-risks",
+          "no-staged-files"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [
+      {
+        "id": "attestation",
+        "status": "failed",
+        "message": "Structured acceptance report not found."
+      }
+    ],
+    "verifyRuns": [],
+    "childReportParseError": "Structured acceptance report not found."
+  },
+  "launchContractDigest": "202655e7d5be26d652b63b10c9ffb71c871a24e9a7cb6d3778eff77479c11605",
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/d14c2f56-fb8a-4049-b7f7-c86a8f499a18_worker_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785519093348
+}

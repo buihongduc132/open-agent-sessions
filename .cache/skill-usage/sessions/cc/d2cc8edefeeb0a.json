@@ -1,0 +1,26 @@
+{
+  "fingerprint": "ccd2cc8edefeeb0aa8962eb257a3067ddf197de157ea8d9121061a7488e4ea40",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:24.594Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fb342-9354-73f9-9430-f6d1f47f38c2",
+      "timestamp": "2026-07-30T13:53:57.426Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fb342-9354-73f9-9430-f6d1f47f38c2",
+      "timestamp": "2026-07-30T13:53:57.426Z"
+    }
+  ]
+}

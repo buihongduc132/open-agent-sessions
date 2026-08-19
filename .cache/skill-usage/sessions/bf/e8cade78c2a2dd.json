@@ -1,0 +1,143 @@
+{
+  "fingerprint": "bfe8cade78c2a2dd8a92789dd35a66cb099aeeda5a1ba0e2ef0a9ffc7a7f1976",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:26:01.936Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:10:35.538Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:12:44.686Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:15:46.002Z"
+    },
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "read-tool",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:34:58.005Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:11:31.958Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp-config",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:11:31.958Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:15:32.521Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:15:46.002Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:15:46.002Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:19:00.719Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:19:00.719Z"
+    },
+    {
+      "skill": "wear-hats",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "wear-hat",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:32:49.862Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:32:49.862Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:32:49.862Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "cli agent",
+      "source": "text-mention",
+      "sessionId": "019f905c-6747-76e6-927d-900d786e08c7",
+      "timestamp": "2026-07-23T19:32:49.862Z"
+    }
+  ]
+}

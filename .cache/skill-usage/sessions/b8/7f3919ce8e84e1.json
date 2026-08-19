@@ -1,0 +1,44 @@
+{
+  "fingerprint": "b87f3919ce8e84e194d6f1282ad9ab662c56885acd92f8194633c3fc3c6cb6c8",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:26.320Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "paperclip",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip",
+      "source": "text-mention",
+      "sessionId": "019f9f29-2d60-75e2-801d-a6a05edbcc29",
+      "timestamp": "2026-07-26T09:16:40.047Z"
+    },
+    {
+      "skill": "browser-os",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "browseros",
+      "source": "text-mention",
+      "sessionId": "019f9f29-2d60-75e2-801d-a6a05edbcc29",
+      "timestamp": "2026-07-26T12:58:37.927Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f9f29-2d60-75e2-801d-a6a05edbcc29",
+      "timestamp": "2026-07-26T13:21:14.921Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f9f29-2d60-75e2-801d-a6a05edbcc29",
+      "timestamp": "2026-07-26T15:57:50.138Z"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "fingerprint": "a3005b6735735a01c7ce3349c7d69eaefb4bcb8e97d9bfce88e5bc3a05f23f86",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:24.359Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-27T10:24:13.354Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-27T10:47:20.742Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-27T11:20:43.058Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-27T11:23:56.723Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-27T18:57:57.173Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-28T06:55:44.446Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-28T07:01:15.310Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019fa316-2867-72fd-aa73-8c17adde8cdb",
+      "timestamp": "2026-07-28T08:19:29.189Z"
+    }
+  ]
+}

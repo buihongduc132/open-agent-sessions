@@ -1,0 +1,44 @@
+{
+  "fingerprint": "b5c2a2abb6841e16828fd71ac52d10ef0c55c2d8ccbbd9f345577c4b16db327d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:15.130Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6eb5-f429-78d7-a2e5-292e4951e4ee",
+      "timestamp": "2026-07-17T06:22:09.846Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6eb5-f429-78d7-a2e5-292e4951e4ee",
+      "timestamp": "2026-07-17T06:22:09.846Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6eb5-f429-78d7-a2e5-292e4951e4ee",
+      "timestamp": "2026-07-17T06:22:09.846Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f6eb5-f429-78d7-a2e5-292e4951e4ee",
+      "timestamp": "2026-07-17T06:22:09.846Z"
+    }
+  ]
+}

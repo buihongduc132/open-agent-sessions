@@ -1,0 +1,17 @@
+{
+  "fingerprint": "6ed7812ba3b1b13da33d103a66ca270d2c07036c473dbb58d67880d5e7728cfd",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:06.140Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "holdpty",
+      "source": "text-mention",
+      "sessionId": "019f79d6-93ea-7db2-b555-2029ce459469",
+      "timestamp": "2026-07-19T10:07:33.237Z"
+    }
+  ]
+}

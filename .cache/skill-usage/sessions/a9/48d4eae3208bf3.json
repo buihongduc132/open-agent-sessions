@@ -1,0 +1,44 @@
+{
+  "fingerprint": "a948d4eae3208bf3ce06d064c2433416f4ac3f6169cadee9f49ce1d0c31b9d56",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:07.574Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "read-tool",
+      "sessionId": "019f9c85-6561-7873-9445-37d2b20c46cd",
+      "timestamp": "2026-07-26T03:45:37.347Z"
+    },
+    {
+      "skill": "pi-processes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-processes",
+      "source": "read-tool",
+      "sessionId": "019f9c85-6561-7873-9445-37d2b20c46cd",
+      "timestamp": "2026-07-26T03:45:37.347Z"
+    },
+    {
+      "skill": "holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "holdpty",
+      "source": "text-mention",
+      "sessionId": "019f9c85-6561-7873-9445-37d2b20c46cd",
+      "timestamp": "2026-07-26T03:46:00.874Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019f9c85-6561-7873-9445-37d2b20c46cd",
+      "timestamp": "2026-07-26T03:47:06.786Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "fingerprint": "675de725ce35393075ebe70708b89786ff5a8a3b5e4b1d85a30c63b8ce1009e2",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:03.837Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019fab73-84ad-70f7-93e7-566c6bed2541",
+      "timestamp": "2026-07-29T02:11:57.122Z"
+    }
+  ]
+}

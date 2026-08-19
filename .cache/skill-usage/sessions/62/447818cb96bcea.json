@@ -1,0 +1,35 @@
+{
+  "fingerprint": "62447818cb96bcea87e4c257b6a575feae98a7470c5be295de04d33a0b884f87",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:32.325Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fb6c9-b6c5-7476-9f3d-363981735528",
+      "timestamp": "2026-07-31T06:20:03.454Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "text-mention",
+      "sessionId": "019fb6c9-b6c5-7476-9f3d-363981735528",
+      "timestamp": "2026-08-02T10:01:58.450Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "npm publish",
+      "source": "text-mention",
+      "sessionId": "019fb6c9-b6c5-7476-9f3d-363981735528",
+      "timestamp": "2026-08-02T10:01:58.450Z"
+    }
+  ]
+}

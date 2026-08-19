@@ -1,0 +1,89 @@
+{
+  "fingerprint": "29a35aace76e23a04365194e69ce3600ad65dba6e5ccb2a5852ddcf59db2c4e3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:57.883Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T08:07:55.586Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T08:24:29.821Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T08:39:09.567Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T08:24:29.821Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T08:24:29.821Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T08:39:55.223Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T09:00:20.261Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "team-workflow",
+      "source": "text-mention",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T09:00:20.261Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f69f6-f4eb-7c9b-a02a-984c7cc22258",
+      "timestamp": "2026-07-16T13:32:38.485Z"
+    }
+  ]
+}

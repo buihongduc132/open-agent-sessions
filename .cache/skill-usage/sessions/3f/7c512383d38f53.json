@@ -1,0 +1,62 @@
+{
+  "fingerprint": "3f7c512383d38f5396b4c633a2b0f5b265f506051e14e9bd98a4d45b11d722d3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:44.246Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fbb4e-310b-72e6-85da-439c02ba2742",
+      "timestamp": "2026-08-01T05:48:07.517Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019fbb4e-310b-72e6-85da-439c02ba2742",
+      "timestamp": "2026-08-01T03:35:39.189Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fbb4e-310b-72e6-85da-439c02ba2742",
+      "timestamp": "2026-08-01T05:48:07.517Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fbb4e-310b-72e6-85da-439c02ba2742",
+      "timestamp": "2026-08-01T05:51:12.628Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fbb4e-310b-72e6-85da-439c02ba2742",
+      "timestamp": "2026-08-01T05:51:12.628Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fbb4e-310b-72e6-85da-439c02ba2742",
+      "timestamp": "2026-08-02T03:55:23.615Z"
+    }
+  ]
+}

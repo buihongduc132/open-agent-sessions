@@ -1,0 +1,17 @@
+{
+  "fingerprint": "34d3f6d9c86170521f412514cfe8f1948133f0a5161f4a491dbe2aae834e3b3b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:04:35.525Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019f6f15-391a-7cd1-9c50-22cf8b499042",
+      "timestamp": "2026-07-17T07:59:19.012Z"
+    }
+  ]
+}

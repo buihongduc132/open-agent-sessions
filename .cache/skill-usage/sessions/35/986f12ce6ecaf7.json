@@ -1,0 +1,53 @@
+{
+  "fingerprint": "35986f12ce6ecaf7453bd59bc85839d51105c442b8ff5a20bded6811758d3614",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:50.795Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f8cfa-33f9-7fb0-a6e3-a5609c1e21e1",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f8cfa-33f9-7fb0-a6e3-a5609c1e21e1",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8cfa-33f9-7fb0-a6e3-a5609c1e21e1",
+      "timestamp": "2026-07-22T18:26:15.600Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f8cfa-33f9-7fb0-a6e3-a5609c1e21e1",
+      "timestamp": "2026-07-23T02:39:15.307Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f8cfa-33f9-7fb0-a6e3-a5609c1e21e1",
+      "timestamp": "2026-07-23T03:22:44.607Z"
+    }
+  ]
+}

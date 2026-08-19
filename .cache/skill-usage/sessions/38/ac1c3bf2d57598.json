@@ -1,0 +1,17 @@
+{
+  "fingerprint": "38ac1c3bf2d575986ad9bf4428a9b0b0c28d5895415a24ee6086256067b47452",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:00.111Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f9191-2b46-77b0-9616-f2430dc40dd5",
+      "timestamp": "2026-07-24T00:40:54.356Z"
+    }
+  ]
+}

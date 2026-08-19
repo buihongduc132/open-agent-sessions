@@ -1,0 +1,26 @@
+{
+  "fingerprint": "989ed2d166b3549779d8347b1b785fa86c4e3b812f82d9ab8c853dcdce6b85fb",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:01.118Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "sunset-service",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sunset-service",
+      "source": "text-mention",
+      "sessionId": "019fab32-9882-7667-b562-86b687e8cb05",
+      "timestamp": "2026-07-29T00:11:12.641Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "sunset service",
+      "source": "text-mention",
+      "sessionId": "019fab32-9882-7667-b562-86b687e8cb05",
+      "timestamp": "2026-07-29T00:11:12.641Z"
+    }
+  ]
+}

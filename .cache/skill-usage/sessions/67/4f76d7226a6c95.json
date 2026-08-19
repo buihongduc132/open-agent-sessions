@@ -1,0 +1,71 @@
+{
+  "fingerprint": "674f76d7226a6c955c0d1d67b56941400ce6035ea4b88ce1e57501c7be49b461",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:26:25.995Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fbca3-6a61-7afa-90b1-266c69fb35bd",
+      "timestamp": "2026-08-01T09:32:10.090Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fbca3-6a61-7afa-90b1-266c69fb35bd",
+      "timestamp": "2026-08-01T09:39:35.300Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fbca3-6a61-7afa-90b1-266c69fb35bd",
+      "timestamp": "2026-08-01T09:39:35.300Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019fbca3-6a61-7afa-90b1-266c69fb35bd",
+      "timestamp": "2026-08-01T11:09:38.229Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fbca3-6a61-7afa-90b1-266c69fb35bd",
+      "timestamp": "2026-08-01T11:16:48.882Z"
+    },
+    {
+      "skill": "all-guards",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "all-guard",
+      "source": "text-mention",
+      "sessionId": "019fbca3-6a61-7afa-90b1-266c69fb35bd",
+      "timestamp": "2026-08-01T13:37:00.256Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fbca3-6a61-7afa-90b1-266c69fb35bd",
+      "timestamp": "2026-08-02T02:24:55.286Z"
+    }
+  ]
+}

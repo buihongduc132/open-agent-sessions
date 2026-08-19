@@ -1,0 +1,71 @@
+{
+  "fingerprint": "6f5b9bc180fee66bc9f9688e2b39c4f6b46a8bff8bab57bfb1e412046780a0c5",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:37.548Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "read-tool",
+      "sessionId": "019fb66d-8dba-7a13-9af8-64b4a5b73005",
+      "timestamp": "2026-08-02T12:52:29.507Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "read-tool",
+      "sessionId": "019fb66d-8dba-7a13-9af8-64b4a5b73005",
+      "timestamp": "2026-08-02T12:53:58.801Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019fb66d-8dba-7a13-9af8-64b4a5b73005",
+      "timestamp": "2026-07-31T04:29:27.935Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fb66d-8dba-7a13-9af8-64b4a5b73005",
+      "timestamp": "2026-07-31T04:42:02.970Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fb66d-8dba-7a13-9af8-64b4a5b73005",
+      "timestamp": "2026-07-31T04:42:02.970Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fb66d-8dba-7a13-9af8-64b4a5b73005",
+      "timestamp": "2026-07-31T11:45:07.331Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019fb66d-8dba-7a13-9af8-64b4a5b73005",
+      "timestamp": "2026-07-31T11:45:07.331Z"
+    }
+  ]
+}

@@ -32,7 +32,7 @@ agents:
   - agent: pi
     alias: omo
     enabled: true
-    path: ../vendor-omo/global_profiles/pi/agent/sessions
+    path: ~/.pi/agent/sessions
 
   - agent: pi
     alias: pi

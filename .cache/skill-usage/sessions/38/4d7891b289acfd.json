@@ -1,0 +1,143 @@
+{
+  "fingerprint": "384d7891b289acfd4460356415de86d807f561571d65b0cfc00329899aca07d3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:54.771Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:08:24.871Z"
+    },
+    {
+      "skill": "oqo-skill-writer",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "oqo-skill-writer",
+      "source": "read-tool",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:08:24.871Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:08:43.630Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:10:12.362Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:11:27.286Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-22T04:24:23.965Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "read-tool",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-22T04:59:28.220Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:11:43.788Z"
+    },
+    {
+      "skill": "oqo-skill-writer",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "oqo-skill-writer",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:11:43.788Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:11:43.788Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-21T06:17:51.666Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-22T04:23:01.049Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-22T04:52:26.796Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "npm-publish",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-22T04:58:52.294Z"
+    },
+    {
+      "skill": "npm-publish",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "npm publish",
+      "source": "text-mention",
+      "sessionId": "019f8345-8079-7499-b9f5-31ce82e612cf",
+      "timestamp": "2026-07-22T04:58:52.294Z"
+    }
+  ]
+}

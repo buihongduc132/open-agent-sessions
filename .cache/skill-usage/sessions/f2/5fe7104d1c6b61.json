@@ -1,0 +1,89 @@
+{
+  "fingerprint": "f25fe7104d1c6b61792fb8811d828330e22f679c5f9c793df0c418907bd2e77f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:02:09.808Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T03:18:11.922Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T03:18:11.922Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T03:29:08.203Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "heads",
+      "source": "text-mention",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T03:45:53.352Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T04:33:50.685Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T04:57:59.935Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T05:39:54.923Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T05:39:54.923Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f8caa-a49a-7f7f-95d4-3e276828e266",
+      "timestamp": "2026-07-23T08:57:25.526Z"
+    }
+  ]
+}

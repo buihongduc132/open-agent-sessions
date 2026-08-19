@@ -1,0 +1,26 @@
+{
+  "fingerprint": "691ca308ce3b4b42913c6c4e099a7260bbd259a9cc2ff3293d46d2b1a81050ca",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:32.945Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "read-tool",
+      "sessionId": "019f926f-704b-7b67-80c4-c7ce7e525785",
+      "timestamp": "2026-07-24T04:49:23.102Z"
+    },
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "read-tool",
+      "sessionId": "019f926f-704b-7b67-80c4-c7ce7e525785",
+      "timestamp": "2026-07-24T04:49:34.916Z"
+    }
+  ]
+}

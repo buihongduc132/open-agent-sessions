@@ -1,0 +1,89 @@
+{
+  "fingerprint": "614583b213e1b70af8ef828e34647dc0968da1f3fc52e756de575aa8da213e0a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:17.178Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T05:26:35.889Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T05:53:02.915Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T04:57:00.221Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T05:13:09.851Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T05:26:35.889Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T05:51:45.010Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T05:58:43.786Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T05:58:43.786Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f882c-2bcc-7fc3-8e76-409d295a8302",
+      "timestamp": "2026-07-22T06:09:44.784Z"
+    }
+  ]
+}

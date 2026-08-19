@@ -1,0 +1,17 @@
+{
+  "fingerprint": "9669a38fcb2b15203a89a73f562b73d3f6f3c97c7caa4f4566abfe756e54c2a9",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:02.954Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "session-work",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "session-fork",
+      "source": "text-mention",
+      "sessionId": "019f9f3b-7d59-7d0f-8266-4da67c393d67",
+      "timestamp": "2026-07-26T16:22:39.045Z"
+    }
+  ]
+}

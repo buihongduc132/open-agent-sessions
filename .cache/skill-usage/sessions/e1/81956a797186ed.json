@@ -1,0 +1,53 @@
+{
+  "fingerprint": "e181956a797186ed878f173a0312e7ca7f28b38c3b3d6efa4b49b34b656f0ac4",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:21:56.649Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f8b24-b88c-7b0a-af71-185deb0329e3",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f8b24-b88c-7b0a-af71-185deb0329e3",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8b24-b88c-7b0a-af71-185deb0329e3",
+      "timestamp": "2026-07-22T18:26:15.600Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f8b24-b88c-7b0a-af71-185deb0329e3",
+      "timestamp": "2026-07-22T18:51:02.342Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f8b24-b88c-7b0a-af71-185deb0329e3",
+      "timestamp": "2026-07-22T18:51:02.342Z"
+    }
+  ]
+}

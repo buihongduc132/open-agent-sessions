@@ -1,0 +1,35 @@
+{
+  "fingerprint": "5740a1825b3bf38307892253e8c8e24fda8422d9a526278a649cb7525ed35015",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:31:59.853Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f91df-e816-7c2d-94a9-8bdd78f1e017",
+      "timestamp": "2026-07-24T01:53:28.054Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f91df-e816-7c2d-94a9-8bdd78f1e017",
+      "timestamp": "2026-07-24T01:58:32.766Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f91df-e816-7c2d-94a9-8bdd78f1e017",
+      "timestamp": "2026-07-24T01:58:32.766Z"
+    }
+  ]
+}

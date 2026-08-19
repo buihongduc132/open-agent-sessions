@@ -1,0 +1,62 @@
+{
+  "fingerprint": "9f633b25e38bbc4f8cc529ee880cfa3eca25b9444728369626de1d9372490b00",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:31.087Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f942e-4d22-70dc-8efe-b6beb289fe26",
+      "timestamp": "2026-07-24T17:26:23.353Z"
+    },
+    {
+      "skill": "model-fallback",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "model-fallback",
+      "source": "read-tool",
+      "sessionId": "019f942e-4d22-70dc-8efe-b6beb289fe26",
+      "timestamp": "2026-07-24T17:26:23.353Z"
+    },
+    {
+      "skill": "incident-triage",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "incident-triage",
+      "source": "read-tool",
+      "sessionId": "019f942e-4d22-70dc-8efe-b6beb289fe26",
+      "timestamp": "2026-07-24T17:26:23.353Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f942e-4d22-70dc-8efe-b6beb289fe26",
+      "timestamp": "2026-07-24T17:26:23.353Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f942e-4d22-70dc-8efe-b6beb289fe26",
+      "timestamp": "2026-07-24T17:26:23.353Z"
+    },
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f942e-4d22-70dc-8efe-b6beb289fe26",
+      "timestamp": "2026-07-24T17:26:23.353Z"
+    }
+  ]
+}

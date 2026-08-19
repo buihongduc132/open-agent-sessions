@@ -1,0 +1,80 @@
+{
+  "fingerprint": "f9902ada4546b0e4ec65d56b03d0816572a0a340e2b93f71aba4eaf1d08a91dc",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:24.601Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-22T18:40:12.022Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-22T18:26:15.600Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-23T02:39:15.307Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-23T03:23:39.990Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-23T03:30:33.263Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-23T03:30:33.263Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f9041-9ccf-7050-9f58-f0fba0607f52",
+      "timestamp": "2026-07-23T18:36:44.599Z"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "fingerprint": "908fd18444df4683c825ad9cf80acd31de16053a6337d548c1bcca09f7f7d103",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:12.935Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "tone-angry",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tone-angry",
+      "source": "read-tool",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:20:33.025Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:22:57.887Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:22:57.887Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:20:25.265Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:22:57.887Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:22:57.887Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:24:30.737Z"
+    },
+    {
+      "skill": "tone-angry",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "tone-angry",
+      "source": "text-mention",
+      "sessionId": "019f94ea-d233-74ad-a203-cf7be169eaf0",
+      "timestamp": "2026-07-24T16:24:30.737Z"
+    }
+  ]
+}

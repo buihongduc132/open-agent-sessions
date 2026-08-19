@@ -1,0 +1,17 @@
+{
+  "fingerprint": "045f82954c23ab409ee9197490331e16cadb6bb2f064d79f1efd1e032c9e44ff",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:44.833Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-cmd-palette",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-cmd-palette",
+      "source": "read-tool",
+      "sessionId": "019f8b20-605c-7c7b-9cf3-a1a2916a2d02",
+      "timestamp": "2026-07-22T18:39:58.371Z"
+    }
+  ]
+}

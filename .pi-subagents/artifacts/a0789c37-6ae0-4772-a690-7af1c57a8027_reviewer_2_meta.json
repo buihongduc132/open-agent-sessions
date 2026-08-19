@@ -1,0 +1,166 @@
+{
+  "runId": "a0789c37-6ae0-4772-a690-7af1c57a8027",
+  "agent": "reviewer",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/progress.md]\n\nInspect branch `feat/hermes-adapter-impl` in repo `/home/bhd/Documents/Projects/bhd/open-agent-sessions` and answer: are its 3 commits ahead of main genuinely new work or stale/duplicate of merged PR #12 (`feat/hermes-adapter-requirements`)? Verify directly using git log, patch-id/cherry equivalence, changed files, PR metadata, tests, and base divergence. Return evidence, completion percentage, unique work, superseded relationships, silent-revert risks, and recommendation. Verifier angles: (a) scope/duplicate status, (b) logic and tests, (c) integration safety. Read-only only. If a safety hook blocks a command, stop and escalate; do not route around.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart-rev:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart-rev:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart-rev:high",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 25061,
+        "output": 9924,
+        "cacheRead": 271424,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 10
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "attested",
+    "evidenceStatus": "attested",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "Concrete findings with paths/severity below: hermes.ts add/add conflict (HIGH/superseded), 2 unrelated noise commits, SQL LIKE escape regression risk on force-merge (MEDIUM)."
+        }
+      ],
+      "changedFiles": [
+        "src/adapters/hermes.ts (add/add conflict vs main; superseded by PR#15 bd982ca)",
+        "src/adapters/index.ts (wiring; conflicts)",
+        "src/config/types.ts (AgentKind 'hermes'; conflicts)",
+        "src/core/list.ts, src/core/normalize.ts, src/core/registry.ts, src/core/types.ts (wiring; all conflict)",
+        "test/hermes-adapter.test.ts (284L, byte-identical to main — no net-new)",
+        ".gitignore (chore commit 990b66c; conflicts; bin/oas modify-delete conflict)",
+        ".branchlet.json (17L, commit cbd0185; unrelated to hermes)"
+      ],
+      "testsAddedOrUpdated": [
+        "test/hermes-adapter.test.ts (284L, 21 it/test blocks, 2 createHermesAdapter refs) — identical to main's version"
+      ],
+      "commandsRun": [
+        {
+          "command": "git rev-list --left-right --count main...feat/hermes-adapter-impl",
+          "result": "passed",
+          "summary": "3 ahead / 25 behind main"
+        },
+        {
+          "command": "git merge-base main feat/hermes-adapter-impl",
+          "result": "passed",
+          "summary": "f0453a2 = PR#12 merge commit (branch forks right after PR#12)"
+        },
+        {
+          "command": "git log main --diff-filter=A -- src/adapters/hermes.ts",
+          "result": "passed",
+          "summary": "hermes.ts added to main by PR#15 bd982ca (merged 2026-04-26)"
+        },
+        {
+          "command": "git merge-base --is-ancestor bd982ca f0453a2",
+          "result": "passed",
+          "summary": "NO — hermes landed on main AFTER the branch point → independent add → add/add conflict"
+        },
+        {
+          "command": "git patch-id on 3 branch commits + PR#12 commit 22a71ec",
+          "result": "passed",
+          "summary": "All patch-ids distinct → branch NOT a cherry-pick/duplicate of PR#12"
+        },
+        {
+          "command": "gh pr view 12 / 15 (metadata)",
+          "result": "passed",
+          "summary": "PR#12=requirements docs (MERGED 04-19); PR#15=hermes impl on main (MERGED 04-26)"
+        },
+        {
+          "command": "git merge-tree --write-tree main feat/hermes-adapter-impl",
+          "result": "passed",
+          "summary": "8 conflicts: add/add hermes.ts, modify/delete bin/oas, content conflicts on 6 wiring files"
+        },
+        {
+          "command": "git diff main feat/hermes-adapter-impl -- test/hermes-adapter.test.ts | wc -l",
+          "result": "passed",
+          "summary": "0 → test files byte-identical"
+        },
+        {
+          "command": "bun test (branch hermes-adapter.test.ts)",
+          "result": "not-run",
+          "summary": "Read-only review; checkout/worktree avoided. Branch superseded by main; test parity verified statically instead."
+        }
+      ],
+      "validationOutput": [
+        "scope/duplicate: 3 commits are GENUINELY NEW work, NOT duplicate of PR#12 (PR#12=planning docs only, distinct patch-ids & files).",
+        "superseded: hermes impl (be77218, 2026-04-20) is superseded by main PR#15 (bd982ca, 2026-04-26) which independently landed hermes.ts. main version is more advanced (SQL LIKE escape, ownsDb/destroy lifecycle, better selection edge-cases).",
+        "logic/tests: branch hermes.ts is coherent (createHermesAdapter export, correct imports, schema-aware, 21 passing-shape test blocks); test file byte-identical to main. BUT branch version is an EARLIER draft — regressions vs main: no LIKE wildcard escaping (injection-like), no db.close() (resource leak), limit ?? 50 semantics.",
+        "integration safety: 8-file conflict surface on merge; add/add on hermes.ts means a force-merge would REGRESS main's hermes adapter (silent-revert of PR#15 + Phase1-6 hardening). bin/oas modify/delete conflict.",
+        "base divergence: 3 ahead / 25 behind — branch is deeply stale.",
+        "noise: 2 of 3 commits (cbd0185 .branchlet.json, 990b66c gitignore/bin-oas) are UNRELATED to hermes."
+      ],
+      "residualRisks": [
+        "HIGH/silent-revert: force-merging branch's hermes.ts overwrites main's PR#15+ version, regressing SQL LIKE escape (wildcard injection) and removing db lifecycle mgmt — silent regression, not caught by identical test file.",
+        "MEDIUM: bin/oas modify/delete conflict — branch deletes a 1076-line committed file; main modified it — needs manual reconciliation if any cleanup is salvaged.",
+        "LOW: .branchlet.json (cbd0185) introduces branchlet tooling config unrelated to hermes scope — out-of-scope for this feature branch.",
+        "LOW: 25-commit drift means even non-conflicting wiring files may reference APIs changed by Phase1-6 parity PRs (#28-#32)."
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "3 commits: (1) be77218 — 412-line hermes.ts impl + 284-line test + 6-file core wiring; (2) cbd0185 — .branchlet.json (unrelated); (3) 990b66c — .gitignore + delete bin/oas (unrelated). Hermes impl is an earlier draft of what main already has via PR#15; test file is byte-identical to main's.",
+      "reviewFindings": [
+        "verdict: genuinely new work vs PR#12, but SUPERSEDED by main PR#15 (bd982ca) — stale, redundant, do-not-merge",
+        "blocker: src/adapters/hermes.ts add/add conflict with main; branch version is an older draft (lacks LIKE escape + ownsDb/destroy) — merging regresses main's canonical hermes adapter",
+        "blocker: 8-file conflict surface (3 ahead / 25 behind) — branch unmergeable as-is",
+        "note: test/test/hermes-adapter.test.ts byte-identical to main (0 diff) → no net-new test coverage",
+        "note: 2 of 3 commits unrelated to hermes (.branchlet.json, .gitignore/bin-oas) — scope leak",
+        "recommendation: close/archive the branch. If bin/oas cleanup is wanted, cherry-pick ONLY 990b66c against fresh main. Do NOT merge the hermes impl."
+      ],
+      "manualNotes": "completion: 100% of branch's stated intent (implement R-43/R-44/R-45) done ON branch; ~0% net-new value for main (superseded). No plan.md/progress.md exist at repo root (Task read targets missing). Verifier angles: (a) scope/duplicate=not-duplicate-but-superseded; (b) logic/tests=coherent-but-regressive-vs-main; (c) integration=unsafe (8 conflicts, silent-revert risk)."
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/a0789c37-6ae0-4772-a690-7af1c57a8027_reviewer_2_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785915348719
+}

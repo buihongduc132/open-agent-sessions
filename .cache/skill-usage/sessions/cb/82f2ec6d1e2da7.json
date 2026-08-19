@@ -1,0 +1,80 @@
+{
+  "fingerprint": "cb82f2ec6d1e2da797ba18e295805a248b1373a86119137908f8afb2d5c5c903",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:01.033Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T03:00:59.514Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T03:00:59.514Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T03:00:59.514Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T03:20:15.522Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T07:06:46.036Z"
+    },
+    {
+      "skill": "slack-msg",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "slack-msg",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T07:08:47.179Z"
+    },
+    {
+      "skill": "paperclip",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T07:08:47.179Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f6dfa-69e2-7ac1-a36b-8a9f67e4e0aa",
+      "timestamp": "2026-07-17T07:15:13.271Z"
+    }
+  ]
+}

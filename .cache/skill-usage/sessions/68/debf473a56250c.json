@@ -1,0 +1,98 @@
+{
+  "fingerprint": "68debf473a56250c1ac9c9e72859d506ab2b494bb58e4ec7a2e75dd819f0f95b",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:21.997Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "read-tool",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T17:48:15.132Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "cli-agents",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T17:47:12.198Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T17:51:04.515Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T17:51:04.515Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T17:51:04.515Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T17:51:04.515Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T18:51:46.927Z"
+    },
+    {
+      "skill": "ignore-foreign-changes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ignore-foreign-changes",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T18:51:46.927Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "beads",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T18:52:54.940Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx",
+      "source": "text-mention",
+      "sessionId": "019f764f-ce41-7989-acba-a4a7109f8362",
+      "timestamp": "2026-07-18T18:52:54.940Z"
+    }
+  ]
+}

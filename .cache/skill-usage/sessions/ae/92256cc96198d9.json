@@ -1,0 +1,17 @@
+{
+  "fingerprint": "ae92256cc96198d9bd7435fb5fe6e49e99cd85a3440123eea113d3f0e8e501d7",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:43.481Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "cli-agents-deploy",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agents-deploy",
+      "source": "read-tool",
+      "sessionId": "019f4c86-0f78-7d2a-8d9b-30a1cc85c559",
+      "timestamp": "2026-07-10T14:55:03.824Z"
+    }
+  ]
+}

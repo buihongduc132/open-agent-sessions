@@ -1,0 +1,89 @@
+{
+  "fingerprint": "a2d8c98e754b4eae63017a994675d5fbeb94d55d46c5458d8985e64d4979f632",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:29.250Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T12:41:20.755Z"
+    },
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T14:21:17.890Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T12:34:34.128Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T12:34:34.128Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T12:40:40.989Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T12:41:20.755Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T13:14:31.022Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "team-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T14:25:32.049Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6ae4-fc27-70e3-a284-772fa20c004a",
+      "timestamp": "2026-07-16T15:03:41.572Z"
+    }
+  ]
+}

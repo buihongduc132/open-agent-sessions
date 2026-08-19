@@ -1,0 +1,89 @@
+{
+  "fingerprint": "2735034fd99b9966dc4effc3475b840077ccfb46943657b29b6059becb5ad2c7",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:49.987Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-24T13:29:49.796Z"
+    },
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-24T16:10:02.985Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-24T13:34:03.250Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-24T16:10:55.683Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-26T17:13:52.324Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-26T17:18:57.469Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-26T18:00:16.100Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-26T18:00:33.979Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f9402-8265-7854-b473-b878a6e4fa44",
+      "timestamp": "2026-07-26T18:04:27.979Z"
+    }
+  ]
+}

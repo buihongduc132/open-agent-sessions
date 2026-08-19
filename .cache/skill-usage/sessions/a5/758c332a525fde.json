@@ -1,0 +1,44 @@
+{
+  "fingerprint": "a5758c332a525fdea699d30310e44376d539f49380ac3d87deb12610388023e9",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:03.192Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019f9088-8211-7b22-ac1d-3225b680d716",
+      "timestamp": "2026-07-23T12:03:15.372Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9088-8211-7b22-ac1d-3225b680d716",
+      "timestamp": "2026-07-23T18:31:39.093Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019f9088-8211-7b22-ac1d-3225b680d716",
+      "timestamp": "2026-07-23T19:43:58.316Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f9088-8211-7b22-ac1d-3225b680d716",
+      "timestamp": "2026-07-23T19:43:58.316Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "fingerprint": "ebd0ebafadcc01d71444b50dd55d01b7b1ba76c3de3077200001efcf3ff57c27",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:02:28.345Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "deployment-creds",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "deployment-creds",
+      "source": "read-tool",
+      "sessionId": "019fa8f0-aae8-7af9-a4e6-0b2b58e136b0",
+      "timestamp": "2026-07-28T13:36:26.957Z"
+    }
+  ]
+}

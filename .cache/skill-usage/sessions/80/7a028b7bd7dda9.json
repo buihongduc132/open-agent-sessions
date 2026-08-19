@@ -1,0 +1,53 @@
+{
+  "fingerprint": "807a028b7bd7dda9a583f1d65c470e998c82a61f2311ac6da92dbf0af974445a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:01:30.517Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "nomad-gate",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "nomad-gate",
+      "source": "read-tool",
+      "sessionId": "019f6e05-b18f-7c61-993a-9689845b43a6",
+      "timestamp": "2026-07-17T06:52:29.127Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6e05-b18f-7c61-993a-9689845b43a6",
+      "timestamp": "2026-07-17T05:17:15.418Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6e05-b18f-7c61-993a-9689845b43a6",
+      "timestamp": "2026-07-17T05:17:15.418Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f6e05-b18f-7c61-993a-9689845b43a6",
+      "timestamp": "2026-07-17T05:23:40.493Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f6e05-b18f-7c61-993a-9689845b43a6",
+      "timestamp": "2026-07-17T05:46:52.550Z"
+    }
+  ]
+}

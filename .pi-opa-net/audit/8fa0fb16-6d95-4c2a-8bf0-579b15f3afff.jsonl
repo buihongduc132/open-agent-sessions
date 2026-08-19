@@ -1,0 +1,1 @@
+{"decision_id":"8fa0fb16-6d95-4c2a-8bf0-579b15f3afff","decision":"deny","source":"opa","command":"git stash drop 2>&1 | head -2","rule_ids":["block-git-stash-mutations"],"evaluated_at":"2026-07-31T12:34:28.646Z","pi_opa_net_version":"0.5.0"}

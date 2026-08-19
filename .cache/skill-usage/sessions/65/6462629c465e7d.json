@@ -1,0 +1,17 @@
+{
+  "fingerprint": "656462629c465e7ddafe11db7730164b33eaa0d9b996b322d314bfc9136bb25f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:23.347Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9e83-9011-70e5-aa65-b6328ccec2ae",
+      "timestamp": "2026-07-26T13:01:39.093Z"
+    }
+  ]
+}

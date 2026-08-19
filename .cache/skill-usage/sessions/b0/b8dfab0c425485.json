@@ -1,0 +1,35 @@
+{
+  "fingerprint": "b0b8dfab0c425485ce3afd6d9b321d8ad5f263e0da44da7d134bcced47dd3d6d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:30.291Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "creds-auth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "creds-auth",
+      "source": "read-tool",
+      "sessionId": "019f9409-b97b-7b73-b6eb-63a186f2107d",
+      "timestamp": "2026-07-24T16:30:41.263Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f9409-b97b-7b73-b6eb-63a186f2107d",
+      "timestamp": "2026-07-24T12:21:10.861Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019f9409-b97b-7b73-b6eb-63a186f2107d",
+      "timestamp": "2026-07-24T16:53:38.763Z"
+    }
+  ]
+}

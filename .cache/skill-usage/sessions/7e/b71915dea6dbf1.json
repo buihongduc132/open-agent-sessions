@@ -1,0 +1,17 @@
+{
+  "fingerprint": "7eb71915dea6dbf138f2ac89a8f8a0ede6b35023fcb67e8fa87e7721d06bdb7f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:30:50.094Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f87f2-abf9-7248-a76d-74462619bb6a",
+      "timestamp": "2026-07-22T04:00:51.734Z"
+    }
+  ]
+}

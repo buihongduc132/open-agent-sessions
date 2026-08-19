@@ -1,0 +1,35 @@
+{
+  "fingerprint": "c44c01a800988b15349860fec0a6eddcb5539eccefde2052f63a87c037da845d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:50.614Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f8861-642e-72fa-b162-d57a4cc8d692",
+      "timestamp": "2026-07-22T05:52:18.577Z"
+    },
+    {
+      "skill": "caveman-commit",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman-commit",
+      "source": "text-mention",
+      "sessionId": "019f8861-642e-72fa-b162-d57a4cc8d692",
+      "timestamp": "2026-07-22T05:52:18.577Z"
+    },
+    {
+      "skill": "caveman-commit",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "caveman commit",
+      "source": "text-mention",
+      "sessionId": "019f8861-642e-72fa-b162-d57a4cc8d692",
+      "timestamp": "2026-07-22T05:52:18.577Z"
+    }
+  ]
+}

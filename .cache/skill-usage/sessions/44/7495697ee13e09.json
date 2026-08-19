@@ -1,0 +1,53 @@
+{
+  "fingerprint": "447495697ee13e09361c61437c6379790a6f7e83a39cad3e2b732fb517d5e960",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:55.657Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f9519-f529-78f7-9809-fa69f0b5d355",
+      "timestamp": "2026-07-24T17:13:22.688Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9519-f529-78f7-9809-fa69f0b5d355",
+      "timestamp": "2026-07-24T17:13:22.688Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9519-f529-78f7-9809-fa69f0b5d355",
+      "timestamp": "2026-07-24T17:13:22.688Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f9519-f529-78f7-9809-fa69f0b5d355",
+      "timestamp": "2026-07-24T18:05:27.065Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "cli-agents",
+      "source": "text-mention",
+      "sessionId": "019f9519-f529-78f7-9809-fa69f0b5d355",
+      "timestamp": "2026-07-24T18:20:51.464Z"
+    }
+  ]
+}

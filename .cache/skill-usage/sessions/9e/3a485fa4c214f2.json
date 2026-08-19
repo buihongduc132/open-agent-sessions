@@ -1,0 +1,80 @@
+{
+  "fingerprint": "9e3a485fa4c214f21954951f279f60a3d7f650c1fc536fd52cdfd9a4b26d2102",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:47.297Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T19:30:10.986Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T19:30:10.986Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T19:38:25.656Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T16:43:40.170Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "troubleshootings",
+      "source": "text-mention",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T16:51:33.763Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T16:51:33.763Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T19:36:45.553Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fa19d-38b7-71b4-a4ae-5b57f8c1bb10",
+      "timestamp": "2026-07-26T19:36:45.553Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "fingerprint": "bcf4eb4d54bba238ded8cc180be8285dbb258bc654a729d5681a94178683c581",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:21.468Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f768b-4af8-7cdb-83de-7392167f02fb",
+      "timestamp": "2026-07-18T18:49:08.004Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f768b-4af8-7cdb-83de-7392167f02fb",
+      "timestamp": "2026-07-18T18:49:08.004Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f768b-4af8-7cdb-83de-7392167f02fb",
+      "timestamp": "2026-07-18T18:49:08.004Z"
+    }
+  ]
+}

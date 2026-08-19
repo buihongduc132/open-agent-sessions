@@ -1,0 +1,98 @@
+{
+  "fingerprint": "8ccdb856fbe447fcc72882729d94c21c68917973402ac9ba617d180ff53d3fe3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:09.284Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T18:57:54.584Z"
+    },
+    {
+      "skill": "architect",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "architect",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T18:57:54.584Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T19:16:09.718Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T19:16:09.718Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T19:24:36.506Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T21:44:30.704Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T21:46:46.043Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T22:01:48.820Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sunset-service",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T22:01:48.820Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "sunset service",
+      "source": "text-mention",
+      "sessionId": "019f9623-717f-7feb-b0b1-464c3d4a0aa7",
+      "timestamp": "2026-07-24T22:01:48.820Z"
+    }
+  ]
+}

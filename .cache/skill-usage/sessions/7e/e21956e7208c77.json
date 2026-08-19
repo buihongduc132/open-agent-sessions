@@ -1,0 +1,80 @@
+{
+  "fingerprint": "7ee21956e7208c77375f489e96392703cba6dc319ec7560732496da64511e3c3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:29.746Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-02T17:09:33.023Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-02T17:09:33.023Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-02T17:04:40.546Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-02T17:09:33.023Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-02T17:09:33.023Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-02T23:57:02.736Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-03T01:10:50.403Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fc36c-dbfb-77a8-93b8-e44e6fdeaa1a",
+      "timestamp": "2026-08-03T01:11:09.890Z"
+    }
+  ]
+}

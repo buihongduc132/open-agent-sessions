@@ -1,0 +1,118 @@
+{
+  "runId": "08bbe86f-2e2a-4eee-bb66-96012ae19d41",
+  "agent": "scout",
+  "task": "Recon open-agent-sessions repo (cwd). Find ALL MCP (Model Context Protocol) query + stats functionality. Report per-adapter (pi, zcode, claude, agy, opencode, codex, hermes, gemini, antigravity, acpx).\n\nFocus: MCP server discovery, MCP tool listing, MCP usage stats, MCP config parsing.\n\nKey dirs: src/adapters/, src/core/, src/cli/, src/config/\n\nFor EACH adapter, report:\n- MCP server discovery/list? (Y/N)\n- MCP tool calls extracted from sessions? (Y/N)\n- MCP usage stats? (Y/N)\n- MCP config parsing? (Y/N)\n- File:line evidence\n\nOutput: markdown table | adapter | mcp_discovery | mcp_extract | mcp_stats | mcp_config | evidence |\n\n---\nUpdate progress at: /home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/progress/08bbe86f-2e2a-4eee-bb66-96012ae19d41/progress.md\n\n---\n**Output:**\nWrite your findings to exactly this path: /home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/outputs/08bbe86f-2e2a-4eee-bb66-96012ae19d41/mcp-survey.md\nThis path is authoritative for this run.\nIgnore any other output filename or output path mentioned elsewhere, including output destinations in the base agent prompt, system prompt, or task instructions.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart:low",
+  "attemptedModels": [
+    "bhd-litellm/role-smart:low"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart:low",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 59577,
+        "output": 4376,
+        "cacheRead": 272640,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 12
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "attested",
+    "evidenceStatus": "attested",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "Concrete findings with file:line evidence per adapter in mcp-survey.md table; residual risks enumerated (5 gaps)."
+        }
+      ],
+      "changedFiles": [],
+      "testsAddedOrUpdated": [],
+      "commandsRun": [
+        {
+          "command": "grep -ril mcp --include=*.ts src/",
+          "result": "passed",
+          "summary": "Only 3 source files reference MCP: subagents.ts, types.ts, opencode.ts"
+        },
+        {
+          "command": "per-adapter grep mcp|toolSearch in src/adapters/*.ts",
+          "result": "passed",
+          "summary": "Counts: opencode=16, zcode=2, hermes=2, others=0; agy.ts absent"
+        },
+        {
+          "command": "cat src/config/types.ts",
+          "result": "passed",
+          "summary": "AgentKind has no acpx/agy; Config has no MCP fields"
+        }
+      ],
+      "validationOutput": [
+        "mcp-survey.md written to authoritative output path",
+        "progress.md written"
+      ],
+      "residualRisks": [
+        "isMcp heuristic is OpenCode-biased (MCP_ prefix only) — undercounts MCP usage for all other agents",
+        "toolSearchSessions covers only 3/9 adapters",
+        "agy requested in task but adapter does not exist in repo",
+        "acpx is a registered adapter but missing from AgentKind union — inconsistency",
+        "No MCP server discovery / config parsing feature exists; any build-out is net-new"
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "No source changes — read-only recon. Two artifact files written to .pi-subagents/artifacts/.",
+      "reviewFindings": [
+        "no blockers — recon task complete; findings + evidence in mcp-survey.md"
+      ],
+      "manualNotes": "Task listed 'agy' adapter but it does not exist in this repo. Reported it as absent rather than guessing. If 'agy' is an alias for an existing adapter (e.g. a planned rename), supervisor should clarify."
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/08bbe86f-2e2a-4eee-bb66-96012ae19d41_scout_1_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785498406925
+}

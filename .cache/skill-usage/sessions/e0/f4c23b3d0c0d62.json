@@ -1,0 +1,80 @@
+{
+  "fingerprint": "e0f4c23b3d0c0d6266e5758af1ecd5d375cc1c055c3409d0f6c57988422adbc0",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:14.020Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T07:43:12.505Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T07:43:12.505Z"
+    },
+    {
+      "skill": "openspec-propose",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "openspec-propose",
+      "source": "read-tool",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T12:07:03.879Z"
+    },
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T03:52:40.132Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T03:52:40.132Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T03:55:24.506Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T07:43:12.505Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f9c87-3f68-7c3c-a0ef-7c20e6793f3a",
+      "timestamp": "2026-07-26T07:43:12.505Z"
+    }
+  ]
+}

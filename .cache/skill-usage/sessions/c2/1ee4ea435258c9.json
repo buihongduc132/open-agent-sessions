@@ -1,0 +1,17 @@
+{
+  "fingerprint": "c21ee4ea435258c96fcf4cde1e37008c610c049908fe0a09ddc6c555275d48cb",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:28:56.303Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f8816-2cc6-75ae-9c2f-ae5bdbdd0366",
+      "timestamp": "2026-07-22T04:10:56.288Z"
+    }
+  ]
+}

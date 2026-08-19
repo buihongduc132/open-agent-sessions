@@ -1,0 +1,71 @@
+{
+  "fingerprint": "a44f03e13323afad14cb2c95b2cbc1caa7009d1534e43b15c46e9a66393dded5",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:30:59.016Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f8390-d13e-7613-89ce-a55985aa8b14",
+      "timestamp": "2026-07-21T06:18:13.176Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f8390-d13e-7613-89ce-a55985aa8b14",
+      "timestamp": "2026-07-21T06:32:43.655Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f8390-d13e-7613-89ce-a55985aa8b14",
+      "timestamp": "2026-07-21T05:40:24.270Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f8390-d13e-7613-89ce-a55985aa8b14",
+      "timestamp": "2026-07-21T05:48:12.024Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f8390-d13e-7613-89ce-a55985aa8b14",
+      "timestamp": "2026-07-21T06:18:13.176Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8390-d13e-7613-89ce-a55985aa8b14",
+      "timestamp": "2026-07-21T06:18:13.176Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8390-d13e-7613-89ce-a55985aa8b14",
+      "timestamp": "2026-07-21T06:18:13.176Z"
+    }
+  ]
+}

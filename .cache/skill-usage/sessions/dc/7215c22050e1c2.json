@@ -1,0 +1,62 @@
+{
+  "fingerprint": "dc7215c22050e1c2eec1e207786caccba3dcc657ad42ed6aa5a92e9515c36e04",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:11.185Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb60d-3957-7d39-b706-4a93d9c08069",
+      "timestamp": "2026-07-31T04:06:15.339Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fb60d-3957-7d39-b706-4a93d9c08069",
+      "timestamp": "2026-07-31T06:23:50.389Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019fb60d-3957-7d39-b706-4a93d9c08069",
+      "timestamp": "2026-07-31T07:13:57.481Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fb60d-3957-7d39-b706-4a93d9c08069",
+      "timestamp": "2026-07-31T20:12:04.864Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fb60d-3957-7d39-b706-4a93d9c08069",
+      "timestamp": "2026-07-31T20:12:04.864Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fb60d-3957-7d39-b706-4a93d9c08069",
+      "timestamp": "2026-07-31T21:07:08.429Z"
+    }
+  ]
+}

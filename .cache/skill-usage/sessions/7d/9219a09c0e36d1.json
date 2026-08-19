@@ -1,0 +1,44 @@
+{
+  "fingerprint": "7d9219a09c0e36d15e8790f0834f344fe6bcd7d62fa3e51b21cf15a70edc1b82",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:34.941Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019fb989-276a-7493-874d-64c3a77482fd",
+      "timestamp": "2026-07-31T18:51:12.190Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb989-276a-7493-874d-64c3a77482fd",
+      "timestamp": "2026-07-31T18:53:12.412Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fb989-276a-7493-874d-64c3a77482fd",
+      "timestamp": "2026-07-31T18:53:12.412Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fb989-276a-7493-874d-64c3a77482fd",
+      "timestamp": "2026-07-31T19:02:47.972Z"
+    }
+  ]
+}

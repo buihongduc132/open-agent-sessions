@@ -1,0 +1,71 @@
+{
+  "fingerprint": "cfea204f09eea4263d1d2572a2abffc2f83e374d604698a2cf6152549c3d25b1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:44.771Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f8b23-cc79-797c-bee4-97703767da7d",
+      "timestamp": "2026-07-22T18:44:00.881Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f8b23-cc79-797c-bee4-97703767da7d",
+      "timestamp": "2026-07-22T18:44:00.881Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019f8b23-cc79-797c-bee4-97703767da7d",
+      "timestamp": "2026-07-22T18:44:00.881Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019f8b23-cc79-797c-bee4-97703767da7d",
+      "timestamp": "2026-07-22T18:44:00.881Z"
+    },
+    {
+      "skill": "pi-ctx-budget",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-ctx-budget",
+      "source": "text-mention",
+      "sessionId": "019f8b23-cc79-797c-bee4-97703767da7d",
+      "timestamp": "2026-07-22T18:44:00.881Z"
+    },
+    {
+      "skill": "pi-email-integration",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-email-integration",
+      "source": "text-mention",
+      "sessionId": "019f8b23-cc79-797c-bee4-97703767da7d",
+      "timestamp": "2026-07-22T18:44:00.881Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8b23-cc79-797c-bee4-97703767da7d",
+      "timestamp": "2026-07-22T18:44:00.881Z"
+    }
+  ]
+}

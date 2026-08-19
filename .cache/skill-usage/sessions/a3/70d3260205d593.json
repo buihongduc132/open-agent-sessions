@@ -1,0 +1,26 @@
+{
+  "fingerprint": "a370d3260205d593cafebd51e0ba2845d50c9295522733650b0bed172e240e22",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:38.735Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019faf2b-3a72-7333-bc98-6f214139bf47",
+      "timestamp": "2026-07-29T18:45:35.355Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019faf2b-3a72-7333-bc98-6f214139bf47",
+      "timestamp": "2026-07-29T18:47:18.203Z"
+    }
+  ]
+}

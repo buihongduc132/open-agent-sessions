@@ -1,0 +1,107 @@
+{
+  "fingerprint": "c689a1455198a76fa4f118645ae0ec6933254e68bcf80df38be64d3dc7104e82",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:15.050Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "to-pi-skill",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-skill",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "ralph_",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "sai-back-forth",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "sai-back-forth",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "pm2-ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pm2-ralph",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "scalfold-agents-md",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "scalfold-agents-md",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "archon-workflow",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "archon-workflow-",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx-config",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-7fd1-7fa2-9dab-5226057a3f3f",
+      "timestamp": "2026-07-22T18:52:40.521Z"
+    }
+  ]
+}

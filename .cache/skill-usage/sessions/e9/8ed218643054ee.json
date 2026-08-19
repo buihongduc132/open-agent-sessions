@@ -1,0 +1,62 @@
+{
+  "fingerprint": "e98ed218643054ee91d660221014ffe96003c9df57656483b118225d04084113",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:30:50.029Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f9178-1ec1-7d94-8606-6ce0fd2cc563",
+      "timestamp": "2026-07-24T01:21:08.717Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "text-mention",
+      "sessionId": "019f9178-1ec1-7d94-8606-6ce0fd2cc563",
+      "timestamp": "2026-07-24T01:21:52.024Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f9178-1ec1-7d94-8606-6ce0fd2cc563",
+      "timestamp": "2026-07-24T01:24:08.311Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f9178-1ec1-7d94-8606-6ce0fd2cc563",
+      "timestamp": "2026-07-24T01:24:08.311Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f9178-1ec1-7d94-8606-6ce0fd2cc563",
+      "timestamp": "2026-07-24T01:31:57.141Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f9178-1ec1-7d94-8606-6ce0fd2cc563",
+      "timestamp": "2026-07-24T02:28:50.167Z"
+    }
+  ]
+}

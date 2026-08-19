@@ -1,0 +1,53 @@
+{
+  "fingerprint": "9debce3628417757ae1d2c52931ec91bb8872dcf5c557616ec30f88d3d593398",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:54.061Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "read-tool",
+      "sessionId": "019f9feb-5008-76d2-b0ed-37ce443a113f",
+      "timestamp": "2026-07-26T19:30:10.986Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f9feb-5008-76d2-b0ed-37ce443a113f",
+      "timestamp": "2026-07-26T19:30:10.986Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019f9feb-5008-76d2-b0ed-37ce443a113f",
+      "timestamp": "2026-07-26T16:43:40.170Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "troubleshootings",
+      "source": "text-mention",
+      "sessionId": "019f9feb-5008-76d2-b0ed-37ce443a113f",
+      "timestamp": "2026-07-26T16:51:33.763Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f9feb-5008-76d2-b0ed-37ce443a113f",
+      "timestamp": "2026-07-26T16:51:33.763Z"
+    }
+  ]
+}

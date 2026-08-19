@@ -1,0 +1,17 @@
+{
+  "fingerprint": "82a6a071e28de11cd3d76b0d66854bf6930f34eedddece901feae5afd98f2e7a",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:09.292Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019faf9d-b7ca-7697-851c-d27efebd9339",
+      "timestamp": "2026-07-29T20:48:36.912Z"
+    }
+  ]
+}

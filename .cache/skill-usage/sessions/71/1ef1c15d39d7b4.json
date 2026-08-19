@@ -1,0 +1,71 @@
+{
+  "fingerprint": "711ef1c15d39d7b4b3b0357965dfd95ad7d3ee8419a728362d2170c477cb2360",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:07.938Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-intercom",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "pin-intercom",
+      "source": "text-mention",
+      "sessionId": "019fadf8-751a-7ed6-bcc9-74109104db75",
+      "timestamp": "2026-07-29T13:10:23.991Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fadf8-751a-7ed6-bcc9-74109104db75",
+      "timestamp": "2026-07-29T14:06:46.063Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019fadf8-751a-7ed6-bcc9-74109104db75",
+      "timestamp": "2026-07-29T16:05:57.101Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fadf8-751a-7ed6-bcc9-74109104db75",
+      "timestamp": "2026-07-29T16:59:03.146Z"
+    },
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "text-mention",
+      "sessionId": "019fadf8-751a-7ed6-bcc9-74109104db75",
+      "timestamp": "2026-07-29T16:59:03.146Z"
+    },
+    {
+      "skill": "pi-email-integration",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-email-integration",
+      "source": "text-mention",
+      "sessionId": "019fadf8-751a-7ed6-bcc9-74109104db75",
+      "timestamp": "2026-07-29T16:59:03.146Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019fadf8-751a-7ed6-bcc9-74109104db75",
+      "timestamp": "2026-07-29T16:59:03.146Z"
+    }
+  ]
+}

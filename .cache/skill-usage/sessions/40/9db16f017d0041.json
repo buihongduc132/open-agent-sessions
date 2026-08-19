@@ -1,0 +1,26 @@
+{
+  "fingerprint": "409db16f017d0041b7cfdc2eaf2b0ba479b3fd63dbdb813f2f3a9d739312d07f",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:35.429Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-acp-agents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-acp-agents",
+      "source": "text-mention",
+      "sessionId": "019f6a0f-0439-7b90-9138-d109d60df79e",
+      "timestamp": "2026-07-16T08:42:38.584Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "heads",
+      "source": "text-mention",
+      "sessionId": "019f6a0f-0439-7b90-9138-d109d60df79e",
+      "timestamp": "2026-07-16T08:42:38.584Z"
+    }
+  ]
+}

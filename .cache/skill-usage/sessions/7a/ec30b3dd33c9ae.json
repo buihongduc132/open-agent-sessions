@@ -1,0 +1,89 @@
+{
+  "fingerprint": "7aec30b3dd33c9ae38ebca756fb809e01d095ce92cbef6dcb8fb050e95a10b9e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:56.814Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T13:45:19.031Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "read-tool",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T13:45:19.031Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T08:28:37.076Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T08:28:37.076Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T08:55:33.616Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T13:45:19.031Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T13:45:19.031Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "tbd",
+      "source": "text-mention",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T13:52:30.817Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f6a08-7e28-7888-8320-01ca8b2cacf3",
+      "timestamp": "2026-07-16T18:25:34.861Z"
+    }
+  ]
+}

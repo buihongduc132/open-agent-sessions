@@ -1,0 +1,1 @@
+Let me check the remaining pieces — opencode toolSearchFromDb, the TUI categorization, and hermes tool_call_count column usage.

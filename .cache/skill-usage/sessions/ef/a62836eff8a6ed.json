@@ -1,0 +1,26 @@
+{
+  "fingerprint": "efa62836eff8a6ed6240c1399718d1858cea85b84ce1064e55d56a3d1ba2ebb2",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:23:32.650Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fbb15-fcb3-7f44-8594-f8176670bf17",
+      "timestamp": "2026-08-01T02:13:33.689Z"
+    },
+    {
+      "skill": "non-tamper",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "non-tamper",
+      "source": "text-mention",
+      "sessionId": "019fbb15-fcb3-7f44-8594-f8176670bf17",
+      "timestamp": "2026-08-01T02:13:33.689Z"
+    }
+  ]
+}

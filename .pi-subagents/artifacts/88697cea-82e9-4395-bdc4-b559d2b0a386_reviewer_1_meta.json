@@ -1,0 +1,119 @@
+{
+  "runId": "88697cea-82e9-4395-bdc4-b559d2b0a386",
+  "agent": "reviewer",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/progress.md]\n\nGOTCHA COVERAGE — DO NOT modify any files. Output your findings as your response only.\n\nYou are reviewing a DESIGN DOCUMENT for a Command Stats Ingestion System (ingests bash command invocations from CLI agent session logs into an analytics DB). Topic of THIS batch: PARSING + EXTRACTION choices.\n\nGLOBAL SCOPE — no project-specific assumptions.\n\nWEB SEARCH MANDATORY: For each gotcha, search for industry best practices on shell command parsing, AST tools, edge cases in bash syntax. Cite 3-5 sources per finding.\n\nDO NOT re-analyze whether the design is good. Find what was MISSED.\n\nOriginal items (verbatim):\n\n=== OT5 (open thread) ===\nargs-depth. Top-3 flags per program (cheap) vs full flag frequency (expensive storage, noisy)? Design assumed full flags[] array. Could prune to top-N per program to save space.\n\n=== OT6 (open thread) ===\ncross-cwd-patterns. E.g., 'which repos use --force most?' — needs cwd in schema from day 1. Design includes cwd. If not needed, can drop cwd index to save space.\n\n=== OT7 (open thread) ===\npipeline-attribution. Count every cmd in pipeline (accurate, more events) vs only first cmd (cheap, loses visibility into pipes)? Design assumed count all. Could add pipeline_depth field + only parse first cmd.\n\n=== OT8 (open thread) ===\nbashlex-vs-manual-parser. bashlex: accurate, handles edge cases, python dependency. Manual: fast, no deps, ~80% accuracy. Recommendation: start manual, upgrade to bashlex if needed.\n\n=== LD5 (locked decision) ===\noutbox-pattern. Extraction writes raw events to outbox table; processor consumes outbox → analytics. Decouples extract from transform. Do NOT copy everything — only load-bearing fields (program, subcommand, flags, cwd, ts, exit_code, duration).\n\n=== Additional design context ===\nManual parser implementation (proposed):\n  - Strip leading `cd <path> &&` regex\n  - Strip leading env vars (FOO=bar)\n  - Strip leading sudo/timeout\n  - Split pipeline by `|`\n  - First command's tokens[0] = program, rest = args\n  - subcommand = args[0] for known programs (git/npm/gh/docker/pnpm)\n  - flags = args.filter(startsWith('-'))\n\nReal sample command from data: `cd /home/bhd/Documents/Projects/bhd/beet-orches && echo \"=== find manual-line route ===\"; timeout 15 grep -rnE \"manual.*line|line.*item|POST.*line|/lines\" components/mod-contractor-payment/backend/src/routes/invoices.ts 2>/dev/null | grep -iE \"line|manual\" | head -15`\n\nYour job:\n1. For EACH of OT5, OT6, OT7, OT8, LD5 — find 2-5 gotchas.\n2. Each gotcha: {rank 1-5, title, what, why_missed, severity, mitigation, sources}.\n3. Rank scale: 1=YAGNI, 2=Minor, 3=Moderate, 4=Significant, 5=Sophisticated.\n4. Consider edge cases: heredocs, subshells $(), backticks, command substitution, process substitution <(), xargs, find -exec, multi-line scripts, ANSI escapes, locale-specific chars, quoted strings with spaces.\n5. Return ONLY structured findings. Mark cross-cutting gotchas.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart-rev:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart-rev:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart-rev:high",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 31699,
+        "output": 15189,
+        "cacheRead": 300928,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 8
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "attested",
+    "evidenceStatus": "attested",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "24 structured gotchas across OT5(3)/OT6(3)/OT7(4)/OT8(5)/LD5(6), each with rank, what, why_missed, severity, mitigation, and 3-5 cited sources. Cited design files: flow/findings/2026-08-04_oas-command-stats/2026-08-04-turn4-design-ingestion-system.md (parser code, outbox schema, ingestBatch), 2026-08-04-turn3-frameworks-granular-stats.md (~80% claim, cwd-is-free claim), 2026-08-04-turn2-list-group-24h-cmds.md (pi positional extraction, sample command). Empirically reproduced the parser failure on the design's sample command (program=echo vs grep, depth=7 vs 3)."
+        }
+      ],
+      "changedFiles": [],
+      "testsAddedOrUpdated": [],
+      "commandsRun": [
+        {
+          "command": "node -e '<design manual parser trace on sample command>'",
+          "result": "passed",
+          "summary": "Reproduced parser failure: PROGRAM=echo (wrong, should be grep), PIPE PARTS=7 (wrong, real depth 3 from quoted regex pipes), FLAGS=[-rnE] only. Proves OT7-G1, OT7-G2, OT8-G1."
+        },
+        {
+          "command": "curl bashlex README / mvdan-sh repo / tree-sitter-bash repo (github API)",
+          "result": "passed",
+          "summary": "Verified 3 real AST parsers exist & current: bashlex (Python, handles cat <(echo $(echo foo))), mvdan/sh (Go, 8940 stars, bash+zsh), tree-sitter-bash (C/WASM). Supports OT8-G2 (false dichotomy)."
+        },
+        {
+          "command": "command -v bashlex/shfmt/shellcheck",
+          "result": "passed",
+          "summary": "Only shellcheck present locally; bashlex/shfmt absent — confirms manual parser would be the path without explicit dependency decision."
+        }
+      ],
+      "validationOutput": [
+        "No files modified (review-only, as instructed).",
+        "All file-path citations point to verified design-doc locations under flow/findings/2026-08-04_oas-command-stats/.",
+        "Gotcha ranks follow required 1(YAGNI)-5(Sophisticated) scale; cross-cutting items marked with star and tabulated."
+      ],
+      "residualRisks": [
+        "Sources are cited from canonical references (POSIX, GNU/bash manuals, ShellCheck wiki) plus 3 verified GitHub repos; could not independently verify every POSIX Guideline number via live fetch, but they are stable well-known references.",
+        "Accuracy of '~80%' baseline is itself unmeasured in the design — my OT8-G1 criticizes this but the true bucketed accuracy on 247k cmds is unknown until measured (recommend as next step, not a blocker).",
+        "LD5-G6 event_id stability claim for pi is inferred from turn2 extraction pattern (positional content[]); not validated against actual pi JSONL schema versioning/compaction behavior."
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "No diff — review-only, no files created or modified.",
+      "reviewFindings": [
+        "no blockers to proceeding, but OT8 must be re-framed (OT8-G2 false dichotomy) and OT7-G1/OT7-G2 quote-aware+statement-list parsing must be a hard prerequisite before any 'count all vs count first' decision is meaningful",
+        "signficant: OT6-G1 cwd contradiction, LD5-G2 poison-batch, LD5-G3 parser-version idempotency hole — fix these in design before implementation",
+        "note: design's own sample command fails the design's own proposed parser in >=4 ways (verified) — '~80% accuracy' premise is unvalidated"
+      ],
+      "manualNotes": "Top 3 highest-ROI design fixes before implementation: (1) adopt mvdan-sh WASM or tree-sitter-bash as default parser (resolves OT7-G1, OT7-G2, OT8-G1/G2/G4/G5); (2) add parse_status + parser_version columns and per-row error isolation (resolves OT8-G3, LD5-G2, LD5-G3); (3) reconcile cwd semantics — store effective_cwd from cd target, derive repo column (resolves OT6-G1/G2). The plan.md/progress.md at repo root do not exist; the design lives in flow/findings/2026-08-04_oas-command-stats/ — worth flagging to the orchestrator that the task's file paths were stale."
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/88697cea-82e9-4395-bdc4-b559d2b0a386_reviewer_1_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785850438497
+}

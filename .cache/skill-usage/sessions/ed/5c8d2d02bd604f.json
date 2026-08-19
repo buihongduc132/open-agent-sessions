@@ -1,0 +1,26 @@
+{
+  "fingerprint": "ed5c8d2d02bd604f78d0cff24f9c658cd03b2ec70ac1ac5adfe3eeb21de09476",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:17.898Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "read-tool",
+      "sessionId": "019fa21f-8faa-7322-afa0-e7bbcf125623",
+      "timestamp": "2026-07-27T12:16:23.983Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019fa21f-8faa-7322-afa0-e7bbcf125623",
+      "timestamp": "2026-07-27T12:16:11.529Z"
+    }
+  ]
+}

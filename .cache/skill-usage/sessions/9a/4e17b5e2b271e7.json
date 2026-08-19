@@ -1,0 +1,62 @@
+{
+  "fingerprint": "9a4e17b5e2b271e799648b5468d92b05bbcb6bbe46a0466a628891c73cfb3d0d",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:08.503Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f91ac-ceb5-7616-b8b1-06e8ba856e0b",
+      "timestamp": "2026-07-24T01:33:38.370Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f91ac-ceb5-7616-b8b1-06e8ba856e0b",
+      "timestamp": "2026-07-24T01:33:38.370Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f91ac-ceb5-7616-b8b1-06e8ba856e0b",
+      "timestamp": "2026-07-24T01:33:49.424Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f91ac-ceb5-7616-b8b1-06e8ba856e0b",
+      "timestamp": "2026-07-24T01:42:25.182Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pre-commit-guard",
+      "source": "text-mention",
+      "sessionId": "019f91ac-ceb5-7616-b8b1-06e8ba856e0b",
+      "timestamp": "2026-07-24T01:45:46.770Z"
+    },
+    {
+      "skill": "pre-commit-guard",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "pre-commit guard",
+      "source": "text-mention",
+      "sessionId": "019f91ac-ceb5-7616-b8b1-06e8ba856e0b",
+      "timestamp": "2026-07-24T01:45:46.770Z"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"decision_id":"a5890f2d-f415-4bf6-a1ba-746136f1ee77","decision":"deny","source":"opa","command":"git stash pop 2>&1 | tail -3 && echo '---' && git checkout feat/inventory-parity-matrix 2>&1 | tail -2 && echo '---MAIN HEAD---' && git log origin/main --oneline -3","rule_ids":["block-git-stash-mutations"],"evaluated_at":"2026-07-31T12:34:19.168Z","pi_opa_net_version":"0.5.0"}

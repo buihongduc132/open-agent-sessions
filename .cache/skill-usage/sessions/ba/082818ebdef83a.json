@@ -1,0 +1,71 @@
+{
+  "fingerprint": "ba082818ebdef83aacdd1bd0c9bf278b6d3494d80f948c2e8836138164704cea",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:30.566Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "model-fallback",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "model-fallback",
+      "source": "read-tool",
+      "sessionId": "019fbb14-fd17-7d51-9d22-d235239d7da3",
+      "timestamp": "2026-08-01T02:20:58.552Z"
+    },
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "read-tool",
+      "sessionId": "019fbb14-fd17-7d51-9d22-d235239d7da3",
+      "timestamp": "2026-08-01T02:49:31.840Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019fbb14-fd17-7d51-9d22-d235239d7da3",
+      "timestamp": "2026-07-31T09:56:54.877Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019fbb14-fd17-7d51-9d22-d235239d7da3",
+      "timestamp": "2026-07-31T10:02:19.836Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fbb14-fd17-7d51-9d22-d235239d7da3",
+      "timestamp": "2026-07-31T10:02:19.836Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bad",
+      "source": "text-mention",
+      "sessionId": "019fbb14-fd17-7d51-9d22-d235239d7da3",
+      "timestamp": "2026-08-01T02:13:50.987Z"
+    },
+    {
+      "skill": "coding-rules",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "coding-rules",
+      "source": "text-mention",
+      "sessionId": "019fbb14-fd17-7d51-9d22-d235239d7da3",
+      "timestamp": "2026-08-01T03:00:19.395Z"
+    }
+  ]
+}

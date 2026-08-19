@@ -1,0 +1,53 @@
+{
+  "fingerprint": "fb6bfe01b90aced64c82f2c7f59fb619319464018e359d46af3530a63420b4f1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:31.230Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-os",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-os",
+      "source": "read-tool",
+      "sessionId": "019fc2cc-c0e3-72b2-b3c6-046f08e45fa1",
+      "timestamp": "2026-08-02T13:20:18.070Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fc2cc-c0e3-72b2-b3c6-046f08e45fa1",
+      "timestamp": "2026-08-02T13:20:24.286Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019fc2cc-c0e3-72b2-b3c6-046f08e45fa1",
+      "timestamp": "2026-08-02T13:20:29.238Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc2cc-c0e3-72b2-b3c6-046f08e45fa1",
+      "timestamp": "2026-08-02T13:20:50.769Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc2cc-c0e3-72b2-b3c6-046f08e45fa1",
+      "timestamp": "2026-08-02T13:20:56.627Z"
+    }
+  ]
+}

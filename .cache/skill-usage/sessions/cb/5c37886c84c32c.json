@@ -1,0 +1,53 @@
+{
+  "fingerprint": "cb5c37886c84c32cfd0e860f198c56fc3d6b1e18c5365b56b92582c2763d7d22",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:58:21.877Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "gitnexus-cli",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "gitnexus-cli",
+      "source": "read-tool",
+      "sessionId": "019f903b-9afd-7b43-8d69-27dfe52ab279",
+      "timestamp": "2026-07-23T19:32:47.552Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "abc",
+      "source": "text-mention",
+      "sessionId": "019f903b-9afd-7b43-8d69-27dfe52ab279",
+      "timestamp": "2026-07-23T18:48:45.326Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f903b-9afd-7b43-8d69-27dfe52ab279",
+      "timestamp": "2026-07-23T18:48:45.326Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f903b-9afd-7b43-8d69-27dfe52ab279",
+      "timestamp": "2026-07-23T19:07:00.023Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f903b-9afd-7b43-8d69-27dfe52ab279",
+      "timestamp": "2026-07-23T19:08:00.128Z"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "fingerprint": "389e6797e3d8cbb0c09f754d90eedcee284ad282e21dd993b576243663e436fc",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:34.227Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "cli-agent",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "cli-agent",
+      "source": "text-mention",
+      "sessionId": "019f8b22-ed52-70d4-8dd3-d572657a99c4",
+      "timestamp": "2026-07-22T18:42:44.776Z"
+    },
+    {
+      "skill": "cli-agent",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "cli agent",
+      "source": "text-mention",
+      "sessionId": "019f8b22-ed52-70d4-8dd3-d572657a99c4",
+      "timestamp": "2026-07-22T18:42:44.776Z"
+    }
+  ]
+}

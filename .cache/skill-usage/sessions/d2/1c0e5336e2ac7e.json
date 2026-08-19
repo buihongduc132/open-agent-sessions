@@ -1,0 +1,80 @@
+{
+  "fingerprint": "d21c0e5336e2ac7eca504004090cc57391e937fbeb35a6ae3a509d8f476a9ab7",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:59.469Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "read-tool",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-22T17:54:04.089Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-22T18:29:11.214Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-22T18:19:41.855Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-22T18:19:41.855Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-22T18:31:48.906Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-22T18:59:23.776Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-23T03:17:09.333Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f8adf-982c-7fc5-85b2-5622ba2abb2b",
+      "timestamp": "2026-07-23T03:33:20.619Z"
+    }
+  ]
+}

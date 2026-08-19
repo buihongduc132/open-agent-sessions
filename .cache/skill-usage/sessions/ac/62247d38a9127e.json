@@ -1,0 +1,44 @@
+{
+  "fingerprint": "ac62247d38a9127eaaaab0c151a6114f5024e735a9ec8615292d07306893978c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:58.030Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-cmd-palette",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-cmd-palette",
+      "source": "read-tool",
+      "sessionId": "019f8b1b-c1b9-79b6-ada4-0cf048c82128",
+      "timestamp": "2026-07-22T18:34:58.456Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "ralph-",
+      "source": "text-mention",
+      "sessionId": "019f8b1b-c1b9-79b6-ada4-0cf048c82128",
+      "timestamp": "2026-07-22T18:35:25.338Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f8b1b-c1b9-79b6-ada4-0cf048c82128",
+      "timestamp": "2026-07-22T18:35:25.338Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "beads",
+      "source": "text-mention",
+      "sessionId": "019f8b1b-c1b9-79b6-ada4-0cf048c82128",
+      "timestamp": "2026-07-22T18:35:25.338Z"
+    }
+  ]
+}

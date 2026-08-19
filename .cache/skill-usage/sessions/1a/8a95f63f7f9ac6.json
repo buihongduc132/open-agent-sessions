@@ -1,0 +1,44 @@
+{
+  "fingerprint": "1a8a95f63f7f9ac644f8fa4deb2a5b90d6beec6ab8d7c4a54d4bd94ac7c95e11",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:01:46.253Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fb49c-dbe6-7847-ae85-c48e46bb2505",
+      "timestamp": "2026-07-30T20:09:45.185Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019fb49c-dbe6-7847-ae85-c48e46bb2505",
+      "timestamp": "2026-07-30T20:12:22.995Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fb49c-dbe6-7847-ae85-c48e46bb2505",
+      "timestamp": "2026-07-30T20:29:29.527Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fb49c-dbe6-7847-ae85-c48e46bb2505",
+      "timestamp": "2026-07-30T20:30:06.105Z"
+    }
+  ]
+}

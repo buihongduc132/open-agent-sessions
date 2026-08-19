@@ -1,0 +1,35 @@
+{
+  "fingerprint": "d229701360665e48012a140780f481badd5959a15fad5179103551ef0eb3c7bf",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:57.593Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019f6bdc-6f1f-72d5-8ce0-5e78f3a1e493",
+      "timestamp": "2026-07-16T17:00:51.416Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f6bdc-6f1f-72d5-8ce0-5e78f3a1e493",
+      "timestamp": "2026-07-16T17:22:44.768Z"
+    },
+    {
+      "skill": "teams-first",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "team-first",
+      "source": "text-mention",
+      "sessionId": "019f6bdc-6f1f-72d5-8ce0-5e78f3a1e493",
+      "timestamp": "2026-07-16T19:53:14.805Z"
+    }
+  ]
+}

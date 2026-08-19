@@ -1,0 +1,80 @@
+{
+  "fingerprint": "08adb1c31e916d01c1ef7d5b0988635e3619dddfa20f132f972c1ab3f407823c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:35.525Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-18T18:36:27.333Z"
+    },
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-18T18:36:27.333Z"
+    },
+    {
+      "skill": "code-organization",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "code-organization",
+      "source": "read-tool",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-18T18:36:52.907Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-18T17:22:05.208Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-18T18:36:27.333Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-18T18:40:25.297Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-18T18:44:08.430Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f7629-5636-7a06-96a9-1c60eed55a16",
+      "timestamp": "2026-07-20T05:21:27.175Z"
+    }
+  ]
+}

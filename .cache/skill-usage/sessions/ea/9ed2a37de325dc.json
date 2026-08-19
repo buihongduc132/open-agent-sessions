@@ -1,0 +1,71 @@
+{
+  "fingerprint": "ea9ed2a37de325dc5c1cea3e15bb78fdb9657581455ea6e14a690734e1579e4c",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:56:38.661Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019fa3aa-e856-7334-99cc-94b29b5bb55d",
+      "timestamp": "2026-07-27T13:29:46.047Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019fa3aa-e856-7334-99cc-94b29b5bb55d",
+      "timestamp": "2026-07-27T13:29:16.303Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa3aa-e856-7334-99cc-94b29b5bb55d",
+      "timestamp": "2026-07-27T13:29:46.047Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fa3aa-e856-7334-99cc-94b29b5bb55d",
+      "timestamp": "2026-07-27T13:29:46.047Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fa3aa-e856-7334-99cc-94b29b5bb55d",
+      "timestamp": "2026-07-27T15:15:01.599Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fa3aa-e856-7334-99cc-94b29b5bb55d",
+      "timestamp": "2026-07-27T17:09:33.926Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fa3aa-e856-7334-99cc-94b29b5bb55d",
+      "timestamp": "2026-07-27T17:11:14.577Z"
+    }
+  ]
+}

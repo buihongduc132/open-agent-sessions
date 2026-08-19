@@ -1,0 +1,53 @@
+{
+  "fingerprint": "995036b5096135e6e444175068dfdd49bb9a1a0d5376d89ec34bcd05f2dd9841",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:59:26.509Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa580-9b4a-7163-b534-b6bd12b8a5cf",
+      "timestamp": "2026-07-27T21:41:47.387Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fa580-9b4a-7163-b534-b6bd12b8a5cf",
+      "timestamp": "2026-07-27T21:41:47.387Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019fa580-9b4a-7163-b534-b6bd12b8a5cf",
+      "timestamp": "2026-07-28T00:30:24.317Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019fa580-9b4a-7163-b534-b6bd12b8a5cf",
+      "timestamp": "2026-07-28T00:34:57.182Z"
+    },
+    {
+      "skill": "research",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "research",
+      "source": "text-mention",
+      "sessionId": "019fa580-9b4a-7163-b534-b6bd12b8a5cf",
+      "timestamp": "2026-07-28T00:55:33.989Z"
+    }
+  ]
+}

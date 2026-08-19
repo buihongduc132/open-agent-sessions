@@ -1,0 +1,80 @@
+{
+  "fingerprint": "8b57e23c21924afce6749266cad05c04dd52de557ea4d452036f64fa0b07fdd1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:04.917Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T17:03:23.149Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T07:59:55.435Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T07:59:55.435Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "diagram",
+      "source": "text-mention",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T16:38:51.869Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T16:38:51.869Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T17:12:01.271Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T17:12:41.833Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f6efb-0193-7de9-b00b-b3e5f7067297",
+      "timestamp": "2026-07-17T17:12:41.833Z"
+    }
+  ]
+}

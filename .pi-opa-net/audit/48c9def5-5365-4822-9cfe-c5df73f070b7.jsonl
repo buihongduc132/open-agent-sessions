@@ -1,0 +1,1 @@
+{"decision_id":"48c9def5-5365-4822-9cfe-c5df73f070b7","decision":"deny","source":"opa","command":"git reset --hard origin/main 2>&1 | tail -3","rule_ids":["block-git-reset-hard"],"evaluated_at":"2026-07-31T14:43:57.412Z","pi_opa_net_version":"0.5.0"}

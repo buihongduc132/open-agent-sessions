@@ -1,0 +1,17 @@
+{
+  "fingerprint": "82dc8f137efb779c3203f30c2fbed66031edeb08fdd0afa27eead432a02204b1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:24.217Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "incident-triage",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "incident-triage",
+      "source": "read-tool",
+      "sessionId": "019faa2f-5372-78dd-98a5-ec24596fb9f4",
+      "timestamp": "2026-07-28T19:25:07.814Z"
+    }
+  ]
+}

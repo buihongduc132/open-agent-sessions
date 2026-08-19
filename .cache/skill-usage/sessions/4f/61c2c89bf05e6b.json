@@ -1,0 +1,80 @@
+{
+  "fingerprint": "4f61c2c89bf05e6b2a21ff469fd7bf14d04e2bd4a75a915bfb7be35a19a2c8e6",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:22:43.354Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T19:41:11.653Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T19:50:37.832Z"
+    },
+    {
+      "skill": "sunset-service",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "sunset-services",
+      "source": "text-mention",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T20:13:17.636Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T21:07:21.164Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T21:07:21.164Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T21:39:51.078Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "verifier-loops",
+      "source": "text-mention",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T21:50:35.796Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f7195-f75f-7629-ba61-5387a84881d3",
+      "timestamp": "2026-07-17T23:15:13.168Z"
+    }
+  ]
+}

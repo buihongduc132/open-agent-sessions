@@ -1,0 +1,71 @@
+{
+  "fingerprint": "e0e68671b322be45e610d4afd773f9a7dec13a59c2ccabd5081ee2c8a6e317e1",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:30:49.622Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "read-tool",
+      "sessionId": "019f8caf-4d0e-7d4f-8e43-8ba33f16fb54",
+      "timestamp": "2026-07-23T03:24:02.557Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f8caf-4d0e-7d4f-8e43-8ba33f16fb54",
+      "timestamp": "2026-07-23T04:18:19.345Z"
+    },
+    {
+      "skill": "troubleshooting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "troubleshooting",
+      "source": "text-mention",
+      "sessionId": "019f8caf-4d0e-7d4f-8e43-8ba33f16fb54",
+      "timestamp": "2026-07-23T03:44:46.545Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8caf-4d0e-7d4f-8e43-8ba33f16fb54",
+      "timestamp": "2026-07-23T04:18:19.345Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8caf-4d0e-7d4f-8e43-8ba33f16fb54",
+      "timestamp": "2026-07-23T04:18:19.345Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f8caf-4d0e-7d4f-8e43-8ba33f16fb54",
+      "timestamp": "2026-07-23T09:57:13.683Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8caf-4d0e-7d4f-8e43-8ba33f16fb54",
+      "timestamp": "2026-07-23T09:57:13.683Z"
+    }
+  ]
+}

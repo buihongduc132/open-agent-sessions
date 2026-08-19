@@ -1,0 +1,98 @@
+{
+  "fingerprint": "7b507a872030cf9c8002d498539ed7ba2047cca3047c85b8878fd1c94a6d4dde",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:30:54.431Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T09:52:18.761Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T09:43:17.903Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T09:43:17.903Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "abs",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T09:43:17.903Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T09:52:18.761Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T09:52:18.761Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T09:52:18.761Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T10:32:04.707Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp_",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T10:32:04.707Z"
+    },
+    {
+      "skill": "acpx",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "acp",
+      "source": "text-mention",
+      "sessionId": "019f7498-d451-73ea-b0fb-0e519cf8535b",
+      "timestamp": "2026-07-18T10:32:04.707Z"
+    }
+  ]
+}

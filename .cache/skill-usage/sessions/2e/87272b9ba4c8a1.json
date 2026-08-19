@@ -1,0 +1,35 @@
+{
+  "fingerprint": "2e87272b9ba4c8a15877ecaa8a976124b728b5cad408cc4a6532df18c8038a81",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:10.545Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-holdpty",
+      "source": "read-tool",
+      "sessionId": "019fa286-4799-78c3-ab78-ba2dae98752a",
+      "timestamp": "2026-07-27T08:02:34.367Z"
+    },
+    {
+      "skill": "pi-processes",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-processes",
+      "source": "read-tool",
+      "sessionId": "019fa286-4799-78c3-ab78-ba2dae98752a",
+      "timestamp": "2026-07-27T08:03:03.500Z"
+    },
+    {
+      "skill": "holdpty",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "holdpty",
+      "source": "text-mention",
+      "sessionId": "019fa286-4799-78c3-ab78-ba2dae98752a",
+      "timestamp": "2026-07-27T08:03:53.024Z"
+    }
+  ]
+}

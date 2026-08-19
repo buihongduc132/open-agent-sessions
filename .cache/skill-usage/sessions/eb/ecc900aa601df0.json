@@ -1,0 +1,71 @@
+{
+  "fingerprint": "ebecc900aa601df0fd968a3c48430bc4819de5969e55d57360ee17f13ebbca50",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:28:44.121Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f6fbf-bffc-7fb6-9fa7-c4b1f7840c81",
+      "timestamp": "2026-07-17T11:08:26.293Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f6fbf-bffc-7fb6-9fa7-c4b1f7840c81",
+      "timestamp": "2026-07-17T11:46:03.403Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f6fbf-bffc-7fb6-9fa7-c4b1f7840c81",
+      "timestamp": "2026-07-17T11:08:19.615Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f6fbf-bffc-7fb6-9fa7-c4b1f7840c81",
+      "timestamp": "2026-07-17T11:27:45.231Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "text-mention",
+      "sessionId": "019f6fbf-bffc-7fb6-9fa7-c4b1f7840c81",
+      "timestamp": "2026-07-17T11:45:43.098Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019f6fbf-bffc-7fb6-9fa7-c4b1f7840c81",
+      "timestamp": "2026-07-17T12:33:35.853Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f6fbf-bffc-7fb6-9fa7-c4b1f7840c81",
+      "timestamp": "2026-07-17T12:34:11.218Z"
+    }
+  ]
+}

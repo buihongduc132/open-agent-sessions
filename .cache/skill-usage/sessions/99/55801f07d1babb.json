@@ -1,0 +1,71 @@
+{
+  "fingerprint": "9955801f07d1babb4703c6a99a7a90dcc30de3b32f29eda78f970cea7c9ff125",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:59:24.271Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc3a0-5e7b-79cb-8c77-72da71d03c31",
+      "timestamp": "2026-07-31T07:28:33.444Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc3a0-5e7b-79cb-8c77-72da71d03c31",
+      "timestamp": "2026-07-31T07:49:56.282Z"
+    },
+    {
+      "skill": "browser-manual-testing",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "browser-manual-testing",
+      "source": "read-tool",
+      "sessionId": "019fc3a0-5e7b-79cb-8c77-72da71d03c31",
+      "timestamp": "2026-07-31T07:50:03.152Z"
+    },
+    {
+      "skill": "abw",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "abw",
+      "source": "text-mention",
+      "sessionId": "019fc3a0-5e7b-79cb-8c77-72da71d03c31",
+      "timestamp": "2026-07-31T06:31:38.101Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fc3a0-5e7b-79cb-8c77-72da71d03c31",
+      "timestamp": "2026-07-31T06:41:33.194Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fc3a0-5e7b-79cb-8c77-72da71d03c31",
+      "timestamp": "2026-07-31T06:41:33.194Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019fc3a0-5e7b-79cb-8c77-72da71d03c31",
+      "timestamp": "2026-08-02T17:37:49.913Z"
+    }
+  ]
+}

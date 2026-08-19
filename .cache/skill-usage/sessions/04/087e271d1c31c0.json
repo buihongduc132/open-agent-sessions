@@ -1,0 +1,71 @@
+{
+  "fingerprint": "04087e271d1c31c0acf4fcdd7b5bb8f349b349ab95ac97f4a5efcfbba82366db",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:57.107Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "worktree-lifecycle",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "worktree-lifecycle",
+      "source": "read-tool",
+      "sessionId": "019f7198-5414-72a3-9ad4-8a00b8d37015",
+      "timestamp": "2026-07-17T20:15:40.930Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f7198-5414-72a3-9ad4-8a00b8d37015",
+      "timestamp": "2026-07-17T20:52:21.950Z"
+    },
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019f7198-5414-72a3-9ad4-8a00b8d37015",
+      "timestamp": "2026-07-17T21:03:04.855Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f7198-5414-72a3-9ad4-8a00b8d37015",
+      "timestamp": "2026-07-17T19:49:50.696Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f7198-5414-72a3-9ad4-8a00b8d37015",
+      "timestamp": "2026-07-17T19:57:09.244Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f7198-5414-72a3-9ad4-8a00b8d37015",
+      "timestamp": "2026-07-17T19:57:09.244Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019f7198-5414-72a3-9ad4-8a00b8d37015",
+      "timestamp": "2026-07-17T21:06:54.291Z"
+    }
+  ]
+}

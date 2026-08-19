@@ -1,0 +1,44 @@
+{
+  "fingerprint": "30973bfc8b0e17d85a0801c5173cbdc198768954facd8cf2174c4983cb7d91a3",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:32.120Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-9c63-7c86-9b84-b3fd9ca5fe8d",
+      "timestamp": "2026-07-22T18:52:49.224Z"
+    },
+    {
+      "skill": "acpx-config",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "acpx-config",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-9c63-7c86-9b84-b3fd9ca5fe8d",
+      "timestamp": "2026-07-22T18:52:49.224Z"
+    },
+    {
+      "skill": "to-pi-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-cmd",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-9c63-7c86-9b84-b3fd9ca5fe8d",
+      "timestamp": "2026-07-22T18:52:49.224Z"
+    },
+    {
+      "skill": "to-pi-skill",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "to-pi-skill",
+      "source": "text-mention",
+      "sessionId": "019f8b2b-9c63-7c86-9b84-b3fd9ca5fe8d",
+      "timestamp": "2026-07-22T18:52:49.224Z"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "fingerprint": "ba4c27b6387d34dbc2e5bf52ea5c9947be0c908ec3debff63f9fe9e7ac1ab85e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:06:22.197Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "web-searching",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "web-searching",
+      "source": "read-tool",
+      "sessionId": "019f8d03-6e2e-7bc2-b0ee-61e05343a11d",
+      "timestamp": "2026-07-22T17:54:04.089Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019f8d03-6e2e-7bc2-b0ee-61e05343a11d",
+      "timestamp": "2026-07-22T18:29:11.214Z"
+    },
+    {
+      "skill": "github",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "github",
+      "source": "text-mention",
+      "sessionId": "019f8d03-6e2e-7bc2-b0ee-61e05343a11d",
+      "timestamp": "2026-07-22T18:19:41.855Z"
+    },
+    {
+      "skill": "pi-unify-cmd",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-unify-cmd",
+      "source": "text-mention",
+      "sessionId": "019f8d03-6e2e-7bc2-b0ee-61e05343a11d",
+      "timestamp": "2026-07-22T18:19:41.855Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019f8d03-6e2e-7bc2-b0ee-61e05343a11d",
+      "timestamp": "2026-07-22T18:31:48.906Z"
+    },
+    {
+      "skill": "honoring-other-works",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "honoring-other-works",
+      "source": "text-mention",
+      "sessionId": "019f8d03-6e2e-7bc2-b0ee-61e05343a11d",
+      "timestamp": "2026-07-22T18:59:23.776Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019f8d03-6e2e-7bc2-b0ee-61e05343a11d",
+      "timestamp": "2026-07-23T03:17:09.333Z"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "fingerprint": "833cc0625ae52178ae7b06e7e51d5721f1de331db694bdbbfe328fee7e0d3cb7",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:24:09.894Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "atuin-history",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "atuin-history",
+      "source": "read-tool",
+      "sessionId": "019f6dfb-aed8-7061-89fc-cd75b497b61a",
+      "timestamp": "2026-07-17T02:56:53.088Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "read-tool",
+      "sessionId": "019f6dfb-aed8-7061-89fc-cd75b497b61a",
+      "timestamp": "2026-07-17T07:21:14.727Z"
+    },
+    {
+      "skill": "wezterm",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "wezterm",
+      "source": "text-mention",
+      "sessionId": "019f6dfb-aed8-7061-89fc-cd75b497b61a",
+      "timestamp": "2026-07-17T03:04:56.087Z"
+    },
+    {
+      "skill": "teams-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "teams-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6dfb-aed8-7061-89fc-cd75b497b61a",
+      "timestamp": "2026-07-17T07:21:58.741Z"
+    },
+    {
+      "skill": "agent-delegation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "agent-delegation",
+      "source": "text-mention",
+      "sessionId": "019f6dfb-aed8-7061-89fc-cd75b497b61a",
+      "timestamp": "2026-07-17T07:21:58.741Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019f6dfb-aed8-7061-89fc-cd75b497b61a",
+      "timestamp": "2026-07-17T07:34:02.734Z"
+    }
+  ]
+}

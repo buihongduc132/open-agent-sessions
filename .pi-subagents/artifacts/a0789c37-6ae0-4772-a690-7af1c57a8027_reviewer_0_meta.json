@@ -1,0 +1,169 @@
+{
+  "runId": "a0789c37-6ae0-4772-a690-7af1c57a8027",
+  "agent": "reviewer",
+  "task": "[Read from: /home/bhd/Documents/Projects/bhd/open-agent-sessions/plan.md, /home/bhd/Documents/Projects/bhd/open-agent-sessions/progress.md]\n\nInspect branch `feat/oas-command-stats` in repo `/home/bhd/Documents/Projects/bhd/open-agent-sessions` and answer: should it be consolidated into main now or left in-flight? Verify directly: git log main..branch, changed files, goal file/worktree, tests/commits, PR state, completion percentage, whether it is active Phase 1 SDK work. Compare against main and current worktree `/home/bhd/Documents/Projects/bhd/oas-command-stats`. Return evidence and recommendation. Verifier angles: (a) scope/completion vs active goal, (b) commit/file correctness and tests, (c) branch/superset/merge safety. Read-only: do not edit, merge, tag, push, or delete. If a safety hook blocks a command, stop and escalate; do not route around.\n\n## Acceptance Contract\nAcceptance level: attested\nCompletion is not accepted from prose alone. End with a structured acceptance report.\n\nCriteria:\n- criterion-1: Return concrete findings with file paths and severity when applicable\n\nRequired evidence: review-findings, residual-risks\n\nFinish with a fenced JSON block tagged `acceptance-report` in this shape:\nUse empty arrays when no items apply; array fields contain strings unless object entries are shown.\n`criteriaSatisfied[].status` must be exactly one of: satisfied, not-satisfied, not-applicable.\n`commandsRun[].result` must be exactly one of: passed, failed, not-run.\n`manualNotes` and `notes` are optional strings; an empty string means no note and does not satisfy `manual-notes` evidence.\n```acceptance-report\n{\n  \"criteriaSatisfied\": [\n    {\n      \"id\": \"criterion-1\",\n      \"status\": \"satisfied\",\n      \"evidence\": \"specific proof\"\n    }\n  ],\n  \"changedFiles\": [\n    \"src/file.ts\"\n  ],\n  \"testsAddedOrUpdated\": [\n    \"test/file.test.ts\"\n  ],\n  \"commandsRun\": [\n    {\n      \"command\": \"command\",\n      \"result\": \"passed\",\n      \"summary\": \"short result\"\n    }\n  ],\n  \"validationOutput\": [\n    \"validation output or concise summary\"\n  ],\n  \"residualRisks\": [\n    \"none\"\n  ],\n  \"noStagedFiles\": true,\n  \"diffSummary\": \"short description of the diff\",\n  \"reviewFindings\": [\n    \"blocker: file.ts:12 - issue found, or no blockers\"\n  ],\n  \"manualNotes\": \"anything else the parent should know\"\n}\n```",
+  "exitCode": 0,
+  "model": "bhd-litellm/role-smart-rev:high",
+  "attemptedModels": [
+    "bhd-litellm/role-smart-rev:high"
+  ],
+  "modelAttempts": [
+    {
+      "model": "bhd-litellm/role-smart-rev:high",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 68530,
+        "output": 7957,
+        "cacheRead": 374528,
+        "cacheWrite": 0,
+        "cost": 0,
+        "turns": 13
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "attested",
+    "evidenceStatus": "attested",
+    "explicit": false,
+    "effectiveAcceptance": {
+      "level": "attested",
+      "explicit": false,
+      "inferredReason": [
+        "read-only/reviewer-style agent"
+      ],
+      "criteria": [
+        {
+          "id": "criterion-1",
+          "must": "Return concrete findings with file paths and severity when applicable",
+          "evidence": [
+            "review-findings",
+            "residual-risks"
+          ],
+          "severity": "required"
+        }
+      ],
+      "evidence": [
+        "review-findings",
+        "residual-risks"
+      ],
+      "verify": [],
+      "stopRules": []
+    },
+    "inferredReason": [
+      "read-only/reviewer-style agent"
+    ],
+    "criteria": [
+      {
+        "id": "criterion-1",
+        "must": "Return concrete findings with file paths and severity when applicable",
+        "evidence": [
+          "review-findings",
+          "residual-risks"
+        ],
+        "severity": "required"
+      }
+    ],
+    "runtimeChecks": [],
+    "verifyRuns": [],
+    "childReport": {
+      "criteriaSatisfied": [
+        {
+          "id": "criterion-1",
+          "status": "satisfied",
+          "evidence": "Returned concrete findings w/ file paths (src/sdk/index.ts, packages/sdk/index.ts:11, src/adapters/claude.ts, test/sdk/*) + severities (trivial/acceptable). 9 commits vs main, merge-safe FF."
+        }
+      ],
+      "changedFiles": [
+        ".gitignore",
+        "package.json",
+        "package-lock.json",
+        "packages/sdk/index.ts",
+        "packages/sdk/package.json",
+        "packages/sdk/tsconfig.json",
+        "packages/sdk/dist/sdk/index.js",
+        "packages/sdk/dist/sdk/index.d.ts",
+        "packages/sdk/dist/adapters/*.d.ts",
+        "packages/sdk/dist/core/*.d.ts",
+        "packages/sdk/dist/config/*.d.ts",
+        "packages/sdk/dist/similarity/*.d.ts",
+        "src/sdk/index.ts",
+        "src/adapters/claude.ts",
+        "test/sdk/public-contract.test.ts",
+        "test/sdk/session-detail-contract.ts",
+        "test/sdk/tsconfig.contract.json"
+      ],
+      "testsAddedOrUpdated": [
+        "test/sdk/public-contract.test.ts",
+        "test/sdk/session-detail-contract.ts",
+        "test/sdk/tsconfig.contract.json"
+      ],
+      "commandsRun": [
+        {
+          "command": "git log --oneline main..feat/oas-command-stats",
+          "result": "passed",
+          "summary": "9 commits, TDD order RED(8b934da)->GREEN(3403888)->pin(5b74d90)->fix(ec2c553)"
+        },
+        {
+          "command": "git merge-base --is-ancestor main feat/oas-command-stats",
+          "result": "passed",
+          "summary": "main IS ancestor -> clean fast-forward, 0 divergence"
+        },
+        {
+          "command": "bun run test:sdk-contract",
+          "result": "passed",
+          "summary": "5/5 SDK contract tests pass, build + tsc contract OK"
+        },
+        {
+          "command": "bun test (full)",
+          "result": "failed",
+          "summary": "3 failures all pre-existing timeouts (deprecated shims x2, OpenCode AC3) — NOT in SDK files"
+        },
+        {
+          "command": "tsc --noEmit",
+          "result": "passed",
+          "summary": "exit 0, no type errors"
+        },
+        {
+          "command": "gh pr list --head feat/oas-command-stats",
+          "result": "passed",
+          "summary": "no PR, no remote branch — merge would be adhoc"
+        },
+        {
+          "command": "git ls-remote --heads origin feat/oas-command-stats",
+          "result": "passed",
+          "summary": "empty — branch local-only"
+        }
+      ],
+      "validationOutput": [
+        "Phase 1 SDK public boundary (@open-agent-sessions/sdk@0.1.0) complete: src/sdk/index.ts + packages/sdk/{index,package,tsconfig}",
+        "test:sdk-contract GREEN (5/5)",
+        "tsc --noEmit clean",
+        "consumer /home/bhd/Documents/Projects/bhd/oas-command-stats symlinks node_modules/@open-agent-sessions/sdk -> packages/sdk",
+        "merge-base = main HEAD -> fast-forward safe",
+        "no active pi goal (.pi/goals/active_*) — all archived",
+        "no PR opened, no remote branch"
+      ],
+      "residualRisks": [
+        "packages/sdk/index.ts:11 has orphan */ block-comment close (trivial, non-loaded file)",
+        "Committed dist/** build artifacts (37 files, ~6k lines) — intentional but adds rebuild churn; no .gitattributes diff=skip",
+        "3 pre-existing bun test failures not verified against main (parent capped scope); confirm not introduced by branch",
+        "Adhoc merge (no PR) would bypass review gate per AGENTS.md TDD/PR discipline",
+        "worktree /home/bhd/Documents/Projects/bhd/oas-command-stats has uncommitted AGENTS.md lesson_learn block (not part of branch commits)"
+      ],
+      "noStagedFiles": true,
+      "diffSummary": "9 commits carving @open-agent-sessions/sdk public boundary (Phase 1). Source: src/sdk/index.ts (SDK_CONTRACT_VERSION=0.1.0 barrel), packages/sdk pkg scaffold, package.json workspaces + test:sdk-contract, .gitignore un-ignore dist, src/adapters/claude.ts relocatable version constant. Plus 37 committed dist/*.d.ts+index.js build artifacts. 5 SDK contract tests added (RED->GREEN TDD). No active pi goal. No PR.",
+      "reviewFindings": [
+        "no blockers: clean FF merge-safe, tests green for SDK scope",
+        "note: packages/sdk/index.ts:11 orphan */ comment close (trivial, non-loaded)",
+        "note: committed dist/** artifacts (intentional per prepare/prepack build hooks)",
+        "recommend: open PR before merge for traceability (currently branch is local-only, no remote)",
+        "recommend: verify 3 bun test timeouts pre-exist on main"
+      ],
+      "manualNotes": "Recommendation: CONSOLIDATE INTO MAIN NOW. Phase 1 complete, consumer unblocked, FF-safe. Caveats: open PR first (avoid adhoc merge), confirm pre-existing test failures on main. Read-only — no edit/merge/tag/push performed."
+    }
+  },
+  "transcriptPath": "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.pi-subagents/artifacts/a0789c37-6ae0-4772-a690-7af1c57a8027_reviewer_0_transcript.jsonl",
+  "skills": [],
+  "timestamp": 1785915564762
+}

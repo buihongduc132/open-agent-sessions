@@ -1,0 +1,35 @@
+{
+  "fingerprint": "484f45e4a01de90ba261f5dfa4dd75aa721ba464f3fecf2cbd31e00b4ec44313",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:27:03.823Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-intercom",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-intercom",
+      "source": "text-mention",
+      "sessionId": "019fad58-c4db-79db-982f-39314f7f88f2",
+      "timestamp": "2026-07-29T10:10:00.300Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fad58-c4db-79db-982f-39314f7f88f2",
+      "timestamp": "2026-07-29T10:10:00.300Z"
+    },
+    {
+      "skill": "pi-intercom",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "pin-intercom",
+      "source": "text-mention",
+      "sessionId": "019fad58-c4db-79db-982f-39314f7f88f2",
+      "timestamp": "2026-07-29T10:34:49.963Z"
+    }
+  ]
+}

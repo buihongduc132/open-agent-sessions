@@ -1,0 +1,98 @@
+{
+  "fingerprint": "7912807df34b79188286dc005d4bdf5ca1be8d03304d7928392e9a5a7e05408e",
+  "sessionPath": "",
+  "mtime": "2026-08-03T01:25:41.667Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "read-tool",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:19:14.404Z"
+    },
+    {
+      "skill": "ralph",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "ralph",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:12:28.752Z"
+    },
+    {
+      "skill": "paperclip",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "paperclip",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:12:28.752Z"
+    },
+    {
+      "skill": "diagrams",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "diagrams",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:12:28.752Z"
+    },
+    {
+      "skill": "archon-workflow",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "archon-workflow",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:12:28.752Z"
+    },
+    {
+      "skill": "archon-workflow",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "archon workflow",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:12:28.752Z"
+    },
+    {
+      "skill": "multica",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "multica",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:18:07.519Z"
+    },
+    {
+      "skill": "caveman",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "caveman",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:19:14.404Z"
+    },
+    {
+      "skill": "compress",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "compress",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T17:19:14.404Z"
+    },
+    {
+      "skill": "beads",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "reads",
+      "source": "text-mention",
+      "sessionId": "019f6be8-9fbb-737b-91bf-338a73642d3c",
+      "timestamp": "2026-07-16T19:36:15.402Z"
+    }
+  ]
+}

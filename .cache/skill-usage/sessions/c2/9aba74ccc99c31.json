@@ -1,0 +1,71 @@
+{
+  "fingerprint": "c29aba74ccc99c31d5cd3ec923fc2c096e6bc501da9134da8bb2c34a6112a7b8",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:00.428Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pr-creation",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pr-creation",
+      "source": "read-tool",
+      "sessionId": "019fa2d1-7f37-73ba-87b4-94a5466fc384",
+      "timestamp": "2026-07-27T07:04:06.700Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019fa2d1-7f37-73ba-87b4-94a5466fc384",
+      "timestamp": "2026-07-27T07:04:25.926Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "read-tool",
+      "sessionId": "019fa2d1-7f37-73ba-87b4-94a5466fc384",
+      "timestamp": "2026-07-27T07:12:29.417Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "verifier-loop",
+      "source": "text-mention",
+      "sessionId": "019fa2d1-7f37-73ba-87b4-94a5466fc384",
+      "timestamp": "2026-07-27T07:04:34.800Z"
+    },
+    {
+      "skill": "documenting",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "documenting",
+      "source": "text-mention",
+      "sessionId": "019fa2d1-7f37-73ba-87b4-94a5466fc384",
+      "timestamp": "2026-07-27T07:05:19.746Z"
+    },
+    {
+      "skill": "verifier-loop",
+      "tier": "normalized",
+      "distance": 0,
+      "matchedText": "verifier loop",
+      "source": "text-mention",
+      "sessionId": "019fa2d1-7f37-73ba-87b4-94a5466fc384",
+      "timestamp": "2026-07-27T07:18:48.033Z"
+    },
+    {
+      "skill": "bd",
+      "tier": "fuzzy",
+      "distance": 1,
+      "matchedText": "bhd",
+      "source": "text-mention",
+      "sessionId": "019fa2d1-7f37-73ba-87b4-94a5466fc384",
+      "timestamp": "2026-07-27T09:07:29.041Z"
+    }
+  ]
+}

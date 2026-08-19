@@ -1,0 +1,26 @@
+{
+  "fingerprint": "13738a04c1edd11f6c9fc1a0a4d2dfacc3bacf621494a7cbc4dbf6d2561156af",
+  "sessionPath": "",
+  "mtime": "2026-08-03T02:05:06.285Z",
+  "parserVersion": "1.0.0",
+  "matches": [
+    {
+      "skill": "pi-subagents",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "pi-subagents",
+      "source": "read-tool",
+      "sessionId": "019f74b0-77f6-72cb-b39f-2379fdf9dc55",
+      "timestamp": "2026-07-18T09:55:47.921Z"
+    },
+    {
+      "skill": "planning",
+      "tier": "exact",
+      "distance": 0,
+      "matchedText": "planning",
+      "source": "text-mention",
+      "sessionId": "019f74b0-77f6-72cb-b39f-2379fdf9dc55",
+      "timestamp": "2026-07-18T10:06:16.241Z"
+    }
+  ]
+}
