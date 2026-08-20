@@ -1,7 +1,7 @@
 {
   "name": "open-agent-sessions",
   "version": "0.1.0",
-  "description": "Unified session management library for AI coding agents (OpenCode, Codex, Claude)",
+  "description": "Unified session management library for AI coding agents (OpenCode, Codex, Claude, Grok)",
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
@@ -34,6 +34,7 @@
     "opencode",
     "codex",
     "claude",
+    "grok",
     "session-management",
     "ai-tools"
   ],

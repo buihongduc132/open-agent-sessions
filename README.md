@@ -1,6 +1,6 @@
 # open-agent-sessions
 
-> Unified session management for AI coding agents. Browse, search, read, and clone sessions across OpenCode, Codex, Claude, and acpx — through a single CLI or TypeScript SDK.
+> Unified session management for AI coding agents. Browse, search, read, and clone sessions across OpenCode, Codex, Claude, acpx, zcode, and Grok — through a single CLI or TypeScript SDK.
 
 ```
 Session List              Session Detail           Fork Tree
@@ -26,12 +26,13 @@ Session List              Session Detail           Fork Tree
 | **Claude Desktop sessions** — list, detail | ❌ | ✅ | JSONL-based |
 | **acpx sessions** — list, search, detail | ❌ | ✅ | `~/.acpx/sessions/*.json` |
 | **zcode sessions** — list, search, detail | ✅ | ✅ | SQLite at `~/.zcode/cli/db/db.sqlite` |
+| **Grok sessions** — list, search, detail, read | ✅ | ✅ | JSONL under `~/.grok/sessions/` (or `$GROK_HOME/sessions`) |
 | **Session cloning** — Codex → OpenCode | ✅ | ✅ | Preserves conversation history |
 | **Session forking** — fork across agents | ❌ | ✅ | R-39, CSF format |
 | **Interactive TUI** — browse sessions, clone | ✅ | — | VIM-style keybindings (`j/k/h/l`) |
 | **Export** — CSF, Markdown, plain text | ✅ | ✅ | Canonical Session Format (CSF) |
 | **Cursor pagination** | ✅ | ✅ | `oas sessions --limit 20 --after <cursor>` |
-| **Content search** | ✅ | ✅ | OpenCode, Codex, Claude, acpx |
+| **Content search** | ✅ | ✅ | OpenCode, Codex, Claude, acpx, grok |
 | **Tool/MCP usage search** | ❌ | ✅ | `toolSearchSessions()` (R-41) |
 | **Performance caching** | ✅ | ✅ | QuickLRU cache (20 list entries, 50 detail entries) |
 
@@ -61,6 +62,10 @@ oas read --session <session-id> --last 20 --format json
 
 # Search
 oas search --text "fix authentication bug"
+
+# Grok CLI sessions
+oas session list --agent grok
+oas session read grok:grok:<session-id> --all --tools --verbose
 
 # Filtered list
 oas list-new --agent opencode --alias default --q "bug"
@@ -101,7 +106,8 @@ open-agent-sessions
 │   │   ├── opencode.ts          # OpenCode: SQLite + JSONL, full CRUD
 │   │   ├── codex.ts             # Codex: SQLite + JSONL
 │   │   ├── claude.ts           # Claude Desktop: JSONL
-│   │   └── acpx.ts             # acpx: `~/.acpx/sessions/*.json` (R-31)
+│   │   ├── acpx.ts             # acpx: `~/.acpx/sessions/*.json` (R-31)
+│   │   └── grok.ts             # Grok CLI: ~/.grok/sessions JSONL
 │   ├── cli/                      # CLI command handlers
 │   │   ├── sessions.ts          # oas sessions: time-filtered list
 │   │   ├── list.ts             # oas list-new: agent/alias/q filtered list
@@ -142,7 +148,7 @@ interface Adapter {
 ```typescript
 interface SessionSummary {
   id: string;                          // UUID
-  agent: "opencode" | "codex" | "claude" | "acpx";
+  agent: "opencode" | "codex" | "claude" | "acpx" | "grok";
   alias: string;                      // e.g. "default", "work", "~/repos/backend"
   title: string;                       // Session title or "(untitled)"
   created_at: string;                  // ISO-8601
@@ -226,6 +232,22 @@ agents:
     alias: zcode
     enabled: true
     path: ~/.zcode/cli/db/db.sqlite
+
+  # grok — reads ~/.grok/sessions (override with path or GROK_HOME)
+  - agent: grok
+    alias: grok
+    enabled: true
+```
+
+### Grok CLI sessions
+
+Grok stores each conversation under `~/.grok/sessions/<url-encoded-cwd>/<session-id>/` (override the home with `GROK_HOME`). The adapter lists `summary.json` metadata and reads `chat_history.jsonl` for user prompts, assistant replies, reasoning, tool calls, and tool results.
+
+```
+~/.grok/sessions/%2Fhome%2Fproj/<uuid>/
+  summary.json
+  chat_history.jsonl
+  updates.jsonl
 ```
 
 ### Storage Modes (OpenCode)

@@ -41,6 +41,7 @@ The long-term goal is: **Minor agents → Unified Schema → Adapter pattern**, 
 || `pi` / `oh-my-pi (OMP)` | Minor | JSONL event stream + `stats.db` (tokens/costs) + `history.db` (FTS prompts) | `<timestamp>_<id>.jsonl` under `~/.omp/agent/sessions/<slug>/` | Event types: `session`, `model_change`, `thinking_level_change`, `custom_message`, `message`, `compaction` |
 || `hermes` | Mature | SQLite (`~/.hermes/state.db`, WAL mode, schema v6) | UUID | `sessions` table (id, source, model, title, parent_session_id, billing, tokens); `messages` table (role, content, tool_calls JSON, reasoning); FTS5 `messages_fts`; parent chain for context compression |
 || `zcode` | Mature | SQLite (`~/.zcode/cli/db/db.sqlite`) | `sess_<uuid>` / `sess_subagent_<uuid>` | `session` / `message` / `part` / `tool_usage` tables; `session.parent_id` for parent chain; message role lives inside `message.data` JSON; part type lives inside `part.data` JSON |
+| `grok` | Mature | JSONL under `~/.grok/sessions/<url-encoded-cwd>/<uuid>/` (`summary.json` + `chat_history.jsonl`; `$GROK_HOME` overrides `~/.grok`) | UUIDv7 | Title from `generated_title`; user/assistant/system/reasoning/tool_calls/tool_result in `chat_history.jsonl`; `parent_session_id` for forks |
 
 ### Adapter Interface
 

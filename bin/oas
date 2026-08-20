@@ -688,7 +688,7 @@ function showHelp() {
   console.log("");
   console.log("Session List Options:");
   console.log("  Agent/Query filtering:");
-  console.log("    --agent NAME           Filter by agent (opencode|codex|claude|acpx)");
+  console.log("    --agent NAME           Filter by agent (opencode|codex|claude|acpx|grok)");
   console.log("    --alias NAME           Filter by agent alias");
   console.log("    --q QUERY              Filter by session ID or title");
   console.log("    --roots-only            Show only root sessions (no parent)");
