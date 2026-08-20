@@ -10,6 +10,7 @@ export { createGeminiAdapter } from "./gemini";
 export { createAntigravityAdapter } from "./antigravity";
 export { createPiAdapter } from "./pi";
 export { createZcodeAdapter } from "./zcode";
+export { createGrokAdapter } from "./grok";
 
 // Re-export types for convenience so consumers can import from a single place
 export type {
@@ -30,3 +31,6 @@ export type {
 export type {
   ZcodeAdapterOptions,
 } from "./zcode";
+export type {
+  GrokAdapterOptions,
+} from "./grok";

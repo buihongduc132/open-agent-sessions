@@ -148,6 +148,7 @@ export interface AdapterFactories {
   antigravity: AdapterFactory;
   pi: AdapterFactory;
   zcode: AdapterFactory;
+  grok: AdapterFactory;
 }
 
 export interface AdapterHandle {
