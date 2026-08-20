@@ -37,3 +37,7 @@ agents:
   - agent: pi
     alias: pi
     enabled: true
+
+  - agent: grok
+    alias: grok
+    enabled: true

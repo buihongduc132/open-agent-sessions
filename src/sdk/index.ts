@@ -84,6 +84,7 @@ export {
   createAntigravityAdapter,
   createPiAdapter,
   createZcodeAdapter,
+  createGrokAdapter,
 } from "../adapters";
 
 // Normalization
