@@ -60,7 +60,7 @@ export type GrokAdapterOptions = {
   homeDir?: string;
 };
 
-type GrokAgentEntry = Extract<OtherAgentEntry, { agent: "grok" }>;
+type GrokAgentEntry = OtherAgentEntry & { agent: "grok" };
 
 type GrokSummaryFile = {
   info?: { id?: unknown; cwd?: unknown };
