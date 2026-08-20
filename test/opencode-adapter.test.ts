@@ -190,7 +190,8 @@ describe("OpenCode Adapter", () => {
       rmSync(dbPath, { force: true });
 
       const entry = makeEntry("main", { mode: "auto", db_path: dbPath, jsonl_path: jsonlPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/storage not found/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/storage not found/);
     });
 
     test("mode=db uses DB even when JSONL exists", () => {
@@ -222,7 +223,8 @@ describe("OpenCode Adapter", () => {
       ]);
 
       const entry = makeEntry("main", { mode: "db", db_path: dbPath, jsonl_path: jsonlPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/DB not found/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/DB not found/);
     });
 
     test("mode=jsonl uses JSONL even when DB exists", () => {
@@ -250,12 +252,14 @@ describe("OpenCode Adapter", () => {
       seedProject(projectId, cwd);
 
       const entry = makeEntry("main", { mode: "jsonl", db_path: dbPath, jsonl_path: jsonlPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd })).toThrow(/JSONL not found/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd });
+      expect(() => __adapter.listSessions()).toThrow(/JSONL not found/);
     });
 
     test("rejects invalid storage mode", () => {
       const entry = makeEntry("main", { mode: "invalid" as "auto", db_path: dbPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/Unsupported storage mode/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/Unsupported storage mode/);
     });
   });
 
@@ -319,7 +323,8 @@ describe("OpenCode Adapter", () => {
       const entry = makeEntry("test-helper", { mode: "db", db_path: dbPath, jsonl_path: jsonlPath });
       
       // This error message comes from resolveOpenCodeStorage, verifying it's being used
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/DB not found/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/DB not found/);
     });
   });
 
@@ -458,7 +463,8 @@ describe("OpenCode Adapter", () => {
       db.run(`CREATE TABLE part (id TEXT PRIMARY KEY)`);
 
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/schema mismatch.*missing tables.*project/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/schema mismatch.*missing tables.*project/);
     });
 
     test("errors when required columns missing", () => {
@@ -473,7 +479,8 @@ describe("OpenCode Adapter", () => {
       db.run(`CREATE TABLE part (id TEXT PRIMARY KEY)`);
 
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/schema mismatch.*missing columns/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/schema mismatch.*missing columns/);
     });
 
     test("includes expected schema reference in error", () => {
@@ -483,7 +490,8 @@ describe("OpenCode Adapter", () => {
       db.run(`CREATE TABLE other (id TEXT)`);
 
       const entry = makeEntry("main", { mode: "db", db_path: dbPath });
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/Expected schema/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/Expected schema/);
     });
   });
 
@@ -526,7 +534,8 @@ describe("OpenCode Adapter", () => {
     test("all errors include [agent:alias] label for missing DB path", () => {
       const entry = makeEntry("custom-alias", { mode: "db", db_path: "/nonexistent/path.db" });
       try {
-        createOpenCodeAdapter(entry, { cwd: "/home/user" });
+        const adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+        adapter.listSessions(); // deferred error (OT4) — surfaces at query time
         expect(true).toBe(false); // Should not reach
       } catch (error) {
         expect(error instanceof Error).toBe(true);
@@ -537,7 +546,8 @@ describe("OpenCode Adapter", () => {
     test("all errors include [agent:alias] label for missing JSONL path", () => {
       const entry = makeEntry("jsonl-alias", { mode: "jsonl", jsonl_path: "/nonexistent/path.jsonl" });
       try {
-        createOpenCodeAdapter(entry, { cwd: "/home/user" });
+        const adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+        adapter.listSessions(); // deferred error (OT4) — surfaces at query time
         expect(true).toBe(false); // Should not reach
       } catch (error) {
         expect(error instanceof Error).toBe(true);
@@ -964,7 +974,8 @@ describe("OpenCode Adapter", () => {
   describe("error handling", () => {
     test("throws when agent is not opencode", () => {
       const entry = { agent: "codex", alias: "main", enabled: true, storage: { mode: "auto" } } as unknown as OpenCodeAgentEntry;
-      expect(() => createOpenCodeAdapter(entry, { cwd: "/home/user" })).toThrow(/opencode/);
+      const __adapter = createOpenCodeAdapter(entry, { cwd: "/home/user" });
+      expect(() => __adapter.listSessions()).toThrow(/opencode/);
     });
   });
 

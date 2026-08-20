@@ -40,6 +40,7 @@ import {
   createAntigravityAdapter,
   createPiAdapter,
   createZcodeAdapter,
+  createGrokAdapter,
 } from "../src/adapters";
 
 // ============================================================================
@@ -101,6 +102,7 @@ function createAllAgentFactories(cwd: string) {
     antigravity: (entry: AgentEntry) => createAntigravityAdapter(entry as any),
     pi: (entry: AgentEntry) => createPiAdapter(entry as any, {}),
     zcode: (entry: AgentEntry) => createZcodeAdapter(entry as any),
+    grok: (entry: AgentEntry) => createGrokAdapter(entry as any),
   };
 }
 
@@ -196,6 +198,8 @@ function createSearchService(config: Config): SearchService {
           adapter = createAcpxAdapter(entry as any, {});
         } else if (entry.agent === "pi") {
           adapter = createPiAdapter(entry as any, {});
+        } else if (entry.agent === "grok") {
+          adapter = createGrokAdapter(entry as any, {});
         }
 
         if (adapter && adapter.searchSessions) {
@@ -481,6 +485,7 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
     range: parsed.options["range"] as string | undefined,
     userOnly: parsed.options["user-only"] as boolean | undefined,
     tools: parsed.options["tools"] as boolean | undefined,
+    verbose: parsed.options["verbose"] as boolean | undefined,
     role: parsed.options["role"] as string | undefined,
     format: parsed.options["format"] as "text" | "json" | "csf" | "markdown" | "md" | undefined,
     output: parsed.options["output"] as string | undefined,
@@ -669,6 +674,7 @@ function showHelp() {
   console.log("  Session Operations:");
   console.log("    session list [N]      List sessions (default action for 'oas session')");
   console.log("    session read <id>     Read session messages");
+  console.log("    session read <id> --verbose   Full detail output (default: conversation view)");
   console.log("    session detail <id>   Show session detail");
   console.log("    session export <ref>  Export session (csf/markdown/text)");
   console.log("    session clone         Clone session between agents");
@@ -682,7 +688,7 @@ function showHelp() {
   console.log("");
   console.log("Session List Options:");
   console.log("  Agent/Query filtering:");
-  console.log("    --agent NAME           Filter by agent (opencode|codex|claude|acpx)");
+  console.log("    --agent NAME           Filter by agent (opencode|codex|claude|acpx|grok)");
   console.log("    --alias NAME           Filter by agent alias");
   console.log("    --q QUERY              Filter by session ID or title");
   console.log("    --roots-only            Show only root sessions (no parent)");

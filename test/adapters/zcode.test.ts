@@ -289,25 +289,23 @@ describe("zcode adapter", () => {
   // -------------------------------------------------------------------------
 
   describe("error handling", () => {
-    it("throws when dbPath points at a nonexistent file", () => {
-      expect(() =>
-        createZcodeAdapter(
-          { agent: "zcode", alias: "test", enabled: true } as TestEntry,
-          { dbPath: "/nonexistent/path/to/db.sqlite" }
-        )
-      ).toThrow(/database not found|no such|not found/i);
+    it("throws when dbPath points at a nonexistent file (deferred — OT4)", () => {
+      const adapter = createZcodeAdapter(
+        { agent: "zcode", alias: "test", enabled: true } as TestEntry,
+        { dbPath: "/nonexistent/path/to/db.sqlite" }
+      );
+      expect(() => adapter.listSessions()).toThrow(/database not found|no such|not found/i);
     });
 
-    it("throws 'schema mismatch' when the session table is missing", () => {
+    it("throws 'schema mismatch' when the session table is missing (deferred — OT4)", () => {
       // Build a DB with only a stray table — none of the zcode tables exist.
       const emptyDb = new Database(":memory:");
       emptyDb.exec("CREATE TABLE unrelated (id text);");
-      expect(() =>
-        createZcodeAdapter(
-          { agent: "zcode", alias: "test", enabled: true } as TestEntry,
-          { dbPath: emptyDb }
-        )
-      ).toThrow(/schema mismatch/i);
+      const adapter = createZcodeAdapter(
+        { agent: "zcode", alias: "test", enabled: true } as TestEntry,
+        { dbPath: emptyDb }
+      );
+      expect(() => adapter.listSessions()).toThrow(/schema mismatch/i);
     });
   });
 

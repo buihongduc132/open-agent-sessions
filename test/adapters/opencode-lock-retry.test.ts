@@ -72,11 +72,12 @@ describe("LOCK RETRY: DEFAULT_LOCK_RETRIES is hardcoded, untested", () => {
     expect(() => createOpenCodeAdapter(entry, { cwd: CWD, lockRetries: [0] })).not.toThrow();
   });
 
-  test("openDatabaseWithRetry with empty retries array throws unexpected state", () => {
+  test("openDatabaseWithRetry with empty retries array throws unexpected state (deferred — OT4)", () => {
     const dbPath = join(tempDir, "empty-retries.db");
     seedValidDb(dbPath);
     const entry = makeEntry("main", { mode: "db", db_path: dbPath });
-    expect(() => createOpenCodeAdapter(entry, { cwd: CWD, lockRetries: [] })).toThrow(/unexpected state/);
+    const adapter = createOpenCodeAdapter(entry, { cwd: CWD, lockRetries: [] });
+    expect(() => adapter.listSessions()).toThrow(/unexpected state/);
   });
 
   test("lockRetries are configurable via options parameter", () => {

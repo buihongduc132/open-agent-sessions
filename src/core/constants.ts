@@ -13,6 +13,7 @@ export const AGENT_ORDER: Record<AgentKind, number> = {
   antigravity: 5,
   pi: 6,
   zcode: 7,
+  grok: 8,
 };
 
 /**

@@ -1,0 +1,143 @@
+status: ongoing
+threads:
+  - id: OT1
+    topic: Watermark registry schema (offset/tail/truncation) design
+    raised_in: turn1
+    status: open
+    severity: 3
+    note: |
+      Registry entry {path, parserVersion, inventoryHash, offset, tail, size, mtimeNs, matches}.
+      Must handle partial-record tail buffer and size<offset truncation (compaction rewrites).
+  - id: OT2
+    topic: inventoryHash — does inventory change invalidate cache entries?
+    raised_in: turn1
+    status: open
+    severity: 3
+    note: |
+      Registry sketch includes inventoryHash but semantics undecided: new/renamed skill
+      should probably only invalidate matching, not force full reparse. Needs decision.
+  - id: OT3
+    topic: Cache payload shape — raw SkillMatch[] vs aggregated counts
+    raised_in: turn1
+    status: open
+    severity: 2
+    note: |
+      Turn 1 table proposes aggregated counts (smaller cache, less memory). But binary-search
+      cold-start path (turn 2) and window re-queries need re-aggregation semantics — unresolved.
+  - id: OT4
+    topic: Vacuum semantics fix (keep out-of-window entries)
+    raised_in: turn1
+    status: open
+    severity: 4
+    note: |
+      C2 — vacuum(existingFps) drops entries outside current --days window. Change to
+      unlink-check or age-TTL based eviction. Trivial fix but semantics not locked.
+  - id: OT5
+    topic: Timestamp binary-search probe — 4KB capped regex extraction, monotonicity caveat
+    raised_in: turn2
+    status: open
+    severity: 2
+    note: |
+      Cold-start fallback: probe mid-record timestamp via capped read + regex (not full parse);
+      land in min-chunk (user's "100 lines") to absorb non-monotonic timestamps. Design sketched, not detailed.
+  - id: OT6
+    topic: Session-end hook as end-state (real-time incremental ingest)
+    raised_in: turn1
+    status: deferred
+    severity: 2
+    note: |
+      End-state eliminates scan entirely; defer until watermark + fallback land. Hook needs
+      same offset-correctness logic anyway.
+      [gotcha-coverage 2026-08-15] G6.1: hook CANNOT eliminate scan (crashed/killed sessions never
+      fire end event) → reclassify as accelerator + keep scan reconciliation. Appendix turn2a.
+  # ---- OT7+ added by gotcha-coverage 2026-08-15 (rank 3+ findings, batch A & B) ----
+  - id: OT7
+    topic: Cache schema must store inventory-independent payload (tokens + read-events, per-token time bounds)
+    raised_in: turn1a
+    status: open
+    source: gotcha-coverage
+    severity: 5
+    note: |
+      ROOT DECISION. Dominant finding across both batches: cache per-file deduped token vocab +
+      read-tool events (inventory-agnostic), aggregate at query time. Dissolves H1/H2 (OT2 selective
+      invalidation impossible otherwise), I1–I4 (OT3 aggregation not mergeable / regresses window
+      re-query / temporal collapse via first-timestamp-only dedup), G6/G6.3 (dedup state not persisted).
+      Makes inventoryHash unnecessary. Must be decided BEFORE OT1/OT2/OT3/OT4 implementation.
+  - id: OT8
+    topic: Offset correctness details — byte-unit, boundary spec, corrupt-record escape, rewrite anchor
+    raised_in: turn1a
+    status: open
+    source: gotcha-coverage
+    severity: 4
+    note: |
+      G1 corrupt record poisons all subsequent records (permanent silent zero-yield — need max-tail
+      cap + skip); G2 offset must be BYTES w/ Buffer+StringDecoder, tail persisted raw (base64, never
+      normalized string); G3 size>=offset rewrites + inode replace undetected → anchor-verify via
+      stored tail bytes; G5 boundary off-by-one double-counts last record → spec = byte after
+      terminating newline + round-trip test; X3 persist pre-normalization raw.
+  - id: OT9
+    topic: Parser carry-state breaks under partial/incremental parse (sessionId + dedup set)
+    raised_in: turn2a
+    status: open
+    source: gotcha-coverage
+    severity: 4
+    note: |
+      G5.5 sessionId only set by file-head session event → mid-file starts yield empty sessionId;
+      G6.3 per-file token dedup `seen` set is parse-local → incremental mention counts inflate per
+      chunk. Fixes: back-scan head for session event; persist dedup vocab (ties to OT7).
+  - id: OT10
+    topic: Multi-writer concurrency + crash safety (post-OT6, latent now)
+    raised_in: turn2a
+    status: open
+    source: gotcha-coverage
+    severity: 4
+    note: |
+      G6.4/G4.4 hook + scan race same cacheDir, zero locking, last-writer-wins shards; G6.5 corrupt
+      entries silently swallowed = disguised data loss; GX.1 no cross-shard atomicity; GX.2 close()
+      aborts on first write error dropping all remaining flushes; G7 matches-then-watermark commit
+      ordering. Mitigation: tmp+rename atomic writes, lock, or reserved sqlite backend before OT6.
+  - id: OT11
+    topic: Report semantics: --days window is file-mtime only, matches never timestamp-filtered
+    raised_in: turn2a
+    status: open
+    source: gotcha-coverage
+    severity: 4
+    note: |
+      G4.5 long-running session touched today contributes months-old matches to a '--days 7' report
+      — correctness bug independent of perf. Fix: filter matches by timestamp >= cutoff at
+      aggregation; decide sessions-vs-matches window semantics. Also G6.8 firstSeen drifts under
+      partial ingestion (needs definition); I5 compaction rewrite retroactively shrinks history.
+  - id: OT12
+    topic: Vacuum fix blockers — sessionPath never persisted; growth bound; TTL-vs-idle storm
+    raised_in: turn2a
+    status: open
+    source: gotcha-coverage
+    severity: 4
+    note: |
+      G4.1 unlink-check vacuum cannot work: JsonCache.set() writes sessionPath:"" for fresh entries.
+      G4.2 keeping entries = unbounded growth (need TTL floor or byte cap w/ LRU). G4.3 TTL from
+      cache-write time reintroduces reparse storm after idle gaps → key TTL on session mtime;
+      unlink-check primary, TTL only GC. G5.4 partial-parse results must carry coverage field or
+      poison cache.
+  - id: OT13
+    topic: Binary-search probe robustness (OT5 detail gaps)
+    raised_in: turn2a
+    status: open
+    source: gotcha-coverage
+    severity: 3
+    note: |
+      G5.1 'timestamp' appears inside session CONTENT → naive regex grabs wrong ts (extract from
+      record prefix / structural position); G5.2 4KB cap may miss ts field entirely (verify position
+      in real corpus; explicit miss outcome); G5.3 probe lands mid-multi-line-record (seek to \n{
+      boundary); G5.6 systematic timestamp disorder (resumed/compacted) breaks search invariant →
+      post-landing sanity check; G5.8 min-chunk in lines not bytes (10MB chunk on blob records).
+  - id: OT14
+    topic: Inventory load failure modes
+    raised_in: turn1a
+    status: open
+    source: gotcha-coverage
+    severity: 3
+    note: |
+      H5 silent empty inventory → empty report + cache vacuum on bad inventoryDir (hard-fail or
+      loud warn + skip cache write); H4 inventoryHash must be canonical (sorted name|aliases) or
+      self-invalidates; H3 skill rename orphans history (rename detection or grace period).

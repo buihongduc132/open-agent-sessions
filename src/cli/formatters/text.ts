@@ -28,6 +28,7 @@ export interface ReadQuery {
 
 export interface TextFormatterOptions {
   showTools?: boolean;
+  verbose?: boolean;
 }
 
 // ============================================================================
@@ -98,38 +99,59 @@ export function formatSessionDetail(
 ): string {
   const lines: string[] = [];
 
-  // Header
-  const title = normalizeTitle(detail.title, detail.id);
-  const agentAlias = `[${detail.agent}:${detail.alias}]`;
-  lines.push(`Session ${agentAlias}`);
-  lines.push(`id: ${detail.id}`);
-  lines.push(`title: ${title}`);
-  if (detail.parentSessionId !== undefined) {
-    lines.push(`parent: ${detail.parentSessionId}`);
+  // Verbose mode: legacy full-detail format
+  if (options?.verbose) {
+    const title = normalizeTitle(detail.title, detail.id);
+    const agentAlias = `[${detail.agent}:${detail.alias}]`;
+    lines.push(`Session ${agentAlias}`);
+    lines.push(`id: ${detail.id}`);
+    lines.push(`title: ${title}`);
+    if (detail.parentSessionId !== undefined) {
+      lines.push(`parent: ${detail.parentSessionId}`);
+    }
+    lines.push(`created_at: ${formatLocalTimestamp(detail.created_at)}`);
+    lines.push(`updated_at: ${formatLocalTimestamp(detail.updated_at)}`);
+    lines.push(`message_count: ${detail.message_count}`);
+    lines.push(`storage: ${detail.storage}`);
+    lines.push("");
+
+    if (detail.warning) {
+      lines.push(`Warning: ${detail.warning}`);
+      lines.push("");
+    }
+
+    const messages = detail.messages ?? [];
+    if (messages.length > 0) {
+      lines.push(`Messages (${messages.length}):`);
+      lines.push("---");
+      for (const message of messages) {
+        lines.push(...formatMessage(message, options));
+        lines.push("---");
+      }
+    }
+    // If no messages, show metadata only (no "No messages." text)
+    return lines.join("\n");
   }
-  lines.push(`created_at: ${formatLocalTimestamp(detail.created_at)}`);
-  lines.push(`updated_at: ${formatLocalTimestamp(detail.updated_at)}`);
-  lines.push(`message_count: ${detail.message_count}`);
-  lines.push(`storage: ${detail.storage}`);
+
+  // Default: compact conversation view
+  // Header: title (or id fallback) + [agent:alias] id (+ parent inline)
+  const title = normalizeTitle(detail.title, detail.id);
+  lines.push(title);
+  const parentSuffix =
+    detail.parentSessionId !== undefined ? ` (parent: ${detail.parentSessionId})` : "";
+  lines.push(`[${detail.agent}:${detail.alias}] ${detail.id}${parentSuffix}`);
   lines.push("");
 
-  // Warning (if any)
   if (detail.warning) {
     lines.push(`Warning: ${detail.warning}`);
     lines.push("");
   }
 
-  // Messages - show only if there are messages
   const messages = detail.messages ?? [];
-  if (messages.length > 0) {
-    lines.push(`Messages (${messages.length}):`);
-    lines.push("---");
-    for (const message of messages) {
-      lines.push(...formatMessage(message, options));
-      lines.push("---");
-    }
+  for (const message of messages) {
+    lines.push(...formatMessage(message, options));
+    lines.push("");
   }
-  // If no messages, show metadata only (no "No messages." text)
 
   return lines.join("\n");
 }
@@ -165,20 +187,26 @@ export function formatMessage(
 ): string[] {
   const lines: string[] = [];
   const roleBadge = formatRoleBadge(message.role);
-  const timestamp = formatLocalTimestamp(message.created_at);
 
-  // Build agent/model suffix
-  let agentModel = "";
-  if (message.agent || message.modelID) {
-    const agent = message.agent || "";
-    const model = message.modelID || "";
-    agentModel = ` (${agent}/${model})`;
+  if (options?.verbose) {
+    // Legacy: full timestamp + agent/model metadata
+    const timestamp = formatLocalTimestamp(message.created_at);
+    let agentModel = "";
+    if (message.agent || message.modelID) {
+      const agent = message.agent || "";
+      const model = message.modelID || "";
+      agentModel = ` (${agent}/${model})`;
+    }
+    const metadata = formatMetadata(`${agentModel} @ ${timestamp}`);
+    lines.push(`${roleBadge}${metadata}`);
+    lines.push("");
+  } else {
+    // Compact: short HH:MM time + optional (agent) attribution tag
+    const shortTime = formatShortTime(message.created_at);
+    const agentTag = message.agent ? ` ${formatMetadata(`(${message.agent})`)}` : "";
+    lines.push(`${roleBadge} ${formatMetadata(shortTime)}${agentTag}`);
+    lines.push("");
   }
-
-  // Format: "> USER (agent/model) @ timestamp"
-  const metadata = formatMetadata(`${agentModel} @ ${timestamp}`);
-  lines.push(`${roleBadge}${metadata}`);
-  lines.push("");
 
   for (const part of message.parts) {
     lines.push(...formatPart(part, options));
@@ -217,6 +245,10 @@ export function formatPart(
   }
 
   if (part.type === "reasoning") {
+    // Hidden by default (compact conversation mode); shown with --verbose
+    if (!options?.verbose) {
+      return [];
+    }
     const reasoningPart = part as { text: string };
     return [`  [reasoning]`, ...reasoningPart.text.trim().split("\n").map((l) => `    ${l}`)];
   }
@@ -250,8 +282,18 @@ export function formatRelativeTime(timestamp: string): string {
 }
 
 /**
+ * Format a timestamp as short local time (HH:MM) — compact conversation mode
+ */
+export function formatShortTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+/**
  * Format a timestamp in local timezone
- * 
+ *
  * Format: "2024-01-15 14:30:45"
  */
 export function formatLocalTimestamp(timestamp: string): string {

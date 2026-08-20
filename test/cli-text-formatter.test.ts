@@ -220,10 +220,27 @@ describe("formatSessionsJson", () => {
 // ============================================================================
 
 describe("formatSessionDetail", () => {
-  test("formats session header with all fields", () => {
+  test("compact default header: title line + [agent:alias] id line, no metadata block", () => {
     const detail = makeSessionDetail();
     const target = makeReadQuery();
     const result = formatSessionDetail(detail, target);
+
+    // Compact header: line 1 = title, line 2 = [agent:alias] id
+    expect(result).toContain("Test Session");
+    expect(result).toContain("[opencode:personal] session-001");
+    // No verbose metadata block
+    expect(result).not.toContain("Session [");
+    expect(result).not.toContain("id: session-001");
+    expect(result).not.toContain("created_at:");
+    expect(result).not.toContain("updated_at:");
+    expect(result).not.toContain("message_count:");
+    expect(result).not.toContain("storage: db");
+  });
+
+  test("verbose mode preserves legacy full header", () => {
+    const detail = makeSessionDetail();
+    const target = makeReadQuery();
+    const result = formatSessionDetail(detail, target, { verbose: true });
     
     expect(result).toContain("Session [opencode:personal]");
     expect(result).toContain("id: session-001");
@@ -234,10 +251,21 @@ describe("formatSessionDetail", () => {
     expect(result).toContain("storage: db");
   });
 
-  test("uses ID as title when title is empty", () => {
+  test("uses ID as title when title is empty (compact)", () => {
     const detail = makeSessionDetail({ title: "" });
     const target = makeReadQuery();
     const result = formatSessionDetail(detail, target);
+    
+    // Compact: id shown as title line + [agent:alias] id line; no `title:` field line
+    expect(result).toContain("session-001");
+    expect(result).toContain("[opencode:personal] session-001");
+    expect(result).not.toContain("title: session-001");
+  });
+
+  test("verbose mode uses ID as title when title is empty (legacy `title:` field)", () => {
+    const detail = makeSessionDetail({ title: "" });
+    const target = makeReadQuery();
+    const result = formatSessionDetail(detail, target, { verbose: true });
     
     expect(result).toContain("title: session-001");
   });
@@ -251,14 +279,66 @@ describe("formatSessionDetail", () => {
     expect(result).toContain("This is a warning");
   });
 
-  test("shows messages when present", () => {
+  test("shows messages when present (compact: no count header, content kept)", () => {
     const messages = [makeMessage("user", "Hello")];
     const detail = makeSessionDetail({ messages, message_count: 1 });
     const target = makeReadQuery();
     const result = formatSessionDetail(detail, target);
     
+    // Compact: no `Messages (N):` count header, message text still rendered
+    expect(result).not.toContain("Messages (");
+    expect(result).toContain("Hello");
+  });
+
+  test("verbose mode preserves legacy `Messages (N):` count header", () => {
+    const messages = [makeMessage("user", "Hello")];
+    const detail = makeSessionDetail({ messages, message_count: 1 });
+    const target = makeReadQuery();
+    const result = formatSessionDetail(detail, target, { verbose: true });
+    
     expect(result).toContain("Messages (1):");
     expect(result).toContain("Hello");
+  });
+
+  test("compact default hides reasoning parts in session detail", () => {
+    const messages: SessionMessage[] = [
+      {
+        id: "msg-1",
+        role: "assistant",
+        created_at: "2024-01-01T12:00:00Z",
+        parts: [
+          { type: "reasoning", text: "Secret thinking content" },
+          { type: "text", text: "Visible answer" },
+        ],
+      },
+    ];
+    const detail = makeSessionDetail({ messages, message_count: 1 });
+    const target = makeReadQuery();
+
+    const result = formatSessionDetail(detail, target);
+    expect(result).not.toContain("[reasoning]");
+    expect(result).not.toContain("Secret thinking content");
+    expect(result).toContain("Visible answer");
+  });
+
+  test("verbose mode shows reasoning parts in session detail", () => {
+    const messages: SessionMessage[] = [
+      {
+        id: "msg-1",
+        role: "assistant",
+        created_at: "2024-01-01T12:00:00Z",
+        parts: [
+          { type: "reasoning", text: "Secret thinking content" },
+          { type: "text", text: "Visible answer" },
+        ],
+      },
+    ];
+    const detail = makeSessionDetail({ messages, message_count: 1 });
+    const target = makeReadQuery();
+
+    const result = formatSessionDetail(detail, target, { verbose: true });
+    expect(result).toContain("[reasoning]");
+    expect(result).toContain("Secret thinking content");
   });
 
   test("hides messages section when no messages", () => {
@@ -330,22 +410,47 @@ describe("formatMessage", () => {
     expect(result.join("\n")).toContain("System message");
   });
 
-  test("includes timestamp", () => {
+  test("includes short HH:MM timestamp, not full verbose timestamp (compact)", () => {
     const message = makeMessage("user", "Hello");
     const result = formatMessage(message);
+
+    const joined = result.join("\n");
+    // Compact: HH:MM only — no `@`-prefixed full timestamp
+    expect(joined).toMatch(/\d{2}:\d{2}/);
+    expect(joined).not.toContain(" @ ");
+    expect(joined).not.toContain("2024-01-01 12:00:00");
+  });
+
+  test("verbose mode includes full timestamp", () => {
+    const message = makeMessage("user", "Hello");
+    const result = formatMessage(message, { verbose: true });
 
     expect(result.join("\n")).toContain("2024-01-01 12:00:00");
   });
 
-  test("includes agent/model when present", () => {
+  test("compact shows (agent) tag only, drops model", () => {
     const message = makeMessage("assistant", "Hello", {
       agent: "test-agent",
       modelID: "test-model",
     });
     const result = formatMessage(message);
     
-    expect(result.join("\n")).toContain("test-agent");
-    expect(result.join("\n")).toContain("test-model");
+    const joined = result.join("\n");
+    expect(joined).toContain("(test-agent)");
+    expect(joined).not.toContain("(test-agent/test-model)");
+    expect(joined).not.toContain("test-model");
+  });
+
+  test("verbose mode includes full agent/model metadata", () => {
+    const message = makeMessage("assistant", "Hello", {
+      agent: "test-agent",
+      modelID: "test-model",
+    });
+    const result = formatMessage(message, { verbose: true });
+    
+    const joined = result.join("\n");
+    expect(joined).toContain("test-agent");
+    expect(joined).toContain("test-model");
   });
 
   test("indents text content", () => {
@@ -416,17 +521,24 @@ describe("formatPart", () => {
   });
 
   describe("reasoning parts", () => {
-    test("formats reasoning with label and indented content", () => {
+    test("hides reasoning by default (compact conversation mode)", () => {
       const part: SessionPart = { type: "reasoning", text: "Thinking..." };
       const result = formatPart(part);
+      
+      expect(result).toEqual([]);
+    });
+
+    test("verbose mode formats reasoning with label and indented content", () => {
+      const part: SessionPart = { type: "reasoning", text: "Thinking..." };
+      const result = formatPart(part, { verbose: true });
       
       expect(result[0]).toBe("  [reasoning]");
       expect(result[1]).toBe("    Thinking...");
     });
 
-    test("formats multi-line reasoning", () => {
+    test("verbose mode formats multi-line reasoning", () => {
       const part: SessionPart = { type: "reasoning", text: "Step 1\nStep 2" };
-      const result = formatPart(part);
+      const result = formatPart(part, { verbose: true });
       
       expect(result).toEqual(["  [reasoning]", "    Step 1", "    Step 2"]);
     });

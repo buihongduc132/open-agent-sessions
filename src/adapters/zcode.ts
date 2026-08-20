@@ -23,6 +23,7 @@
  */
 
 import { homedir } from "node:os";
+import { createBrokenAdapter } from "./broken";
 import { join, resolve } from "node:path";
 import { existsSync } from "node:fs";
 import type { Database } from "bun:sqlite";
@@ -108,7 +109,26 @@ function validateSchema(db: Database, label: string): void {
 // Adapter factory
 // ---------------------------------------------------------------------------
 
+/**
+ * zcode adapter factory.
+ *
+ * Construction errors (missing DB, schema mismatch) are deferred to query
+ * time via createBrokenAdapter — one broken adapter must not kill the
+ * entire registry (OT4). The error surfaces as `[zcode:alias] <message>`
+ * on the first query; other adapters keep working.
+ */
 export function createZcodeAdapter(
+  entry: ZcodeAgentEntry,
+  options: ZcodeAdapterOptions = {}
+): Adapter {
+  try {
+    return buildZcodeAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildZcodeAdapter(
   entry: ZcodeAgentEntry,
   options: ZcodeAdapterOptions = {}
 ): Adapter {

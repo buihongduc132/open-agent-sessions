@@ -43,6 +43,7 @@ Options:
   --range S:E     Message range (1-indexed, inclusive)
   --user-only     Show only user messages (composable with --first/--last/--all/--range)
   --tools         Include tool messages (default: hide)
+  --verbose       Full detail output (default: compact conversation view)
   --role R        Filter by role (user, assistant, system)
   --format F      Output format: text (default), json, csf, markdown, md
   --output FILE   Write output to file (recommended for large outputs)
@@ -81,6 +82,7 @@ export type ReadOptions = {
   range?: string;
   userOnly?: boolean;
   tools?: boolean;
+  verbose?: boolean;
   role?: string;
   format?: "text" | "json" | "csf" | "markdown" | "md";
   output?: string;
@@ -160,6 +162,7 @@ export async function runReadCommand(options: ReadOptions): Promise<CliResult> {
   // Format output (R-16: CSF, R-17: markdown/text)
   const formatterOptions: TextFormatterOptions = {
     showTools: options.tools,
+    verbose: options.verbose,
   };
   let stdout: string;
   if (options.format === "json") {

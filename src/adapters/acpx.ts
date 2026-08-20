@@ -30,6 +30,7 @@ import { AgentKind } from "../config/types";
 import type { SimilarSessionResult } from "../similarity/search";
 import { containsIgnoreCase, listJsonFiles, sortByIsoDesc } from "./fs-utils";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
@@ -75,7 +76,23 @@ export type AcpxAdapterOptions = {
   cwd?: string;
 };
 
+/**
+ * acpx adapter factory.
+ *
+ * Construction errors deferred to query time (OT4) — see ./broken.ts.
+ */
 export function createAcpxAdapter(
+  entry: AcpxAgentEntry,
+  options: AcpxAdapterOptions = {}
+): Adapter {
+  try {
+    return buildAcpxAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildAcpxAdapter(
   entry: AcpxAgentEntry,
   options: AcpxAdapterOptions = {}
 ): Adapter {

@@ -33,6 +33,7 @@ import {
 import type { SimilarSessionResult } from "../similarity/search";
 import { containsIgnoreCase, sortByIsoDesc } from "./fs-utils";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import { errorMessage } from "../core/utils";
 
 // ---------------------------------------------------------------------------
@@ -96,7 +97,21 @@ function validateSchema(db: Database, label: string): void {
 // Adapter factory
 // ---------------------------------------------------------------------------
 
+/**
+ * Hermes adapter factory. Construction errors deferred to query time (OT4).
+ */
 export function createHermesAdapter(
+  entry: HermesAgentEntry,
+  options: HermesAdapterOptions = {}
+): Adapter {
+  try {
+    return buildHermesAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildHermesAdapter(
   entry: HermesAgentEntry,
   options: HermesAdapterOptions = {}
 ): Adapter {

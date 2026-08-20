@@ -1,0 +1,25 @@
+# Locked decisions — 2026-08-19-oas_default_conversation_output
+# Source: user request in turn1 (verbatim). Explore confirmed feasibility; naming/details remain open (see open-threads.yaml).
+
+- id: LD1
+  turn: turn1
+  parts: ["user-message-request-parsed"]
+  user_quote: |
+    "make the default usage of oas to be showing user + sub agents message first only ; like the conversation , instead of verbose information ; ensure that it is not broken any of the downstream functionalities ; whenever need all information , user could add another flag into it ;"
+  decision: >-
+    Default `oas session read` output = conversation view (user + sub-agent/assistant
+    text messages first), NOT verbose info; full information must remain reachable
+    via an additional flag; downstream functionalities (json/csf/markdown/detail/list/TUI)
+    must NOT break.
+  status: locked
+
+- id: LD2
+  turn: turn1
+  parts: ["user-message-request-parsed"]
+  user_quote: |
+    "ensure that it is not broken any of the downstream functionalities ;"
+  decision: >-
+    Non-regression constraint: machine-facing formats (--format json|csf|markdown),
+    `oas session detail`, `oas session list`, and the TUI are out of scope and must
+    behave byte-identically after the change.
+  status: locked

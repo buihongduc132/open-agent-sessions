@@ -75,10 +75,14 @@ function writeSession(
 describe("acpx adapter", () => {
   // ── Agent validation ──────────────────────────────────────────────────────
 
-  test("throws for non-acpx agent", () => {
-    expect(() =>
-      createAcpxAdapter({ agent: "opencode" as any, alias: "default", enabled: true })
-    ).toThrow(/acpx adapter requires agent "acpx"/);
+  test("throws for non-acpx agent (deferred to query time — OT4)", () => {
+    // Construction no longer throws (OT4: one broken adapter must not kill the registry).
+    // The error surfaces on first query with the agent label.
+    const adapter = createAcpxAdapter(
+      { agent: "opencode" as any, alias: "default", enabled: true }
+    );
+    expect(adapter.version).toBe("0.0.0-broken");
+    expect(() => adapter.listSessions()).toThrow(/acpx adapter requires agent "acpx"/);
   });
 
   test("returns version string", () => {

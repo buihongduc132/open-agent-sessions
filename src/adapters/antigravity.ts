@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { createLabel } from "./label";
+import { createBrokenAdapter } from "./broken";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
@@ -53,7 +54,23 @@ type AntigravityToolCall = {
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * Antigravity adapter factory.
+ *
+ * Construction errors deferred to query time (OT4) — see ./broken.ts.
+ */
 export function createAntigravityAdapter(
+  entry: OtherAgentEntry,
+  options: AntigravityAdapterOptions = {}
+): Adapter {
+  try {
+    return buildAntigravityAdapter(entry, options);
+  } catch (error) {
+    return createBrokenAdapter(createLabel(entry), error);
+  }
+}
+
+function buildAntigravityAdapter(
   entry: OtherAgentEntry,
   options: AntigravityAdapterOptions = {}
 ): Adapter {

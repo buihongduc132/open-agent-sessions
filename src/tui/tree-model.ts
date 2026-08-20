@@ -266,6 +266,7 @@ export function colorForAgent(agent: string): string {
     case "codex":    return "#ffcc00";  // yellow
     case "claude":   return "#cc99ff";  // magenta
     case "acpx":     return "#99ff99";  // green
+    case "grok":     return "#ff8c42";  // orange
     default:         return "#999999";  // dim gray
   }
 }
