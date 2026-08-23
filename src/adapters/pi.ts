@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { createLabel } from "./label";
 import { createBrokenAdapter } from "./broken";
 import { OtherAgentEntry } from "../config/types";
@@ -230,19 +230,25 @@ function buildPiAdapter(
       const label = createLabel(entry);
       try {
         // Default to the full epoch window. since/until are ms-epoch; we
-        // compare against updated_at (ISO-8601 → ms). updated_at is derived
-        // from the max record.timestamp across all events in the session dir.
+        // compare against updated_at (ISO-8601 → ms) of each top-level jsonl.
+        // Invariant: --last/--limit bound bytes read, not only the array returned.
         const sinceMs = opts.since != null ? opts.since : 0;
         const untilMs = opts.until != null ? opts.until : 8640000000000000;
         const skipId = opts.skipSessionId;
+        const pruneBefore = sinceMs > 0 ? sinceMs - MTIME_SLACK_MS : 0;
 
         const rootPath = resolvePiPath(entry, options);
-        const sessionDirs = collectSessionDirs(rootPath);
+        const files = collectTopLevelJsonl(rootPath);
 
         let results: SessionSummary[] = [];
-        for (const dirPath of sessionDirs) {
+        for (const filePath of files) {
+          const st = safeStat(filePath);
+          if (!st || !st.isFile()) continue;
+          // mtime is an upper bound on last write. Skip cold files before open.
+          if (pruneBefore > 0 && st.mtimeMs < pruneBefore) continue;
+
           try {
-            const session = parsePiSession(dirPath, entry);
+            const session = parsePiJsonlFile(filePath, entry);
             if (skipId === session.id) continue;
 
             const updatedMs = Date.parse(session.updated_at);
@@ -250,12 +256,12 @@ function buildPiAdapter(
             if (updatedMs < sinceMs || updatedMs > untilMs) continue;
             results.push(session);
           } catch {
-            // Skip dirs that fail to parse
+            // Skip files that fail to parse
           }
         }
 
         results = sortByIsoDesc(results, "updated_at");
-        // limit: 0 or undefined means "all"
+        // limit: 0 or undefined means "all" of the already-pruned matches
         if (opts.limit && opts.limit > 0) {
           results = results.slice(0, opts.limit);
         }
@@ -376,6 +382,134 @@ function collectSessionDirs(rootPath: string): string[] {
     }
   }
   return dirs;
+}
+
+/** Clock-skew / copy-in slack for mtime prune. False positives are fine; false negatives are not. */
+const MTIME_SLACK_MS = 60 * 60 * 1000;
+
+const FILENAME_UUID_RE =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+
+/**
+ * Top-level `*.jsonl` under each slug dir. Nested trees (subagent-artifacts/)
+ * are not sessions and must not be merged into the parent.
+ */
+function collectTopLevelJsonl(rootPath: string): string[] {
+  const files: string[] = [];
+  const rootStat = safeStat(rootPath);
+  if (!rootStat || !rootStat.isDirectory()) return files;
+
+  let slugs: string[] = [];
+  try {
+    slugs = readdirSync(rootPath);
+  } catch {
+    return files;
+  }
+
+  for (const name of slugs) {
+    if (name.startsWith(".")) continue;
+    const slugPath = join(rootPath, name);
+    const st = safeStat(slugPath);
+    if (!st || !st.isDirectory()) continue;
+    let children: string[] = [];
+    try {
+      children = readdirSync(slugPath);
+    } catch {
+      continue;
+    }
+    for (const fileName of children) {
+      if (fileName.endsWith(".jsonl")) {
+        files.push(join(slugPath, fileName));
+      }
+    }
+  }
+  return files;
+}
+
+function sessionIdFromJsonlPath(filePath: string, recordId?: string): string {
+  const fromName = basename(filePath).match(FILENAME_UUID_RE)?.[0];
+  if (fromName) return fromName;
+  if (recordId) return recordId;
+  return basename(dirname(filePath));
+}
+
+function parsePiJsonlFile(filePath: string, entry: OtherAgentEntry): SessionSummary {
+  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
+  let title: string | undefined;
+  let messageCount = 0;
+  let minTimestamp: string | undefined;
+  let maxTimestamp: string | undefined;
+  let parentSessionId: string | undefined;
+  let recordSessionId: string | undefined;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const raw = lines[i].trim();
+    if (raw.length === 0) continue;
+
+    let record: PiRecord;
+    try {
+      record = JSON.parse(raw) as PiRecord;
+    } catch {
+      continue;
+    }
+
+    if (!parentSessionId) {
+      parentSessionId = readOptionalString(record.parentId);
+    }
+    if (!recordSessionId && record.type === "session") {
+      recordSessionId = readOptionalString(record.id);
+    }
+
+    if (record.timestamp) {
+      const context = `Pi timestamp invalid for ${filePath}:${i + 1}`;
+      const timestampIso = normalizeTimestamp(record.timestamp, context);
+      minTimestamp = minTimestamp ? minIso(minTimestamp, timestampIso) : timestampIso;
+      maxTimestamp = maxTimestamp ? maxIso(maxTimestamp, timestampIso) : timestampIso;
+    }
+
+    if (record.type === "message" && record.message) {
+      messageCount += 1;
+      if (!title && record.message.role === "user") {
+        const content = record.message.content;
+        if (Array.isArray(content)) {
+          const textPart = content.find(
+            (c): c is { type: "text"; text: string } =>
+              c.type === "text" &&
+              typeof (c as { text?: unknown }).text === "string" &&
+              (c as { text: string }).text.length > 0
+          );
+          if (textPart?.text) {
+            title = textPart.text.slice(0, 120);
+          }
+        } else if (typeof content === "string" && content.trim().length > 0) {
+          title = content.slice(0, 120);
+        }
+      }
+    }
+  }
+
+  const sessionId = sessionIdFromJsonlPath(filePath, recordSessionId);
+  if (!minTimestamp || !maxTimestamp) {
+    const st = safeStat(filePath);
+    if (!st) {
+      throw new Error(`Pi timestamps missing for ${sessionId} and cannot stat file`);
+    }
+    const fallback = new Date(Number(st.mtimeMs)).toISOString();
+    minTimestamp = fallback;
+    maxTimestamp = fallback;
+  }
+
+  return {
+    id: sessionId,
+    agent: "pi",
+    alias: entry.alias,
+    title: title && title.length > 0 ? title : sessionId,
+    created_at: minTimestamp,
+    updated_at: maxTimestamp,
+    message_count: messageCount,
+    storage: "jsonl",
+    ...(parentSessionId ? { parentSessionId } : {}),
+  };
 }
 
 function parsePiSession(dirPath: string, entry: OtherAgentEntry): SessionSummary {
