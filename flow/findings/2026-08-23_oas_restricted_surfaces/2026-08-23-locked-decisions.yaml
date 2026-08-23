@@ -1,0 +1,89 @@
+# Locked decisions — 2026-08-23-oas-restricted-surfaces
+# Source: BHD-144 issue body + BHD-141 parent explore (verbatim quotes).
+
+- id: LD1
+  turn: turn1
+  parts: ["quote-coverage", "goal"]
+  user_quote: |
+    "Make a declarative plan so open-agent-sessions (OAS) can actually be run when the calling agent is restricted to one (or a combination) of these surfaces:
+    - skill only
+    - cmd only
+    - shell only
+    - mcp only
+    Combinations are in scope (e.g. skill+shell, cmd+mcp)."
+  decision: >-
+    Stage 2 must leave OAS invocable on each of the four surfaces plus named
+    combinations. This ticket (Stage 1) plans only; no production code.
+  status: locked
+
+- id: LD2
+  turn: turn1
+  parts: ["wrong-surface"]
+  user_quote: |
+    "Wrong surface: do not implement in cli-agent-skills, pi-plugins, or intelligentrascal/skill-manager. OAS work lives in open-agent-sessions."
+  decision: >-
+    All code/docs for this slice land in open-agent-sessions. Skill-manager
+    research stays on parent BHD-141. Shared cmd oas-use stays in cli-agent-cmd
+    (NOT edited here — G4.4). OAS may add SKILL.md as source of truth; hosts
+    symlink to it (layer on top), never dump into cli-agent-skills git.
+  status: locked
+
+- id: LD3
+  turn: turn1
+  parts: ["bhd-141-gaps"]
+  user_quote: |
+    "Known gaps from BHD-141 explore: heatmap hardcoded to pi + stale inventory dirs; toolSearchSessions SDK-only; live OAS config enables pi+opencode only (hermes missing); oas shebang needs bun on PATH."
+  decision: >-
+    Plan closes run-surface pieces: CLI --tool via registry AdapterHandle
+    (not bin if/else — G4.1); live hermes in home config; bun PATH + MCP abs
+    interpreter (G4.2). Heatmap multi-agent expansion stays BHD-141 (OT3).
+  status: locked
+
+- id: LD4
+  turn: turn1
+  parts: ["barely-fit"]
+  user_quote: |
+    "Barely-fit vs over-engineered (≥3 rejections). No fourth dashboard. No third usage DB."
+  decision: >-
+    REJECT: new dashboard, new usage DB, genome/drift product, per-session CLI
+    loop as tool-search, 40 hermes-profile columns, wrapmcp/FastMCP product.
+    SHIP: existing CLI + existing oas-use cmd (untouched) + OAS SKILL.md +
+    host symlink + CLI --tool via registry + enable hermes in live config +
+    thin in-process `oas mcp` stdio (not spawn-per-call).
+  status: locked
+
+- id: LD5
+  turn: turn1
+  parts: ["cherry-pick"]
+  user_quote: |
+    "Cherry-pick vs avoid: reuse existing OAS analyzer / heatmap / adapters; do not invent a parallel inventory product."
+  decision: >-
+    Reuse adapters + CLI + analyzer. Do not invent a second inventory CLI.
+    Skill inventory matrix remains BHD-141; this ticket only makes OAS runnable
+    so that matrix's usage overlay can actually be queried from restricted agents.
+  status: locked
+
+- id: LD6
+  turn: turn1
+  parts: ["stage-barrier"]
+  user_quote: |
+    "When this slice is actually complete, set this child to done (--no-start). Do not stop at in_review."
+  decision: >-
+    BHD-144 goes to done when findings + gotcha + resolved threads + declarative
+    plan exist. No production code. Parent BHD-141 stays in_progress. BHD-145
+    stays backlog until 144 is terminal.
+  status: locked
+
+- id: LD7
+  turn: turn1a
+  parts: ["G3.1"]
+  auto_decided: true
+  user_quote: |
+    "skill only / cmd only / shell only / mcp only (or some combination of them)"
+  decision: >-
+    cmd-only = cmd knowledge + bash allowed to run oas (pi reality).
+    skill-only = skill present + bash allowed to run oas.
+    Literal no-bash / no-shell = mcp-only.
+    Named Stage 2 combos: shell-only, cmd+shell, skill+shell, mcp-only, cmd+mcp.
+  status: locked
+  note: gotcha G3.1; does not supersede LD1 — clarifies how LD1 surfaces compose.
