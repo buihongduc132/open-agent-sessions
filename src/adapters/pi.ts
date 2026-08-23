@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { closeSync, openSync, readFileSync, readdirSync, readSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { createLabel } from "./label";
@@ -238,17 +238,20 @@ function buildPiAdapter(
         const pruneBefore = sinceMs > 0 ? sinceMs - MTIME_SLACK_MS : 0;
 
         const rootPath = resolvePiPath(entry, options);
-        const files = collectTopLevelJsonl(rootPath);
+        const candidates = collectTopLevelJsonl(rootPath)
+          .filter((c) => pruneBefore <= 0 || c.mtimeMs >= pruneBefore)
+          .sort((a, b) => b.mtimeMs - a.mtimeMs);
+
+        const limit = opts.limit && opts.limit > 0 ? opts.limit : 0;
+        const openBudget = limit > 0 ? limit + 20 : Number.POSITIVE_INFINITY;
 
         let results: SessionSummary[] = [];
-        for (const filePath of files) {
-          const st = safeStat(filePath);
-          if (!st || !st.isFile()) continue;
-          // mtime is an upper bound on last write. Skip cold files before open.
-          if (pruneBefore > 0 && st.mtimeMs < pruneBefore) continue;
-
+        let opened = 0;
+        for (const candidate of candidates) {
+          if (opened >= openBudget) break;
+          opened += 1;
           try {
-            const session = parsePiJsonlFile(filePath, entry);
+            const session = parsePiJsonlFile(candidate.path, entry, candidate.size);
             if (skipId === session.id) continue;
 
             const updatedMs = Date.parse(session.updated_at);
@@ -262,8 +265,8 @@ function buildPiAdapter(
 
         results = sortByIsoDesc(results, "updated_at");
         // limit: 0 or undefined means "all" of the already-pruned matches
-        if (opts.limit && opts.limit > 0) {
-          results = results.slice(0, opts.limit);
+        if (limit > 0) {
+          results = results.slice(0, limit);
         }
         return results;
       } catch (error) {
@@ -394,8 +397,8 @@ const FILENAME_UUID_RE =
  * Top-level `*.jsonl` under each slug dir. Nested trees (subagent-artifacts/)
  * are not sessions and must not be merged into the parent.
  */
-function collectTopLevelJsonl(rootPath: string): string[] {
-  const files: string[] = [];
+function collectTopLevelJsonl(rootPath: string): { path: string; mtimeMs: number; size: number }[] {
+  const files: { path: string; mtimeMs: number; size: number }[] = [];
   const rootStat = safeStat(rootPath);
   if (!rootStat || !rootStat.isDirectory()) return files;
 
@@ -418,9 +421,15 @@ function collectTopLevelJsonl(rootPath: string): string[] {
       continue;
     }
     for (const fileName of children) {
-      if (fileName.endsWith(".jsonl")) {
-        files.push(join(slugPath, fileName));
-      }
+      if (!fileName.endsWith(".jsonl")) continue;
+      const filePath = join(slugPath, fileName);
+      const fileStat = safeStat(filePath);
+      if (!fileStat || !fileStat.isFile()) continue;
+      files.push({
+        path: filePath,
+        mtimeMs: Number(fileStat.mtimeMs),
+        size: Number(fileStat.size),
+      });
     }
   }
   return files;
@@ -433,8 +442,40 @@ function sessionIdFromJsonlPath(filePath: string, recordId?: string): string {
   return basename(dirname(filePath));
 }
 
-function parsePiJsonlFile(filePath: string, entry: OtherAgentEntry): SessionSummary {
-  const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
+/** Full-parse small files; head+tail large ones so list does not ingest 50–70 MB jsonl. */
+const SUMMARY_FULL_READ_BYTES = 2 * 1024 * 1024;
+const SUMMARY_HEAD_BYTES = 256 * 1024;
+const SUMMARY_TAIL_BYTES = 256 * 1024;
+
+function readPiJsonlForSummary(filePath: string, sizeHint?: number): string {
+  const size = sizeHint ?? Number(safeStat(filePath)?.size ?? 0);
+  if (size <= 0 || size <= SUMMARY_FULL_READ_BYTES) {
+    return readFileSync(filePath, "utf8");
+  }
+
+  const fd = openSync(filePath, "r");
+  try {
+    const head = new Uint8Array(SUMMARY_HEAD_BYTES);
+    const headRead = readSync(fd, head, 0, SUMMARY_HEAD_BYTES, 0);
+    const tailLen = Math.min(SUMMARY_TAIL_BYTES, size);
+    const tail = new Uint8Array(tailLen);
+    const tailRead = readSync(fd, tail, 0, tailLen, Math.max(0, size - tailLen));
+    return (
+      Buffer.from(head.subarray(0, headRead)).toString("utf8") +
+      "\n" +
+      Buffer.from(tail.subarray(0, tailRead)).toString("utf8")
+    );
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function parsePiJsonlFile(
+  filePath: string,
+  entry: OtherAgentEntry,
+  sizeHint?: number
+): SessionSummary {
+  const lines = splitJsonlLines(readPiJsonlForSummary(filePath, sizeHint));
   let title: string | undefined;
   let messageCount = 0;
   let minTimestamp: string | undefined;
