@@ -71,7 +71,29 @@ export interface CsfPart {
   [key: string]: unknown;
 }
 
-export function toCsf(detail: SessionDetail): CsfExport {
+export interface SliceMeta {
+  /** 0-based absolute turn indices, inclusive */
+  turn_start: number;
+  turn_end: number;
+  total_turns: number;
+}
+
+export interface PartFilter {
+  /** additive: text ∪ selected types */
+  include: Set<string>;
+}
+
+export const IGNORE_PART_TYPES: ReadonlySet<string> = new Set(["step-start", "step-finish"]);
+
+export function renderTurnBody(
+  messages: SessionMessage[],
+  filter: PartFilter,
+  format: "markdown" | "text" | "csf"
+): string {
+  throw new Error("not implemented: renderTurnBody");
+}
+
+export function toCsf(detail: SessionDetail, opts?: { slice?: SliceMeta }): CsfExport {
   return {
     version: "1.0",
     source: {
