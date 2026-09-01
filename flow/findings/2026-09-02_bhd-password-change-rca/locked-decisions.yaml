@@ -1,0 +1,16 @@
+- id: LD-1
+  decision: agy-f session set canonical password correctly at 00:30:41 (user-ordered); pi restore session clobbered it at 00:45:20 via rg -U whole-line extraction bug; RCA session re-fixed 01:48 with live PAM verify.
+  evidence:
+    - ~/.gemini/antigravity-cli/brain/266950ef-04d9-441e-bab3-321476a47025/.system_generated/logs/transcript_full.jsonl
+    - ~/.multica/pi-sessions/20260901T173710.372125995.jsonl
+    - /var/log/auth.log (00:30:41 / 00:45:20 / 01:48:14 chpasswd events)
+    - live repro: rg -oP 'sudo:\npartB: "\K[^"]+' -U prints whole line
+  locked_at: "2026-09-02"
+- id: LD-2
+  decision: Aug-29 breaker = remote automation via SSH publickey from 100.114.135.99; identity unrecoverable (auth.log.1 deleted 01:05:15, journald vacuumed 200M same minute).
+  evidence: audit-report.md purge forensics (verbatim sudo lines)
+  locked_at: "2026-09-02"
+- id: LD-3
+  decision: oas blindness root causes = (a) antigravity default path ~/.gemini/antigravity (real: -cli) + overview.txt-only search, (b) pi adapter ignores flat root *.jsonl (multica runtime).
+  evidence: oas-gaps.md G1/G2 root-cause sections
+  locked_at: "2026-09-02"

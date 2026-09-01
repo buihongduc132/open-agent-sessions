@@ -1,0 +1,28 @@
+- id: OT-1
+  thread: Aug-29 automation identity on mesh host (do-manager/hermes session stores on 100.114.135.99 unprobed).
+  status: open
+  priority: low
+- id: OT-2
+  thread: worktree bhd-160-pi-mtime-prune also modifies src/adapters/pi.ts — merge coordination with flat-file support.
+  status: open
+  priority: medium
+- id: OT-3
+  thread: register OAS adapter fixes as Dolt requirements (matrix has no antigravity/multica coverage).
+  status: open
+  priority: medium
+- id: OT-4
+  thread: canonical-password fragment permanently in bhd-metal-ops commit bec5be0 history (private repo); HEAD clean since c03848d.
+  status: accepted
+  priority: low
+- id: OT-5
+  thread: gitnexus MCP plugin broken (Cannot find module './mcp-client-stdio') — impact gates had to fall back to manual grep.
+  status: open
+  priority: high
+- id: OT-6
+  thread: subagent spawn infra flaky tonight — children die instantly (exit 1, "Operation aborted" at turn 1-2, empty output) across fresh/green-implementer/fork variants; one explicit 'Model "bhd-litellm/role-smart-rev" not found' though models.json HAS it + apiKey → child config resolution path differs from parent. Resume/revive usually works. Needs dedicated RCA.
+  status: open
+  priority: high
+- id: OT-7
+  thread: bin/ gitignored-but-tracked quirk — `git add bin/oas` prints ignore-refusal advice yet stages fine (tracked override); harmless but confusing.
+  status: open
+  priority: low
