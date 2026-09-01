@@ -108,8 +108,8 @@ function buildAntigravityAdapter(
         const results: SessionSummary[] = [];
 
         for (const uuid of uuids) {
-          const logPath = join(dataPath, "brain", uuid, ".system_generated", "logs", "overview.txt");
-          if (contentContains(logPath, needle)) {
+          const logPath = sessionLogPath(dataPath, uuid);
+          if (logPath && contentContains(logPath, needle)) {
             results.push(parseAntigravitySession(dataPath, uuid, entry));
           }
         }
@@ -134,12 +134,9 @@ function buildAntigravityAdapter(
         throw new Error(`${label} session not found: ${sessionId}`);
       }
 
-      // TODO: parseAntigravitySession and parseAntigravityMessages both read overview.txt.
-      // Consider caching or combining into a single-pass parse. Minor agent with small session counts.
       const summary = parseAntigravitySession(dataPath, sessionId, entry);
-      const logPath = join(sessionPath, ".system_generated", "logs", "overview.txt");
-      const stat = safeStat(logPath);
-      if (!stat) {
+      const logPath = sessionLogPath(dataPath, sessionId);
+      if (!logPath) {
         return { ...summary, messages: [] };
       }
 
@@ -299,21 +296,50 @@ function buildAntigravityAdapter(
 function resolveAntigravityPath(entry: OtherAgentEntry, options: AntigravityAdapterOptions): string {
   const home = options.homeDir ?? homedir();
   const configured = typeof entry.path === "string" ? entry.path : undefined;
-  const defaultPath = options.dataPath ?? join(home, ".gemini", "antigravity");
-  const resolved = resolvePath(configured ?? defaultPath);
+  // Real antigravity CLI stores under ~/.gemini/antigravity-cli (RCA 2026-09-02);
+  // ~/.gemini/antigravity kept as legacy fallback.
+  const candidates = configured
+    ? [configured]
+    : options.dataPath
+      ? [options.dataPath]
+      : [join(home, ".gemini", "antigravity-cli"), join(home, ".gemini", "antigravity")];
 
-  const stat = safeStat(resolved);
-  if (!stat) {
-    throw new Error(`Antigravity path not found: ${resolved}`);
+  for (const candidate of candidates) {
+    const resolved = resolvePath(candidate);
+    if (safeStat(resolved)) return resolved;
   }
-  return resolved;
+  throw new Error(`Antigravity path not found: ${candidates.map((c) => resolvePath(c)).join(" or ")}`);
+}
+
+/**
+ * Resolve a brain's log file: prefer overview.txt, fall back to the real
+ * antigravity transcript files (transcript_full.jsonl, transcript.jsonl).
+ * Real brains do NOT contain overview.txt (RCA 2026-09-02).
+ */
+function sessionLogPath(dataPath: string, uuid: string): string | undefined {
+  const logsDir = join(dataPath, "brain", uuid, ".system_generated", "logs");
+  for (const name of ["overview.txt", "transcript_full.jsonl", "transcript.jsonl"]) {
+    const p = join(logsDir, name);
+    if (safeStat(p)) return p;
+  }
+  return undefined;
+}
+
+/** Strip <USER_REQUEST>…</USER_REQUEST> wrapper (real Multica task prompts) and
+ *  take the first non-empty line, truncated — used for session titles. */
+function firstUserLine(content: string): string {
+  let text = content;
+  const wrapped = text.match(/^\s*<USER_REQUEST>\s*([\s\S]*?)<\/USER_REQUEST>/);
+  if (wrapped) text = wrapped[1];
+  const line = text.split(/\r?\n/).map((l) => l.trim()).find((l) => l.length > 0) ?? "";
+  return line.slice(0, 80);
 }
 
 function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAgentEntry): SessionSummary {
-  const logPath = join(dataPath, "brain", uuid, ".system_generated", "logs", "overview.txt");
-  const stat = safeStat(logPath);
+  const logPath = sessionLogPath(dataPath, uuid);
+  const stat = logPath ? safeStat(logPath) : undefined;
 
-  if (!stat) {
+  if (!logPath || !stat) {
     const dirStat = safeStat(join(dataPath, "brain", uuid));
     const mtime = dirStat?.mtime.toISOString() ?? new Date().toISOString();
     return {
@@ -357,7 +383,7 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
     if (logEntry.source === "USER_EXPLICIT" && logEntry.type === "USER_INPUT") {
       messageCount++;
       if (!title && logEntry.content) {
-        title = logEntry.content.split(/\r?\n/)[0].trim();
+        title = firstUserLine(logEntry.content);
       }
     } else if (logEntry.source === "MODEL" && logEntry.type === "PLANNER_RESPONSE") {
       messageCount++;
@@ -435,14 +461,13 @@ function parseAntigravityMessages(logPath: string, label: string): SessionMessag
 }
 
 /**
- * Determine whether any log entry in the session's overview.txt contains a
+ * Determine whether any log entry in the session's log file contains a
  * tool_call whose name case-insensitively contains the needle.
  * Mirror of pi.ts sessionUsesTool / zcode.ts toolSearchSessions.
  */
 function sessionUsesTool(dataPath: string, uuid: string, needle: string): boolean {
-  const logPath = join(dataPath, "brain", uuid, ".system_generated", "logs", "overview.txt");
-  const stat = safeStat(logPath);
-  if (!stat) return false;
+  const logPath = sessionLogPath(dataPath, uuid);
+  if (!logPath) return false;
 
   const content = readFileSync(logPath, "utf8");
   const lines = splitJsonlLines(content);

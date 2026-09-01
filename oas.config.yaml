@@ -28,6 +28,12 @@ agents:
   - agent: antigravity
     alias: antigravity
     enabled: true
+    path: /home/bhd/.gemini/antigravity-cli
+
+  - agent: pi
+    alias: multica
+    enabled: true
+    path: /home/bhd/.multica/pi-sessions
 
   - agent: pi
     alias: omo

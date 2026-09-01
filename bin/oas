@@ -37,7 +37,6 @@ import {
   createCodexCloneSourceAdapter,
   createCodexAdapter,
   createClaudeAdapter,
-  createAcpxAdapter,
   createHermesAdapter,
   createGeminiAdapter,
   createAntigravityAdapter,
@@ -183,27 +182,18 @@ function createReadService(config: Config): ReadService {
 }
 
 function createSearchService(config: Config): SearchService {
+  const factories = createAllAgentFactories(process.cwd());
   return async (query: SearchQuery) => {
     const errors: { agent: string; alias: string; message: string }[] = [];
 
     const promises = config.agents.filter((e) => e.enabled).map(async (entry) => {
       try {
-        let adapter: ReturnType<typeof createOpenCodeAdapter> | null = null;
-
-        // Instantiate the correct adapter per agent type (R-19: cross-agent search)
-        if (entry.agent === "opencode") {
-          adapter = createOpenCodeAdapter(entry as any, { cwd: query.cwd ?? process.cwd() });
-        } else if (entry.agent === "codex") {
-          adapter = createCodexAdapter(entry as any, { defaultPath: (entry as any).path });
-        } else if (entry.agent === "claude") {
-          adapter = createClaudeAdapter(entry as any, {});
-        } else if (entry.agent === "acpx") {
-          adapter = createAcpxAdapter(entry as any, {});
-        } else if (entry.agent === "pi") {
-          adapter = createPiAdapter(entry as any, {});
-        } else if (entry.agent === "grok") {
-          adapter = createGrokAdapter(entry as any, {});
-        }
+        // R-19: cross-agent search — use the shared factory map so every agent
+        // kind is searchable (the old hardcoded chain missed antigravity/gemini/
+        // zcode/hermes → RCA 2026-09-02).
+        const factory = factories[entry.agent];
+        if (!factory) return [];
+        const adapter = factory(entry);
 
         if (adapter && adapter.searchSessions) {
           return await adapter.searchSessions(query);

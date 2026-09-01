@@ -354,34 +354,46 @@ function resolvePiPath(entry: OtherAgentEntry, options: PiAdapterOptions): strin
 }
 
 /**
- * Collect all session directories (slug dirs containing .jsonl files).
+ * Collect all session units: slug subdirectories containing .jsonl files,
+ * PLUS flat .jsonl session files stored directly in the root (multica runtime
+ * layout ~/.multica/pi-sessions/*.jsonl — RCA G1 2026-09-02).
  */
 function collectSessionDirs(rootPath: string): string[] {
-  const dirs: string[] = [];
+  const units: string[] = [];
   const entries = safeStat(rootPath);
-  if (!entries || !entries.isDirectory()) return dirs;
+  if (!entries || !entries.isDirectory()) return units;
 
   const { readdirSync, statSync } = require("node:fs");
   for (const name of readdirSync(rootPath)) {
     if (name.startsWith(".")) continue;
     const fullPath = join(rootPath, name);
     try {
-      if (statSync(fullPath).isDirectory()) {
+      const st = statSync(fullPath);
+      if (st.isDirectory()) {
         // Check if directory contains .jsonl files
         const files = readdirSync(fullPath).filter((f: string) => f.endsWith(".jsonl"));
         if (files.length > 0) {
-          dirs.push(fullPath);
+          units.push(fullPath);
         }
+      } else if (st.isFile() && name.endsWith(".jsonl")) {
+        // Flat session file directly in root (multica pi runtime)
+        units.push(fullPath);
       }
     } catch {
-      // Skip inaccessible dirs
+      // Skip inaccessible units
     }
   }
-  return dirs;
+  return units;
+}
+
+/** Session id for a unit: dir basename, or flat filename sans .jsonl. */
+function unitSessionId(unitPath: string): string {
+  const base = basename(unitPath);
+  return base.endsWith(".jsonl") ? base.slice(0, -".jsonl".length) : base;
 }
 
 function parsePiSession(dirPath: string, entry: OtherAgentEntry): SessionSummary {
-  const sessionId = basename(dirPath);
+  const sessionId = unitSessionId(dirPath);
   const files = collectJsonlFiles(dirPath);
 
   // Collect all JSONL files across the session directory
