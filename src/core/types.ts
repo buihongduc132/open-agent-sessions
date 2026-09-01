@@ -114,7 +114,8 @@ export interface Adapter {
   searchSessions?(query: SearchQuery): SessionSummary[];
   /** R-41: Fuzzy tool/MCP/skills usage search */
   toolSearchSessions?(query: ToolSearchQuery): SessionSummary[];
-  getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail>;
+  /** Returns null when the session is not found (callers null-check). */
+  getSessionDetail?(sessionId: string, options: SessionReadOptions): Promise<SessionDetail | null>;
   /**
    * Fork a session from this adapter to a destination agent/alias.
    * Called on the destination adapter to create a new session linked to the source.
@@ -159,8 +160,8 @@ export interface AdapterHandle {
   listSessionsByTimeRange?(options: TimeRangeOptions): SessionSummary[];
   /** Optional — only present when the adapter supports session search. */
   searchSessions?(query: SearchQuery): Promise<SessionSummary[]>;
-  /** Optional — only present when the adapter supports session detail retrieval. */
-  getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail>;
+  /** Optional — only present when the adapter supports session detail retrieval. Returns null when not found. */
+  getSessionDetail?(sessionId: string, options?: SessionReadOptions): Promise<SessionDetail | null>;
   /** Optional — only present when the adapter supports session forking (R-39). */
   forkSession?(sourceSessionId: string, destAgent: string, destAlias: string): Promise<ForkResult>;
   /** Optional — only present when the adapter supports similarity search (REQ-SIM-03). */

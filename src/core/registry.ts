@@ -167,7 +167,7 @@ function buildHandle(
     // Repeated calls for the same sessionId return the cached result without
     // re-querying agent storage. Cache is invalidated when updated_at changes.
     getSessionDetail: adapter.getSessionDetail
-      ? async (sessionId: string, options?: SessionReadOptions): Promise<SessionDetail> => {
+      ? async (sessionId: string, options?: SessionReadOptions): Promise<SessionDetail | null> => {
           const key = cacheKey(sessionId, options);
           const cached = detailCache.get(key);
 
@@ -180,6 +180,7 @@ function buildHandle(
           }
 
           const detail = await adapter.getSessionDetail!(sessionId, options ?? {});
+          if (detail === null) return null;
           detailCache.set(key, detail);
           return detail;
         }

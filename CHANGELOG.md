@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `oas export` turn-based file export (`--dir`): `--type split_turn|consolidate` (default split_turn, one file per turn), `--prefix` (default `YYYY-MM-DD`), relative turn bounds `--from-relative/--to-relative` (pandas model: `0` = current, `-1` = previous), absolute `--from/--to`, `--with-tools/--with-thinking/--with-*` part inclusion, `--dry-run` preview (first/last 200 chars + tool stats per turn, no disk writes), `--force` collision override, atomic writes, all-or-nothing preflight, alias-scan targeting, exit codes `2` (usage/conflicts) and `3` (dir-mode runtime errors). New modules: `src/core/turns.ts` (turn engine), `src/core/export-sink.ts` (atomic file sink seam), `src/cli/export-options.ts` (flag registry), `src/cli/export-dir.ts` (orchestration). Formatter hardening: YAML-safe frontmatter, dynamic fences, injection escaping, 64KB per-part cap (csf lossless).
+
+### Fixed
+
+- pi adapter `getSessionDetail` returns `null` on not-found (was throw) — aligns with Adapter contract; `Adapter`/registry signatures widened to `SessionDetail | null`.
+- export flag parser: value-taking flags consume the next token even when it starts with `-`/`--` (real pi session ids are `--`-prefixed).
+
 - Grok CLI adapter (`src/adapters/grok.ts`): list, time-range, search, tool search, and session detail from `~/.grok/sessions` (or `$GROK_HOME/sessions`). Parses `summary.json` + `chat_history.jsonl` including user text, assistant text, reasoning, and tool calls.
 
 ## [0.1.0] - 2026-03-02

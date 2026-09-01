@@ -129,7 +129,7 @@ function buildClaudeAdapter(
     getSessionDetail: async (
       sessionId: string,
       opts: SessionReadOptions
-    ): Promise<SessionDetail> => {
+    ): Promise<SessionDetail | null> => {
       const label = createLabel(entry);
       const rootPath = resolveClaudePath(entry, options);
       const files = collectJsonlFiles(rootPath);
@@ -197,7 +197,8 @@ function buildClaudeAdapter(
         }
       }
 
-      throw new Error(`${label} session not found: ${sessionId}`);
+      // Not-found is a normal result (Adapter contract): callers null-check.
+      return null;
     },
     listSessionsByTimeRange: (opts: TimeRangeOptions): SessionSummary[] => {
       const label = createLabel(entry);

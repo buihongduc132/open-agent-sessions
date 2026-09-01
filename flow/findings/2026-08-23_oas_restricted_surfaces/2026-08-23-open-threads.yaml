@@ -1,0 +1,94 @@
+# Open threads — 2026-08-23-oas-restricted-surfaces
+status: closed
+threads:
+  - id: OT1
+    topic: mcp-only this slice vs CLI+skill+cmd first
+    raised_in: turn1
+    status: resolved
+    resolved_in: turn1a
+    severity: 3
+    resolution: |
+      Include thin `oas mcp` in Stage 2 plan (DoD names mcp-only).
+      In-process SDK (not spawn-per-call). stdout = JSON-RPC only (G4.5).
+      Registration uses abs bun/shim (G4.2). OAS_CONFIG for cwd-first (G3.2).
+      Probe: inspector or raw initialize stdin. Docs snippets in OAS, not a
+      second product (G3.3).
+
+  - id: OT2
+    topic: skill-only = new SKILL.md vs promote oas-use cmd only
+    raised_in: turn1
+    status: resolved
+    resolved_in: turn1a
+    severity: 4
+    resolution: |
+      OAS repo `skills/oas-use/SKILL.md` = source of truth (same decision tree
+      as cmd). Hosts symlink to it (pi agent skills dir, one hermes profile).
+      NOT ~/.agents/skills (5 leftovers). NOT a commit into cli-agent-skills
+      (LD2). Do not rewrite axis-oas-work-discovery. Do not edit oas-use.md
+      in cli-agent-cmd this slice (G4.4) — cmd still shells oas; --tool lands
+      in CLI.
+
+  - id: OT3
+    topic: heatmap multi-agent belongs to BHD-141 overlay, not run-surface
+    raised_in: turn1
+    status: deferred
+    resolved_in: turn1a
+    severity: 2
+    resolution: |
+      PARK. Cite parent BHD-141 explore. Stage 2 DoD does not require heatmap
+      rewrite. Plan item heatmap-gap is documentation-only (known gap listed).
+
+  - id: OT4
+    topic: CLI search fan-out skips hermes/gemini/antigravity/zcode
+    raised_in: turn1a
+    source: gotcha-coverage
+    status: resolved
+    resolved_in: turn1a
+    severity: 4
+    resolution: |
+      Stage 2 --tool goes through AdapterHandle/buildHandle, with a test that
+      every enabled AgentKind is queried. Existing --text hole is a follow-up,
+      not a new inventory product (LD5).
+
+  - id: OT5
+    topic: mcp-only still needs bun in spawn env
+    raised_in: turn1a
+    source: gotcha-coverage
+    status: resolved
+    resolved_in: turn1a
+    severity: 4
+    resolution: |
+      MCP command in host config = abs bun shim + abs bin/oas mcp. Probe env -i.
+      Prefer mise shims over version-pinned path (G2.3).
+
+  - id: OT6
+    topic: cmd-only/skill-only bash implication unconfirmed
+    raised_in: turn1a
+    source: gotcha-coverage
+    status: resolved
+    resolved_in: turn1a
+    severity: 3
+    resolution: |
+      Locked as LD7 (auto_decided). No-bash = mcp-only.
+
+  - id: OT7
+    topic: oas-use cmd text vs LD2
+    raised_in: turn1a
+    source: gotcha-coverage
+    status: deferred
+    resolved_in: turn1a
+    severity: 4
+    resolution: |
+      Do not edit cli-agent-cmd in BHD-145. Stale "one bad adapter kills all"
+      text remains until a separate cmd ticket. Not a blocker: cmd still runs oas.
+
+  - id: OT8
+    topic: JSON list hang / MCP latency
+    raised_in: turn1a
+    source: gotcha-coverage
+    status: deferred
+    resolved_in: turn1a
+    severity: 3
+    resolution: |
+      MCP uses in-process SDK. If list still >10s, file follow-up; do not block
+      surface DoD. Probes use 60s budget and/or text format.
