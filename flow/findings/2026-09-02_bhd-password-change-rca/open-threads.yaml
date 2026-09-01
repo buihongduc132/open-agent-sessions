@@ -30,3 +30,7 @@
   thread: "oas session read --agent X --alias Y <id> flag-form fails while positional agent:alias:id works (verifier R2-V2 hit it) — CLI read routing inconsistency."
   status: open
   priority: medium
+- id: OT-9
+  thread: "jewilo ~/.verifier-loop store shared across ALL repos (422 goals, no repo scoping) — any session can RESUME any goalId; a bhd-metal-ops session believed our goal 01c09f40 was theirs (evidence disproved: goalText+createdAt = ours) and voided their own verdicts over it. File upstream: per-repo goal namespacing or repo guard on RESUME."
+  status: open
+  priority: high
