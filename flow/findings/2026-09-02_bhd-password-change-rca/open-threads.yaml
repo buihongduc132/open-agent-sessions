@@ -26,3 +26,7 @@
   thread: bin/ gitignored-but-tracked quirk — `git add bin/oas` prints ignore-refusal advice yet stages fine (tracked override); harmless but confusing.
   status: open
   priority: low
+- id: OT-8
+  thread: "oas session read --agent X --alias Y <id> flag-form fails while positional agent:alias:id works (verifier R2-V2 hit it) — CLI read routing inconsistency."
+  status: open
+  priority: medium
