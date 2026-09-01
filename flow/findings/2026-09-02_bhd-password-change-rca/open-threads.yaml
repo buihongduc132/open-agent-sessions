@@ -18,6 +18,7 @@
   thread: gitnexus MCP plugin broken (Cannot find module './mcp-client-stdio') — impact gates had to fall back to manual grep.
   status: open
   priority: high
+  update: "2026-09-02: peer session RETRACTED accusation + verified own root cause — polled foreign goalId via 'ls -t newest = mine' assumption, killed its own ALL-APPROVE verification (508cb89c), misread our d1 as its rejection. Corrected in bhd-metal-ops@56f2503. Read-side proof of the same design flaw; issue #74 (per-repo namespace / cwd guard) endorsed by both sides."
 - id: OT-6
   thread: subagent spawn infra flaky tonight — children die instantly (exit 1, "Operation aborted" at turn 1-2, empty output) across fresh/green-implementer/fork variants; one explicit 'Model "bhd-litellm/role-smart-rev" not found' though models.json HAS it + apiKey → child config resolution path differs from parent. Resume/revive usually works. Needs dedicated RCA.
   status: open
