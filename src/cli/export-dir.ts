@@ -11,13 +11,12 @@ import type { ExportFlagValues } from "./export-options";
 import { groupTurns, resolveRange, sliceTurn } from "../core/turns";
 import { createFileSink } from "../core/export-sink";
 import { toCsf, renderTurnBody, type PartFilter, type SliceMeta } from "../core/export";
-import { safeStat } from "../adapters/fs-utils";
+import { safeStat, readTextFile } from "../adapters/fs-utils";
 import { homedir } from "node:os";
 import {
   accessSync,
   constants as fsConstants,
   mkdirSync,
-  readFileSync,
 } from "node:fs";
 import { isAbsolute, join, resolve as pathResolve } from "node:path";
 
@@ -431,11 +430,11 @@ export async function runDirExport(
       nonRegular.push(t.path);
       continue;
     }
-    let existing = "";
-    try {
-      existing = readFileSync(t.path, "utf-8");
-    } catch {
+    let existing: string | null = null;
+    existing = readTextFile(t.path);
+    if (existing === null) {
       // unreadable → treat as differing (refusal) unless --force
+      existing = "";
     }
     if (existing === t.content) {
       skipWrite.add(t.path);
