@@ -11,7 +11,10 @@ import { runListCommand, type ListService } from "../src/cli/list";
 import { runDetailCommand, type DetailService } from "../src/cli/detail";
 import { runCloneCommand } from "../src/cli/clone";
 import { runConfigCommand } from "../src/cli/config";
-import { runExportCommand, type ExportService } from "../src/cli/export";
+import { runExportCommand, type ExportService, type ExportOptions } from "../src/cli/export";
+import { runDirExport } from "../src/cli/export-dir";
+import { parseExportFlags, exportHelpText } from "../src/cli/export-options";
+export { runDirExport, parseExportFlags, exportHelpText, type ExportOptions };
 import { runSimilarCommand, type SimilarService } from "../src/cli/similar";
 
 // TUI imports (R-15)
@@ -597,19 +600,36 @@ async function handleCloneCommand(parsed: ParsedArgs): Promise<void> {
   process.exit(result.exitCode);
 }
 
-async function handleExportCommand(parsed: ParsedArgs): Promise<void> {
+async function handleExportCommand(restArgs: string[]): Promise<void> {
   const config = loadConfig();
   const getSession = createExportService(config);
 
-  // parseArgs puts the first non-flag token into .command and subsequent ones
-  // into .positional.  For `oas export <ref> --format ...` the session ref
-  // lands in parsed.command, not parsed.positional.
-  const sessionRef = parsed.positional[0] ?? (parsed.command || undefined);
+  const fr = parseExportFlags(restArgs);
+  if (!fr.ok) {
+    process.stderr.write(fr.errors.join("\n") + "\n");
+    process.exit(fr.exitCode);
+  }
+  const flags = fr.value;
+
   const result = await runExportCommand({
-    sessionRef,
-    from: parsed.options["from"] as string | undefined,
-    format: parsed.options["format"] as "csf" | "markdown" | "text" | undefined,
-    output: parsed.options["output"] as string | undefined,
+    sessionRef: flags.sessionRef,
+    from: flags.from,
+    format: flags.format,
+    output: flags.output,
+    // dir-mode (turn split/consolidate) surface:
+    agent: flags.agent,
+    id: flags.id,
+    type: flags.type,
+    dir: flags.dir,
+    prefix: flags.prefix,
+    dryRun: flags.dryRun,
+    force: flags.force,
+    fromRelative: flags.fromRelative,
+    toRelative: flags.toRelative,
+    fromTurn: flags.fromTurn,
+    toTurn: flags.toTurn,
+    withTypes: flags.withTypes,
+    rawWithFlags: flags.rawWithFlags,
     config,
     getSession,
   });
@@ -853,9 +873,11 @@ async function handleSessionCommand(subArgs: string[]): Promise<void> {
     }
 
     case "export": {
-      const parsed = parseArgs(restArgs);
-      if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
-      await handleExportCommand(parsed);
+      if (restArgs.includes("--help") || restArgs.includes("-h")) {
+        console.log(exportHelpText());
+        return;
+      }
+      await handleExportCommand(restArgs);
       return;
     }
 
@@ -1073,9 +1095,11 @@ async function main() {
 
   if (command === "export") {
     deprecationNotice("oas session export");
-    const parsed = parseArgs(restArgs);
-    if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
-    await handleExportCommand(parsed);
+    if (restArgs.includes("--help") || restArgs.includes("-h")) {
+      console.log(exportHelpText());
+      return;
+    }
+    await handleExportCommand(restArgs);
     return;
   }
 

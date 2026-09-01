@@ -35,6 +35,8 @@ export interface CsfExport {
     created_at: string;
     updated_at: string;
     message_count: number;
+    /** Present when this export covers a bounded turn slice of the session */
+    slice?: SliceMeta;
   };
   /** Messages in the session */
   messages: CsfMessage[];
@@ -85,15 +87,234 @@ export interface PartFilter {
 
 export const IGNORE_PART_TYPES: ReadonlySet<string> = new Set(["step-start", "step-finish"]);
 
+/** Per-part byte cap applied to markdown/text rendering (csf stays lossless). */
+const PART_BYTE_CAP = 64 * 1024;
+
+/** Upper bound for dynamic fence length — pathological backtick floods must not
+ *  blow up the file; content runs are broken during escaping anyway (see
+ *  breakBacktickRuns), so a capped fence stays strictly longer than any run
+ *  that can actually appear in the rendered output. */
+const FENCE_LEN_CAP = 16;
+
+/** Part keys that indicate binary-ish payloads, skipped in markdown/text. */
+const BINARYISH_KEYS = new Set(["data", "base64", "image", "b64"]);
+
+/** Strip C0 control chars (keep \n and \t) — renders cleanly and is yaml-safe. */
+function stripControlChars(text: string): string {
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, "");
+}
+
+/** Longest backtick run (>=1) in text. */
+function longestBacktickRun(text: string): number {
+  const m = text.match(/`+/g);
+  if (!m) return 0;
+  return m.reduce((acc, s) => Math.max(acc, s.length), 0);
+}
+
+/** Break backtick runs >=3 in rendered fenced content by inserting a zero-width
+ *  space after every 2nd consecutive backtick — keeps the closed fence
+ *  unambiguous without ballooning size. */
+function breakBacktickRuns(text: string): string {
+  return text.replace(/`{3,}/g, (run) => {
+    let out = "";
+    for (let i = 0; i < run.length; i++) {
+      out += "`";
+      if (i % 2 === 1 && i !== run.length - 1) out += "\u200B";
+    }
+    return out;
+  });
+}
+
+/** Code-point-safe slice by approximate byte budget. */
+function sliceByBytes(text: string, maxBytes: number): { text: string; truncated: boolean } {
+  if (Buffer.byteLength(text, "utf-8") <= maxBytes) return { text, truncated: false };
+  const chars = Array.from(text);
+  let out = "";
+  let bytes = 0;
+  for (const ch of chars) {
+    const b = Buffer.byteLength(ch, "utf-8");
+    if (bytes + b > maxBytes) break;
+    out += ch;
+    bytes += b;
+  }
+  return { text: out, truncated: true };
+}
+
+function isBinaryish(part: SessionPart): boolean {
+  for (const key of Object.keys(part as Record<string, unknown>)) {
+    if (BINARYISH_KEYS.has(key)) return true;
+  }
+  return false;
+}
+
+/** Escape text-part content for inline markdown rendering: neutralises
+ *  link/image/task-list/heading injection at line start and mid-line, without
+ *  mangling legit prose (word-internal _ kept, words survive). */
+function escapeTextForMarkdown(text: string): string {
+  let out = text
+    .replace(/\\/g, "\\\\")
+    .replace(/`/g, "\\`")
+    .replace(/\*/g, "\\*")
+    .replace(/</g, "\\<");
+  // line-start markers (before [ ] escaping so raw "- [" is still intact)
+  out = out.replace(/^(\s*)#/gm, "$1\\#");
+  out = out.replace(/^(\s*)- \[/gm, "$1\\- [");
+  out = out.replace(/^(\s*)>/gm, "$1\\>");
+  // bracket escaping neutralises link/image/task-list injection, mid-line included
+  out = out.replace(/\[/g, "\\[").replace(/\]/g, "\\]");
+  return out;
+}
+
+interface RenderedPart {
+  /** Final rendered block (may be multi-line). */
+  text: string;
+  /** Marker lines emitted after the block (truncation markers, skip notes). */
+  tail: string[];
+}
+
+function renderUnknownPartFenced(part: SessionPart): RenderedPart {
+  // Include `type` in the payload so explicitly-included exotic part types
+  // (e.g. step-start) remain identifiable in output.
+  const json = JSON.stringify(part, null, 2);
+  const { text: capped, truncated } = sliceByBytes(json, PART_BYTE_CAP);
+  const escaped = breakBacktickRuns(capped);
+  // Fence computed AFTER truncation; longer than any run that can appear
+  // (content runs are broken; use pre-escape truncated run for extra margin,
+  // capped to keep pathological floods bounded).
+  const fenceLen = Math.min(
+    FENCE_LEN_CAP,
+    Math.max(3, longestBacktickRun(capped) + 1, longestBacktickRun(escaped) + 1)
+  );
+  const fence = "`".repeat(fenceLen);
+  const tail: string[] = [];
+  if (truncated) {
+    tail.push(`…[truncated ${Buffer.byteLength(json) - Buffer.byteLength(capped)} bytes]`);
+  }
+  return { text: `${fence}\n${escaped}\n${fence}`, tail };
+}
+
+function renderPartMarkdown(part: SessionPart, filter: PartFilter): RenderedPart | null {
+  const include = filter.include;
+  if (part.type !== "text" && !include.has(part.type)) return null;
+  if (IGNORE_PART_TYPES.has(part.type) && !include.has(part.type)) return null;
+  if (isBinaryish(part)) {
+    return {
+      text: `> [skipped binary-ish part: ${part.type} — use --format csf for full content]`,
+      tail: [],
+    };
+  }
+  if (part.type === "text") {
+    const raw = stripControlChars(String((part as { text: string }).text ?? ""));
+    const { text: capped, truncated } = sliceByBytes(raw, PART_BYTE_CAP);
+    const tail: string[] = [];
+    if (truncated) {
+      tail.push(`…[truncated ${Buffer.byteLength(raw) - Buffer.byteLength(capped)} bytes]`);
+    }
+    return { text: escapeTextForMarkdown(capped), tail };
+  }
+  if (part.type === "tool") {
+    const tool = String((part as { tool: string }).tool ?? "unknown").replace(/`/g, "'");
+    const state = (part as { state?: unknown }).state ?? {};
+    const json = JSON.stringify({ type: "tool_state", tool, state }, null, 2);
+    const { text: capped, truncated } = sliceByBytes(json, PART_BYTE_CAP);
+    const escaped = breakBacktickRuns(capped);
+    const fenceLen = Math.min(
+      FENCE_LEN_CAP,
+      Math.max(3, longestBacktickRun(capped) + 1, longestBacktickRun(escaped) + 1)
+    );
+    const fence = "`".repeat(fenceLen);
+    const tail: string[] = [];
+    if (truncated) tail.push("…[truncated tool state]");
+    return { text: `**Tool:** \`${tool}\`\n\n${fence}\n${escaped}\n${fence}`, tail };
+  }
+  if (part.type === "tool_result") {
+    const tool = String((part as unknown as { tool?: string }).tool ?? "unknown");
+    return { text: `**Tool result:** \`${tool}\``, tail: [] };
+  }
+  if (part.type === "reasoning") {
+    const raw = stripControlChars(String((part as { text: string }).text ?? ""));
+    const { text: capped, truncated } = sliceByBytes(raw, PART_BYTE_CAP);
+    const tail: string[] = [];
+    if (truncated) tail.push("…[truncated reasoning]");
+    return { text: `*${escapeTextForMarkdown(capped)}*`, tail };
+  }
+  return renderUnknownPartFenced(part);
+}
+
+function renderPartText(part: SessionPart, filter: PartFilter): RenderedPart | null {
+  const include = filter.include;
+  if (part.type !== "text" && !include.has(part.type)) return null;
+  if (IGNORE_PART_TYPES.has(part.type) && !include.has(part.type)) return null;
+  if (isBinaryish(part)) {
+    return {
+      text: `[skipped binary-ish part: ${part.type} — use --format csf for full content]`,
+      tail: [],
+    };
+  }
+  if (part.type === "text") {
+    const raw = stripControlChars(String((part as { text: string }).text ?? ""));
+    const { text: capped, truncated } = sliceByBytes(raw, PART_BYTE_CAP);
+    const tail: string[] = [];
+    if (truncated) tail.push(`…[truncated ${Buffer.byteLength(raw) - Buffer.byteLength(capped)} bytes]`);
+    return { text: capped, tail };
+  }
+  if (part.type === "tool") {
+    return { text: `[TOOL] ${(part as unknown as { tool: string }).tool ?? "unknown"}`, tail: [] };
+  }
+  if (part.type === "tool_result") {
+    return { text: `[TOOL RESULT] ${(part as unknown as { tool: string }).tool ?? "unknown"}`, tail: [] };
+  }
+  if (part.type === "reasoning") {
+    const raw = stripControlChars(String((part as { text: string }).text ?? ""));
+    return { text: `[REASONING] ${raw}`, tail: [] };
+  }
+  const json = JSON.stringify(part, null, 2);
+  const { text: capped, truncated } = sliceByBytes(json, PART_BYTE_CAP);
+  const tail: string[] = [];
+  if (truncated) tail.push("…[truncated]");
+  return { text: capped, tail };
+}
+
 export function renderTurnBody(
   messages: SessionMessage[],
   filter: PartFilter,
   format: "markdown" | "text" | "csf"
 ): string {
-  throw new Error("not implemented: renderTurnBody");
+  if (format === "csf") {
+    // Lossless: no caps, no binary skip — filtered parts only.
+    const filtered = messages.map((m) => ({
+      ...m,
+      parts: m.parts.filter(
+        (p) => p.type === "text" || filter.include.has(p.type)
+      ),
+    }));
+    return JSON.stringify(filtered, null, 2);
+  }
+
+  const blocks: string[] = [];
+  for (const msg of messages) {
+    const header =
+      format === "markdown"
+        ? `### ${capitalize(msg.role)}${msg.modelID ? ` *( model: ${msg.modelID} )*` : ""}`
+        : `[${msg.role}] ${msg.created_at}`;
+    blocks.push(header);
+    for (const part of msg.parts) {
+      const rendered =
+        format === "markdown"
+          ? renderPartMarkdown(part, filter)
+          : renderPartText(part, filter);
+      if (!rendered) continue;
+      blocks.push(rendered.text);
+      blocks.push(...rendered.tail);
+    }
+    blocks.push("");
+  }
+  return blocks.join("\n");
 }
 
 export function toCsf(detail: SessionDetail, opts?: { slice?: SliceMeta }): CsfExport {
+  const exportedAt = opts?.slice ? detail.updated_at : new Date().toISOString();
   return {
     version: "1.0",
     source: {
@@ -104,10 +325,11 @@ export function toCsf(detail: SessionDetail, opts?: { slice?: SliceMeta }): CsfE
       created_at: detail.created_at,
       updated_at: detail.updated_at,
       message_count: detail.message_count,
+      ...(opts?.slice ? { slice: opts.slice } : {}),
     },
     messages: detail.messages?.map(toCsfMessage) ?? [],
     clone: detail.clone,
-    exported_at: new Date().toISOString(),
+    exported_at: exportedAt,
     parent_session_id: detail.parentSessionId,
   };
 }

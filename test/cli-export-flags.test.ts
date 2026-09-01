@@ -25,11 +25,13 @@ describe("parseExportFlags — value forms", () => {
   });
 
   test("numeric-looking string flags never Number-coerced", () => {
+    // NOTE (GREEN fix): original RED argv combined --dir + --output which the
+    // conflict matrix correctly rejects (output ⊕ dir). Split into two cases.
     const r = parseExportFlags([
+      "--agent", "pi",
       "--id", "12345",
       "--prefix", "001",
       "--dir", "123",
-      "--output", "123",
     ]);
     expect(r.ok).toBe(true);
     if (r.ok) {
@@ -39,6 +41,12 @@ describe("parseExportFlags — value forms", () => {
       expect(typeof r.value.prefix).toBe("string");
       expect(r.value.dir).toBe("123");
       expect(typeof r.value.dir).toBe("string");
+    }
+    const r2 = parseExportFlags(["--output", "123"]);
+    expect(r2.ok).toBe(true);
+    if (r2.ok) {
+      expect(r2.value.output).toBe("123");
+      expect(typeof r2.value.output).toBe("string");
     }
   });
 

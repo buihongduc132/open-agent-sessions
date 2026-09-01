@@ -2,6 +2,7 @@ import { AgentEntry, AgentKind, Config } from "../config/types";
 import { SessionDetail, SessionReadOptions } from "../core/types";
 import { toCsf, toMarkdown, toText } from "../core/export";
 import { CliResult } from "./types";
+import { runDirExport } from "./export-dir";
 import { errorResult, errorMessage, type ParseResult, wrapLargeOutput } from "./utils/config";
 import {
   isAgentKind,
@@ -56,6 +57,20 @@ export type ExportOptions = {
   format?: "csf" | "markdown" | "text";
   /** --output FILE: write to file instead of stdout */
   output?: string;
+  // ---- dir-mode (turn split/consolidate) surface ----
+  agent?: string;
+  id?: string;
+  type?: "consolidate" | "split_turn";
+  dir?: string;
+  prefix?: string;
+  dryRun?: boolean;
+  force?: boolean;
+  fromRelative?: string;
+  toRelative?: string;
+  fromTurn?: string;
+  toTurn?: string;
+  withTypes?: string[];
+  rawWithFlags?: string[];
   config?: Config;
   getSession: ExportService;
 };
@@ -65,6 +80,35 @@ export type ExportOptions = {
 // ============================================================================
 
 export async function runExportCommand(options: ExportOptions): Promise<CliResult> {
+  // Dir mode (turn split/consolidate) → delegate to runDirExport.
+  if (options.dir) {
+    if (options.agent && options.id) {
+      return runDirExport(
+        {
+          sessionRef: options.sessionRef,
+          from: options.from,
+          format: options.format,
+          output: options.output,
+          agent: options.agent,
+          id: options.id,
+          type: options.type,
+          dir: options.dir,
+          prefix: options.prefix,
+          dryRun: options.dryRun,
+          force: options.force,
+          fromRelative: options.fromRelative,
+          toRelative: options.toRelative,
+          fromTurn: options.fromTurn,
+          toTurn: options.toTurn,
+          withTypes: options.withTypes ?? [],
+          rawWithFlags: options.rawWithFlags ?? [],
+        },
+        { config: options.config as never, getSession: options.getSession as never }
+      );
+    }
+    return errorResult("--dir mode requires --agent and --id for session targeting.");
+  }
+
   // Validate --format
   if (options.format !== undefined) {
     const validFormats = ["csf", "markdown", "text"];

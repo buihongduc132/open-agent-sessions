@@ -1,13 +1,15 @@
 /**
- * RED — adapter fixture tests for turn-split export (oas-export-turn-split).
+ * RED→GREEN — adapter fixture tests for turn-split export (oas-export-turn-split).
  * Synthetic runtime fixtures ONLY (tempdir; no real agent dirs; no PII).
- * These validate adapter fetch shapes the turn engine + export rely on.
- * NOTE: adapters exist — tests exercising getSessionDetail({mode:"all_with_tools"})
- * on REAL adapter behavior may partially pass today where adapters already
- * support it; assertions tied to missing behavior (tool_result passthrough,
- * step-part presence) act as the RED surface and drive fixture coverage.
+ *
+ * opencode: TWO modes per adapter architecture (advisor-verified):
+ *  - DB mode: full messages; unknown roles normalizeRole→user; step parts present
+ *    in all_with_tools fetch.
+ *  - JSONL mode: adapter documents empty messages ([] by design — "JSONL adapter
+ *    doesn't support full message retrieval"); detail must still resolve.
  */
 import { describe, test, expect } from "bun:test";
+import { Database } from "bun:sqlite";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -102,33 +104,84 @@ describe("codex adapter — turn-split fixture (integer ids, sessions dir)", () 
   });
 });
 
-describe("opencode adapter — turn-split fixture (step parts + unknown role)", () => {
-  test("unknown role mapped to user; step-start/step-finish parts present in raw fetch", async () => {
+describe("opencode adapter — turn-split fixture (DB: unknown role + step parts; JSONL: empty by design)", () => {
+  function seedDb(dbPath: string): void {
+    const db = new Database(dbPath);
+    db.run(`CREATE TABLE project (
+      id TEXT PRIMARY KEY, worktree TEXT NOT NULL, vcs TEXT, name TEXT,
+      time_created INTEGER NOT NULL, time_updated INTEGER NOT NULL)`);
+    db.run(`CREATE TABLE session (
+      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, parent_id TEXT, slug TEXT NOT NULL,
+      directory TEXT NOT NULL, title TEXT NOT NULL, version TEXT NOT NULL,
+      time_created INTEGER NOT NULL, time_updated INTEGER NOT NULL)`);
+    db.run(`CREATE TABLE message (
+      id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+      time_created INTEGER NOT NULL, time_updated INTEGER NOT NULL, data TEXT NOT NULL)`);
+    db.run(`CREATE TABLE part (
+      id TEXT PRIMARY KEY, message_id TEXT NOT NULL, session_id TEXT NOT NULL,
+      time_created INTEGER NOT NULL, time_updated INTEGER NOT NULL, data TEXT NOT NULL)`);
+    db.run(`INSERT INTO project VALUES ('p1','/wt',NULL,'proj',1000,2000)`);
+    db.run(`INSERT INTO session (id, project_id, slug, directory, title, version, time_created, time_updated) VALUES ('op-1','p1','slug','/wt','T','v1',1000,9000)`);
+    const addMsg = (id: string, role: string, t: number) =>
+      db.run(`INSERT INTO message (id, session_id, time_created, time_updated, data) VALUES (?,?,?,?,?)`,
+        [id, "op-1", t, t, JSON.stringify({ role, time: { created: t } })]);
+    const addPart = (id: string, msgId: string, type: string, extra: Record<string, unknown>, t: number) =>
+      db.run(`INSERT INTO part (id, message_id, session_id, time_created, time_updated, data) VALUES (?,?,?,?,?,?)`,
+        [id, msgId, "op-1", t, t, JSON.stringify({ type, ...extra })]);
+    addMsg("m1", "user", 1100);
+    addPart("p-text1", "m1", "text", { text: "q1" }, 1150);
+    addPart("p-step1", "m1", "step-start", {}, 1160);
+    addMsg("m2", "weird", 1200); // unknown role → normalizeRole → user
+    addPart("p-step2", "m2", "step-finish", {}, 1260);
+    addMsg("m3", "assistant", 1300);
+    addPart("p-text2", "m3", "text", { text: "a1" }, 1350);
+    addMsg("m4", "user", 1400);
+    addPart("p-text3", "m4", "text", { text: "q2" }, 1450);
+    addMsg("m5", "assistant", 1500);
+    addPart("p-text4", "m5", "text", { text: "a2" }, 1550);
+    db.close();
+  }
+
+  test("DB mode: unknown role maps to user; step parts present in all_with_tools; texts intact", async () => {
     const dir = tempDir();
-    const filePath = join(dir, "session-op1.jsonl");
-    writeSession(filePath, [
-      { time: "2026-02-01T00:00:00Z", type: "session", id: "op-1" },
-      { time: "2026-02-01T00:00:01Z", type: "message", id: "m1", role: "user", parts: [{ type: "text", text: "q1" }] },
-      { time: "2026-02-01T00:00:02Z", type: "step-start" },
-      { time: "2026-02-01T00:00:03Z", type: "message", id: "m2", role: "assistant", parts: [{ type: "text", text: "a1" }] },
-      { time: "2026-02-01T00:00:04Z", type: "step-finish" },
-      { time: "2026-02-01T00:00:05Z", type: "weird-role-thing", id: "m3", parts: [{ type: "text", text: "mystery" }] },
-      { time: "2026-02-01T00:00:06Z", type: "message", id: "m4", role: "user", parts: [{ type: "text", text: "q2" }] },
-      { time: "2026-02-01T00:00:07Z", type: "message", id: "m5", role: "assistant", parts: [{ type: "text", text: "a2" }] },
-    ]);
+    const dbPath = join(dir, "opencode.db");
+    seedDb(dbPath);
     const adapter = createOpenCodeAdapter({
       agent: "opencode", alias: "default", enabled: true,
-      storage: { mode: "jsonl", jsonlPath: dir },
+      storage: { mode: "db", db_path: dbPath },
     } as never);
     const detail = await adapter.getSessionDetail!("op-1", { mode: "all_with_tools" });
     expect(detail).not.toBeNull();
     const msgs = detail!.messages ?? [];
-    expect(msgs.length).toBeGreaterThan(0);
+    expect(msgs.length).toBe(5);
+    const weird = msgs.find((m) => m.id === "m2");
+    expect(weird?.role).toBe("user"); // normalizeRole: unknown → user
+    const partTypes = msgs.flatMap((m) => m.parts.map((p) => p.type));
+    expect(partTypes).toContain("step-start");
+    expect(partTypes).toContain("step-finish");
     const texts = msgs.flatMap((m) =>
       m.parts.filter((p) => p.type === "text").map((p) => (p as { text: string }).text)
     );
     expect(texts).toContain("q1");
     expect(texts).toContain("a2");
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test("JSONL mode: detail resolves with empty messages [] (documented adapter gap)", async () => {
+    const dir = tempDir();
+    const filePath = join(dir, "opencode.jsonl");
+    writeSession(filePath, [
+      { id: "op-1", projectID: "p1", directory: "/wt", title: "T", timeCreated: 1000, timeUpdated: 2000 },
+    ]);
+    const adapter = createOpenCodeAdapter({
+      agent: "opencode", alias: "default", enabled: true,
+      storage: { mode: "jsonl", jsonl_path: filePath },
+    } as never);
+    const detail = await adapter.getSessionDetail!("op-1", { mode: "all_with_tools" });
+    expect(detail).not.toBeNull();
+    expect(detail!.id).toBe("op-1");
+    expect(detail!.title).toBe("T");
+    expect(detail!.messages).toEqual([]); // adapter documents JSONL = no message retrieval
     rmSync(dir, { recursive: true, force: true });
   });
 });
