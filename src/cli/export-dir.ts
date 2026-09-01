@@ -236,17 +236,18 @@ export async function runDirExport(
     return fail(3, `No enabled agent "${flags.agent}" in config.`);
   }
   const fetchOpts = flags.withTypes.length > 0 ? { mode: "all_with_tools" } : {};
-  let detail: SessionDetail | null = null;
-  let query: { agent: string; alias: string; id: string } | null = null;
+  // Scan ALL enabled aliases and collect every hit: an id resolvable under
+  // more than one alias is an ambiguous target (usage conflict, exit 2),
+  // never a silent first-config-entry pick (alias-multihit).
+  const hits: Array<{
+    query: { agent: string; alias: string; id: string };
+    detail: SessionDetail;
+  }> = [];
   for (const cand of candidates) {
     const q = { agent: flags.agent, alias: cand.alias, id: flags.id };
     try {
       const d = await deps.getSession(q, fetchOpts);
-      if (d) {
-        detail = d;
-        query = q;
-        break;
-      }
+      if (d) hits.push({ query: q, detail: d });
     } catch (error) {
       // A throwing alias aborts the scan with context naming it.
       return fail(
@@ -255,10 +256,20 @@ export async function runDirExport(
       );
     }
   }
-  if (!detail || !query) {
+  if (hits.length === 0) {
     const tried = candidates.map((e) => `${e.agent}:${e.alias}`).join(", ");
     return fail(3, `Session not found under any alias of "${flags.agent}" (tried: ${tried}): ${flags.id}`);
   }
+  if (hits.length > 1) {
+    const found = hits.map((h) => `${h.query.agent}:${h.query.alias}`).join(", ");
+    return fail(
+      2,
+      `Session id "${flags.id}" resolves under multiple aliases of "${flags.agent}" (${found}). ` +
+        `Ambiguous target — remove the duplicate alias or export with an explicit alias.`
+    );
+  }
+  const detail: SessionDetail = hits[0].detail;
+  const query: { agent: string; alias: string; id: string } = hits[0].query;
 
   // --- turns + range -------------------------------------------------------
   const turns = groupTurns(detail.messages ?? []);

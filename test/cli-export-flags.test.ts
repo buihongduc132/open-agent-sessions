@@ -246,4 +246,13 @@ describe("exportHelpText", () => {
     expect(/current/i.test(help)).toBe(true);
     expect(/-1.*previous|previous.*-1/i.test(help)).toBe(true);
   });
+
+  test("documents exit code buckets: 0 ok, 2 usage+conflicts (incl. collision), 3 runtime (dir-only)", () => {
+    const help = exportHelpText();
+    expect(help).toContain("Exit codes");
+    expect(help).toContain("2");
+    expect(help).toContain("3");
+    expect(help.toLowerCase()).toContain("collision");
+    expect(help).toContain("exit 1");
+  });
 });

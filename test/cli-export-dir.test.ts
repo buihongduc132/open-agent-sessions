@@ -402,6 +402,46 @@ describe("dir export — with-* + warnings", () => {
   });
 });
 
+// --- alias scan (alias-multihit: never silent first-hit) -----------------------
+
+describe("dir export — alias scan", () => {
+  const multiDeps = (order: [string, string]) => ({
+    config: {
+      agents: order.map((alias) => ({ agent: "pi", alias, enabled: true })),
+    },
+    // getSession resolves the SAME fixture id under any alias → ambiguous.
+    getSession: async () => mk3TurnDetail(),
+  });
+
+  test("id resolving under BOTH aliases → exit 2 listing pi:a1 + pi:a2 (both config orders)", async () => {
+    for (const order of [["a1", "a2"], ["a2", "a1"]] as [string, string][]) {
+      const out = join(dir, `multihit-${order[0]}`);
+      const r = await runDirExport(flags({ dir: out }), multiDeps(order));
+      expect(r.exitCode).toBe(2);
+      expect(r.stderr).toContain("pi:a1");
+      expect(r.stderr).toContain("pi:a2");
+      // never a silent first-hit: nothing written
+      expect(existsSync(out)).toBe(false);
+    }
+  });
+
+  test("exactly one resolving alias (other returns null) → proceeds with it", async () => {
+    const deps = {
+      config: {
+        agents: [
+          { agent: "pi", alias: "a1", enabled: true },
+          { agent: "pi", alias: "a2", enabled: true },
+        ],
+      },
+      getSession: async (q: { alias: string }) => (q.alias === "a2" ? mk3TurnDetail() : null),
+    };
+    const out = join(dir, "single-hit");
+    const r = await runDirExport(flags({ dir: out }), deps);
+    expect(r.exitCode).toBe(0);
+    expect(readdirSync(out).length).toBe(3);
+  });
+});
+
 // --- legacy backward compat (EXISTING behavior — passes today by design) ------------
 
 describe("legacy export (no --dir) backward compat", () => {

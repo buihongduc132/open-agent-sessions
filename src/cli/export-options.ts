@@ -398,5 +398,8 @@ Legacy single-file mode:
   --output FILE         write a single file instead of stdout
   --from SPEC           session reference in legacy form
 
-Exit codes: 0 ok · 2 usage errors and conflicts · 3 runtime errors`;
+Exit codes:
+  0   ok
+  2   usage errors and conflicts (including collision refusal)
+  3   runtime errors (dir mode only; legacy paths keep exit 1)`;
 }
