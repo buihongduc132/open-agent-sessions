@@ -122,3 +122,20 @@ empirically. No contradiction ever existed; agy's transcript is truthful.
 2. rg `-U` multiline patterns with `\K` are unreliable for split-credential extraction —
    assert the extracted shape (length/charset) before use.
 3. See `oas-gaps.md` for the tooling gaps this RCA hit.
+
+## Addendum: verifier-loop trail + perf follow-up (2026-09-02 ~04:3x +07)
+
+- jewilo round-1: d2 APPROVE, d1 REJECT (audited a transient mid-edit parse error —
+  fixed in ee9bddd), d3 verifier dead-on-spawn (OT-6 infra). Round-2 slots all
+  dead-on-spawn → jewilo path abandoned per skill fallback; fallback = blind subagent
+  verifiers with references/verifier.md policy.
+- Fallback V1 REJECT on claim accuracy: full suite under load shows up to 8
+  timeout-class failures (4 chronic + opencode hook timeouts + P1 spawn starvation).
+  Attribution: machine load average ~52 during verification (dockerd/containerd/git/pi);
+  every extra failure passes in isolation; opencode test+src files byte-identical to
+  pre-change baseline; P1 spawns the CLI with 45s budget and hit 119s under load-52.
+- REAL issue found via that reject: enabling antigravity (502 brains / 2GB) added
+  ~1s to every one-shot oas invocation (list/search). Fixed in a2483e8 —
+  parseAntigravitySession now samples head 512KB + tail 256KB instead of full reads;
+  perf regression test added (big-transcript brain).
+- Final verifier round (2 fresh blind verifiers) run against corrected claims.
