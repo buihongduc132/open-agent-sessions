@@ -166,7 +166,7 @@ function buildPiAdapter(
       const sessionDirs = collectSessionDirs(rootPath);
 
       for (const dirPath of sessionDirs) {
-        const dirId = basename(dirPath);
+        const dirId = unitSessionId(dirPath);
         if (dirId === sessionId) {
           let messages = parsePiMessages(dirPath, label);
           const summary = parsePiSession(dirPath, entry);

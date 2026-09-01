@@ -80,7 +80,7 @@ describe("Pi Adapter", () => {
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test("listSessions includes flat multica session file in root dir (RCA G1 2026-09-02, RED)", () => {
+  test("listSessions includes flat multica session file in root dir (RCA G1 2026-09-02, RED)", async () => {
     // Multica pi runtime stores sessions FLAT: <root>/<YYYYMMDDTHHmmSS.ns>.jsonl
     // (e.g. ~/.multica/pi-sessions/20260901T173710.372125995.jsonl) — no slug subdirectory.
     const flatRoot = join(process.cwd(), ".tmp-pi-flat-test");
@@ -118,6 +118,11 @@ describe("Pi Adapter", () => {
 
     const hits = adapter.searchSessions!({ text: "unique-gamma" });
     expect(hits.some(s => s.id === "20260901T173710.372125995")).toBe(true);
+
+    const detail = await adapter.getSessionDetail!("20260901T173710.372125995", {});
+    expect(detail).not.toBeNull();
+    expect(detail!.messages.length).toBeGreaterThanOrEqual(2);
+    expect(detail!.messages[0].role).toBe("user");
 
     // Cleanup
     rmSync(flatRoot, { recursive: true, force: true });
