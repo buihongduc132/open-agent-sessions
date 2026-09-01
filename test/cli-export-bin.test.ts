@@ -6,9 +6,10 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, dirname, resolve } from "node:path";
 
-const REPO = "/home/bhd/Documents/Projects/bhd/open-agent-sessions/.worktrees/oas-export-turn-split";
+// Repo root derived from this file's location (portable — no hardcoded home path).
+const REPO = resolve(dirname(import.meta.path as never), "..");
 
 let work: string;
 
