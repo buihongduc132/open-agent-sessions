@@ -137,13 +137,13 @@ export function parseExportFlags(argv: string[]): FlagParseResult {
         let value: string | undefined = inline;
         if (value === undefined) {
           const next = argv[i + 1];
-          if (next === undefined || next.startsWith("--")) {
+          if (next === undefined) {
             errors.push(`Missing value for --${key}`);
-          } else if (INT_TOKEN.test(next) || !next.startsWith("-")) {
+          } else {
+            // optarg rule: the token after a value-taking flag is its VALUE,
+            // even when it starts with '-' (negative ints, '--'-prefixed ids).
             value = next;
             i++;
-          } else {
-            errors.push(`Missing value for --${key}`);
           }
         }
         if (value !== undefined) raw[key] = value;

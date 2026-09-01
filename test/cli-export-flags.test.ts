@@ -219,6 +219,21 @@ describe("parseExportFlags — domain validation", () => {
 });
 
 describe("exportHelpText", () => {
+  test("optarg rule: '--'-prefixed value consumed as VALUE (real pi slug ids)", () => {
+    const r = parseExportFlags([
+      "--agent", "pi",
+      "--id", "--home-bhd-Documents-Projects-bhd-open-agent-sessions--",
+      "--dir", "d",
+    ]);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.id).toBe("--home-bhd-Documents-Projects-bhd-open-agent-sessions--");
+    }
+    const r2 = parseExportFlags(["--agent", "pi", "--id=--weird-sid--"]);
+    expect(r2.ok).toBe(true);
+    if (r2.ok) expect(r2.value.id).toBe("--weird-sid--");
+  });
+
   test("leads with relative example; relative before absolute; documents 0/-1 semantics", () => {
     const help = exportHelpText();
     expect(help).toContain("--from-relative=-3");
