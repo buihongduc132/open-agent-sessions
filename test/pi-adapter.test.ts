@@ -79,4 +79,47 @@ describe("Pi Adapter", () => {
     // Cleanup
     rmSync(tmpDir, { recursive: true, force: true });
   });
+
+  test("listSessions includes flat multica session file in root dir (RCA G1 2026-09-02, RED)", () => {
+    // Multica pi runtime stores sessions FLAT: <root>/<YYYYMMDDTHHmmSS.ns>.jsonl
+    // (e.g. ~/.multica/pi-sessions/20260901T173710.372125995.jsonl) — no slug subdirectory.
+    const flatRoot = join(process.cwd(), ".tmp-pi-flat-test");
+    mkdirSync(flatRoot, { recursive: true });
+
+    const userEvent = {
+      type: "message",
+      id: "flat-msg-1",
+      timestamp: "2026-09-01T17:37:10.372Z",
+      message: { role: "user", content: "flat multica session unique-gamma" }
+    };
+    const assistantEvent = {
+      type: "message",
+      id: "flat-msg-2",
+      timestamp: "2026-09-01T17:38:00.000Z",
+      message: { role: "assistant", content: "flat multica reply" }
+    };
+    writeFileSync(
+      join(flatRoot, "20260901T173710.372125995.jsonl"),
+      JSON.stringify(userEvent) + "\n" + JSON.stringify(assistantEvent) + "\n"
+    );
+
+    const adapter = createPiAdapter(
+      { agent: "pi", alias: "pi-multica", enabled: true },
+      { defaultPath: flatRoot }
+    );
+
+    const sessions = adapter.listSessions();
+    const flat = sessions.find(s => s.id === "20260901T173710.372125995");
+    expect(flat).toBeDefined();
+    expect(flat!.title).toBe("flat multica session unique-gamma");
+    expect(flat!.message_count).toBeGreaterThanOrEqual(2);
+    expect(flat!.created_at).toBe("2026-09-01T17:37:10.372Z");
+    expect(flat!.updated_at).toBe("2026-09-01T17:38:00.000Z");
+
+    const hits = adapter.searchSessions!({ text: "unique-gamma" });
+    expect(hits.some(s => s.id === "20260901T173710.372125995")).toBe(true);
+
+    // Cleanup
+    rmSync(flatRoot, { recursive: true, force: true });
+  });
 });

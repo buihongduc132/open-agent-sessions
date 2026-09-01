@@ -164,3 +164,76 @@ describe("AntigravityAdapter", () => {
     expect(adapter.listSessions()).toHaveLength(0);
   });
 });
+
+describe("AntigravityAdapter — real-world storage (RCA 2026-09-02 bhd-password, RED)", () => {
+  // Real antigravity CLI layout (verified live during RCA):
+  //   ~/.gemini/antigravity-cli/brain/<uuid>/.system_generated/logs/transcript_full.jsonl (+ transcript.jsonl)
+  // NO overview.txt exists in real brains — adapter must parse transcripts.
+  const realUuid = "266950ef-04d9-441e-bab3-321476a47025";
+  const legacyUuid = "11111111-2222-3333-4444-555555555555";
+  let home: string;
+
+  beforeEach(() => {
+    home = mkdtempSync(join(tmpdir(), "oas-agy-home-"));
+  });
+
+  afterEach(() => {
+    rmSync(home, { recursive: true, force: true });
+  });
+
+  function writeBrain(rootName: string, uuid: string, fileName: string, lines: object[]) {
+    const logsDir = join(home, ".gemini", rootName, "brain", uuid, ".system_generated", "logs");
+    mkdirSync(logsDir, { recursive: true });
+    writeFileSync(join(logsDir, fileName), lines.map(l => JSON.stringify(l)).join("\n") + "\n");
+  }
+
+  it("resolves default data path to ~/.gemini/antigravity-cli and indexes transcript_full.jsonl (no overview.txt)", () => {
+    writeBrain("antigravity-cli", realUuid, "transcript_full.jsonl", [
+      { step_index: 0, source: "USER_EXPLICIT", type: "USER_INPUT", created_at: "2026-09-01T16:36:35Z", content: "hello world unique-alpha" },
+      { step_index: 1, source: "MODEL", type: "PLANNER_RESPONSE", created_at: "2026-09-01T16:37:00Z", content: "assistant reply unique-beta" }
+    ]);
+
+    const adapter = createAntigravityAdapter(
+      { agent: "antigravity", alias: "agy-real", enabled: true },
+      { homeDir: home }
+    );
+
+    expect(() => adapter.listSessions()).not.toThrow();
+    const sessions = adapter.listSessions();
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].id).toBe(realUuid);
+    expect(sessions[0].title).toContain("hello world unique-alpha");
+    expect(sessions[0].message_count).toBeGreaterThanOrEqual(2);
+    expect(sessions[0].created_at).toBe("2026-09-01T16:36:35.000Z");
+    expect(sessions[0].updated_at).toBe("2026-09-01T16:37:00.000Z");
+
+    const hits = adapter.searchSessions!({ text: "unique-beta" });
+    expect(hits).toHaveLength(1);
+    expect(hits[0].id).toBe(realUuid);
+
+    const detail = adapter.getSessionDetail!(realUuid, {});
+    return expect(detail).resolves.toMatchObject({
+      messages: [
+        { role: "user", parts: [{ type: "text", text: expect.stringContaining("unique-alpha") }] },
+        { role: "assistant" }
+      ]
+    });
+  });
+
+  it("falls back to legacy ~/.gemini/antigravity when antigravity-cli is absent, still parsing transcripts", () => {
+    writeBrain("antigravity", legacyUuid, "transcript.jsonl", [
+      { step_index: 0, source: "USER_EXPLICIT", type: "USER_INPUT", created_at: "2026-09-01T10:00:00Z", content: "legacy brain transcript unique-delta" },
+      { step_index: 1, source: "MODEL", type: "PLANNER_RESPONSE", created_at: "2026-09-01T10:01:00Z", content: "legacy reply" }
+    ]);
+
+    const adapter = createAntigravityAdapter(
+      { agent: "antigravity", alias: "agy-legacy", enabled: true },
+      { homeDir: home }
+    );
+
+    const sessions = adapter.listSessions();
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].title).toContain("legacy brain transcript unique-delta");
+    expect(sessions[0].message_count).toBeGreaterThanOrEqual(2);
+  });
+});
