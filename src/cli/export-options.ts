@@ -204,7 +204,7 @@ function mapRawToValues(
   const value: ExportFlagValues = { withTypes: [], rawWithFlags };
   if (sessionRef !== undefined) value.sessionRef = sessionRef;
 
-  // --from is dual-purpose: /^
+
   // --from is dual-purpose: /^\d+$/ → absolute turn bound (fromTurn) ONLY when a
   // turn-mode sink/context exists (--dir or --output); otherwise a digit-only --from
   // is ambiguous with a legacy numeric session id → explicit error, never silent
