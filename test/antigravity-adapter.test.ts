@@ -220,6 +220,28 @@ describe("AntigravityAdapter — real-world storage (RCA 2026-09-02 bhd-password
     });
   });
 
+  it("samples head+tail of large transcripts instead of reading whole files (perf, RCA 2026-09-02)", () => {
+    // >768KB transcript forces the sampling path; title/count/timestamps must survive.
+    const filler = { step_index: 999, source: "MODEL", type: "GENERIC", created_at: "2026-09-01T12:00:00Z", content: "x".repeat(2048) };
+    const lines = [
+      { step_index: 0, source: "USER_EXPLICIT", type: "USER_INPUT", created_at: "2026-09-01T16:36:35Z", content: "big brain unique-epsilon" },
+      ...Array.from({ length: 500 }, (_, i) => ({ ...filler, step_index: i + 1 })),
+      { step_index: 501, source: "MODEL", type: "PLANNER_RESPONSE", created_at: "2026-09-01T16:40:00Z", content: "final reply unique-zeta" }
+    ];
+    writeBrain("antigravity-cli", legacyUuid, "transcript_full.jsonl", lines);
+
+    const adapter = createAntigravityAdapter(
+      { agent: "antigravity", alias: "agy-big", enabled: true },
+      { homeDir: home }
+    );
+    const sessions = adapter.listSessions();
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].title).toContain("big brain unique-epsilon");
+    expect(sessions[0].message_count).toBeGreaterThanOrEqual(2);
+    expect(sessions[0].created_at).toBe("2026-09-01T16:36:35.000Z");
+    expect(sessions[0].updated_at).toBe("2026-09-01T16:40:00.000Z");
+  });
+
   it("falls back to legacy ~/.gemini/antigravity when antigravity-cli is absent, still parsing transcripts", () => {
     writeBrain("antigravity", legacyUuid, "transcript.jsonl", [
       { step_index: 0, source: "USER_EXPLICIT", type: "USER_INPUT", created_at: "2026-09-01T10:00:00Z", content: "legacy brain transcript unique-delta" },

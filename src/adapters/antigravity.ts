@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, openSync, readSync, closeSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { createLabel } from "./label";
@@ -354,7 +354,11 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
     };
   }
 
-  const content = readFileSync(logPath, "utf8");
+  // Perf (RCA 2026-09-02): real installs have 700+ brains (GBs of transcripts) —
+  // reading every file fully makes each one-shot `oas` CLI invocation multi-second.
+  // For listing, sample head+tail chunks: title + created_at come from the head,
+  // updated_at from the tail, message_count = sampled records (a lower bound).
+  const content = sampleTranscript(logPath, stat.size);
   const lines = splitJsonlLines(content);
   let title: string | undefined;
   let messageCount = 0;
@@ -402,6 +406,33 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
     storage: "other",
     ...(parentSessionId ? { parentSessionId } : {}),
   };
+}
+
+/**
+ * Read head+tail chunks of a transcript instead of the whole file.
+ * Small files are returned whole. The tail chunk skips its (likely partial)
+ * first line; both chunks are joined with a newline boundary.
+ */
+function sampleTranscript(logPath: string, size: number): string {
+  const HEAD = 512 * 1024;
+  const TAIL = 256 * 1024;
+  if (size <= HEAD + TAIL) {
+    return readFileSync(logPath, "utf8");
+  }
+  const fd = openSync(logPath, "r");
+  try {
+    const head = Buffer.alloc(HEAD);
+    readSync(fd, head, 0, HEAD, 0);
+    const tail = Buffer.alloc(TAIL);
+    readSync(fd, tail, 0, TAIL, size - TAIL);
+    const tailText = tail.toString("utf8");
+    // Drop partial first line of the tail chunk
+    const firstNl = tailText.indexOf("\n");
+    const tailLines = firstNl >= 0 ? tailText.slice(firstNl + 1) : "";
+    return head.toString("utf8") + "\n" + tailLines;
+  } finally {
+    closeSync(fd);
+  }
 }
 
 function parseAntigravityMessages(logPath: string, label: string): SessionMessage[] {
