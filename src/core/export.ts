@@ -100,6 +100,16 @@ const FENCE_LEN_CAP = 16;
 const BINARYISH_KEYS = new Set(["data", "base64", "image", "b64"]);
 
 /** Strip C0 control chars (keep \n and \t) — renders cleanly and is yaml-safe. */
+/** Meta-scalar safe for inline markdown: strip newlines/control chars + backticks. */
+function mdSafeModel(text: string): string {
+  return String(text).replace(/[\u0000-\u001f\u007f`]/g, "").slice(0, 200);
+}
+
+/** Code-span-safe name: strip backticks + newlines. */
+function codeSpanName(name: string): string {
+  return name.replace(/[`\r\n]/g, "");
+}
+
 function stripControlChars(text: string): string {
   // eslint-disable-next-line no-control-regex
   return text.replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, "");
@@ -229,7 +239,7 @@ function renderPartMarkdown(part: SessionPart, filter: PartFilter): RenderedPart
     return { text: `**Tool:** \`${tool}\`\n\n${fence}\n${escaped}\n${fence}`, tail };
   }
   if (part.type === "tool_result") {
-    const tool = String((part as unknown as { tool?: string }).tool ?? "unknown");
+    const tool = codeSpanName(String((part as unknown as { tool?: string }).tool ?? "unknown"));
     return { text: `**Tool result:** \`${tool}\``, tail: [] };
   }
   if (part.type === "reasoning") {
@@ -267,7 +277,10 @@ function renderPartText(part: SessionPart, filter: PartFilter): RenderedPart | n
   }
   if (part.type === "reasoning") {
     const raw = stripControlChars(String((part as { text: string }).text ?? ""));
-    return { text: `[REASONING] ${raw}`, tail: [] };
+    const { text: capped, truncated } = sliceByBytes(raw, PART_BYTE_CAP);
+    const tail: string[] = [];
+    if (truncated) tail.push("…[truncated reasoning]");
+    return { text: `[REASONING] ${capped}${truncated ? " …[truncated reasoning]" : ""}`, tail };
   }
   const json = JSON.stringify(part, null, 2);
   const { text: capped, truncated } = sliceByBytes(json, PART_BYTE_CAP);
@@ -296,7 +309,7 @@ export function renderTurnBody(
   for (const msg of messages) {
     const header =
       format === "markdown"
-        ? `### ${capitalize(msg.role)}${msg.modelID ? ` *( model: ${msg.modelID} )*` : ""}`
+        ? `### ${capitalize(msg.role)}${msg.modelID ? ` *( model: ${mdSafeModel(msg.modelID)} )*` : ""}`
         : `[${msg.role}] ${msg.created_at}`;
     blocks.push(header);
     for (const part of msg.parts) {

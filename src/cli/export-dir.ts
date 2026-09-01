@@ -56,6 +56,20 @@ function expandTilde(p: string): string {
   return p;
 }
 
+/** Markdown-inline-safe scalar: strip newlines/control chars, escape heading markers + backticks. */
+function mdInlineSafe(text: string): string {
+  return String(text)
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/`/g, "'")
+    .replace(/^\s*#+/gm, "")
+    .slice(0, 500);
+}
+
+/** Code-span-safe scalar: strip backticks + newlines. */
+function codeSpanSafe(text: string): string {
+  return String(text).replace(/[`\r\n]/g, "");
+}
+
 function sanitizePrefix(prefix: string, dirAbs: string, ext: string): string | { error: string } {
   if (prefix.includes("/") || prefix.includes("\\")) {
     return { error: `Invalid --prefix "${prefix}": path separators are not allowed.` };
@@ -152,22 +166,32 @@ function renderSliceContent(
   rangedHeader?: string
 ): string {
   if (format === "csf") {
-    return JSON.stringify(toCsf(slice, { slice: sliceMeta }), null, 2) + "\n";
+    // csf honours the SAME part filter as markdown/text — only text ∪ selected
+    // parts are exported (keeps csf consistent with the requested --with-* set;
+    // byte-stability preserved since filtering is deterministic).
+    const filtered: SessionDetail = {
+      ...slice,
+      messages: (slice.messages ?? []).map((m) => ({
+        ...m,
+        parts: m.parts.filter((p) => filter.include.has(p.type)),
+      })),
+    };
+    return JSON.stringify(toCsf(filtered, { slice: sliceMeta }), null, 2) + "\n";
   }
   const parts: string[] = [];
   parts.push(buildFrontmatter(slice, sliceMeta));
   parts.push("");
   if (format === "markdown") {
-    parts.push(`# ${slice.title || slice.id}`);
+    parts.push(`# ${mdInlineSafe(slice.title || slice.id)}`);
     parts.push("");
-    parts.push(`**Agent:** \`${slice.agent}:${slice.alias}\` · **Session ID:** \`${slice.id}\``);
+    parts.push(`**Agent:** \`${codeSpanSafe(slice.agent)}:${codeSpanSafe(slice.alias)}\` · **Session ID:** \`${codeSpanSafe(slice.id)}\``);
     parts.push("");
     if (rangedHeader) {
       parts.push(`> ${rangedHeader}`);
       parts.push("");
     }
   } else {
-    parts.push(`Session: ${slice.title || slice.id}`);
+    parts.push(`Session: ${mdInlineSafe(slice.title || slice.id)}`);
     parts.push(`Agent: ${slice.agent}:${slice.alias}`);
     parts.push(`ID: ${slice.id}`);
     if (rangedHeader) {

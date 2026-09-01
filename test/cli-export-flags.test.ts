@@ -1,6 +1,6 @@
 /**
  * RED — export flag parsing tests (oas-export-turn-split).
- * RED state: src/cli/export-options.ts stubs throw "not implemented".
+ * GREEN state: src/cli/export-options.ts implemented.
  */
 import { describe, test, expect } from "bun:test";
 import { parseExportFlags, exportHelpText } from "../src/cli/export-options";
@@ -61,7 +61,8 @@ describe("parseExportFlags — value forms", () => {
   });
 
   test("all flag values cross parser boundary as STRINGS", () => {
-    const r = parseExportFlags(["--from", "5", "--to", "9", "--format", "markdown"]);
+    // --dir provides turn-bound context so numeric --from/--to are bounds.
+    const r = parseExportFlags(["--from", "5", "--to", "9", "--format", "markdown", "--dir", "d"]);
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(typeof r.value.fromTurn).toBe("string");
@@ -254,5 +255,35 @@ describe("exportHelpText", () => {
     expect(help).toContain("3");
     expect(help.toLowerCase()).toContain("collision");
     expect(help).toContain("exit 1");
+  });
+});
+
+describe("parseExportFlags — PR45 fix wave regressions", () => {
+  test("positional + --dir allowed (A4)", () => {
+    const r = parseExportFlags(["pi:abc", "--dir", "d"]);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.sessionRef).toBe("pi:abc");
+      expect(r.value.dir).toBe("d");
+    }
+  });
+  test("--output + dir-mode modifier rejected (A5)", () => {
+    expect(parseExportFlags(["--output", "f.md", "--dry-run"]).ok).toBe(false);
+    expect(parseExportFlags(["--output", "f.md", "--prefix", "p"]).ok).toBe(false);
+    expect(parseExportFlags(["--output", "f.md", "--from-relative", "-1", "--dir", "d"]).ok).toBe(false); // output⊕dir
+    expect(parseExportFlags(["--output", "f.md", "--format", "markdown"]).ok).toBe(true);
+  });
+  test("--to + --to-relative rejected (P2-d)", () => {
+    expect(parseExportFlags(["--to", "2", "--to-relative", "-1", "--dir", "d"]).ok).toBe(false);
+  });
+  test("positional + --from two-targets rejected (P2-c)", () => {
+    expect(parseExportFlags(["abc", "--from", "pi:def", "--dir", "d"]).ok).toBe(false);
+  });
+  test("digit-only --from without --dir/--output is ambiguous error (P2-e)", () => {
+    const r = parseExportFlags(["--from", "123"]);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join(" ")).toMatch(/ambiguous|--dir|--agent/);
+    // with --output it is a bound
+    expect(parseExportFlags(["--from", "5", "--output", "f.md"]).ok).toBe(true);
   });
 });

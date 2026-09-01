@@ -458,3 +458,19 @@ describe("legacy export (no --dir) backward compat", () => {
     expect(parsed.source.session_id).toBe("sess-3turn");
   });
 });
+
+describe("dir export — positional ref targeting (PR45 P1-3)", () => {
+  test("sessionRef without agent/id resolves via config and exports (through runExportCommand)", async () => {
+    const out = join(dir, "posout");
+    const detail = mk3TurnDetail();
+    const r = await runExportCommand({
+      sessionRef: "pi:sess-3turn",
+      dir: out,
+      prefix: "exp",
+      config: { agents: [{ agent: "pi", alias: "pi", enabled: true }] } as never,
+      getSession: async () => detail,
+    });
+    expect(r.exitCode).toBe(0);
+    expect(existsSync(join(out, "exp_0001.md"))).toBe(true);
+  });
+});

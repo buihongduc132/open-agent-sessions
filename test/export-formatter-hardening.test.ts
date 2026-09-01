@@ -1,6 +1,6 @@
 /**
  * RED — formatter hardening tests (oas-export-turn-split).
- * RED state: renderTurnBody stub throws; hardening not yet implemented.
+ * GREEN state: renderTurnBody implemented; hardening applied.
  */
 import { describe, test, expect } from "bun:test";
 import { renderTurnBody, IGNORE_PART_TYPES } from "../src/core/export";

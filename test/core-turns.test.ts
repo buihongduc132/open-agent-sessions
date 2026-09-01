@@ -269,3 +269,18 @@ describe("sliceTurn", () => {
     expect(s.title.endsWith("— turn 3/3")).toBe(true);
   });
 });
+
+describe("groupTurns — step-parts are metadata, not turn starts (PR45 P1-2)", () => {
+  test("user msg with ONLY step-start/step-finish does not start a turn", () => {
+    const msgs = [
+      mkMsg("u0", "user", [T("q1")], "2026-01-01T00:00:00Z", 1),
+      mkMsg("u1", "user", [{ type: "step-start" } as never], "2026-01-01T00:00:01Z", 2),
+      mkMsg("u2", "user", [{ type: "step-finish" } as never], "2026-01-01T00:00:02Z", 3),
+      mkMsg("u3", "user", [T("q2")], "2026-01-01T00:00:03Z", 4),
+    ];
+    const turns = groupTurns(msgs);
+    expect(turns.length).toBe(2);
+    expect(turns[0].messages.map((m) => m.id)).toEqual(["u0", "u1", "u2"]);
+    expect(turns[1].messages[0].id).toBe("u3");
+  });
+});

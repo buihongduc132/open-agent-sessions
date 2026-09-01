@@ -2,7 +2,7 @@
  * File sink seam — atomic write (tmp + rename), tmp lifecycle.
  * Contracts: flow/plans/oas-export-turn-split-design.md (frozen before RED).
  */
-import { promises as fsp } from "node:fs";
+import { promises as fsp, statSync } from "node:fs";
 import {
   existsSync,
   readdirSync,
@@ -41,8 +41,23 @@ export function createFileSink(): FileSink {
     const dir = dirname(path);
     const tmp = join(dir, `${basename(path)}.${process.pid}.${randomBytes(4).toString("hex")}.tmp`);
 
+    // Preserve an existing target's mode on overwrite; default 0600 for new
+    // files so exports never widen permissions under a permissive umask.
+    let mode = 0o600;
     try {
-      await fsp.writeFile(tmp, content, "utf-8");
+      const st = statSync(path);
+      if (st.isFile()) mode = st.mode & 0o777;
+    } catch {
+      // target does not exist — keep default
+    }
+
+    try {
+      const fh = await fsp.open(tmp, "w", mode);
+      try {
+        await fh.writeFile(content, "utf-8");
+      } finally {
+        await fh.close();
+      }
     } catch (error) {
       safeUnlink(tmp);
       return {

@@ -82,31 +82,49 @@ export type ExportOptions = {
 export async function runExportCommand(options: ExportOptions): Promise<CliResult> {
   // Dir mode (turn split/consolidate) → delegate to runDirExport.
   if (options.dir) {
-    if (options.agent && options.id) {
-      return runDirExport(
-        {
-          sessionRef: options.sessionRef,
-          from: options.from,
-          format: options.format,
-          output: options.output,
-          agent: options.agent,
-          id: options.id,
-          type: options.type,
-          dir: options.dir,
-          prefix: options.prefix,
-          dryRun: options.dryRun,
-          force: options.force,
-          fromRelative: options.fromRelative,
-          toRelative: options.toRelative,
-          fromTurn: options.fromTurn,
-          toTurn: options.toTurn,
-          withTypes: options.withTypes ?? [],
-          rawWithFlags: options.rawWithFlags ?? [],
-        },
-        { config: options.config as never, getSession: options.getSession as never }
-      );
+    if (!options.config) {
+      return errorResult("Missing config.");
     }
-    return errorResult("--dir mode requires --agent and --id for session targeting.");
+    // Targeting: explicit --agent/--id, or a positional session-ref resolved
+    // through the same spec parser the legacy path uses.
+    let agent = options.agent;
+    let id = options.id;
+    if ((!agent || !id) && options.sessionRef) {
+      const entries = options.config.agents.filter((e) => e.enabled);
+      const spec = parseSessionSpec(options.sessionRef, entries);
+      if (!spec.ok) return errorResult(spec.error);
+      agent = spec.value.agent;
+      id = spec.value.id;
+    }
+    if (!agent || !id) {
+      return {
+        exitCode: 2,
+        stdout: "",
+        stderr: "--dir mode requires --agent <kind> and --id <session-id> (or a positional <session-ref>).\n",
+      };
+    }
+    return runDirExport(
+      {
+        sessionRef: options.sessionRef,
+        from: options.from,
+        format: options.format,
+        output: options.output,
+        agent,
+        id,
+        type: options.type,
+        dir: options.dir,
+        prefix: options.prefix,
+        dryRun: options.dryRun,
+        force: options.force,
+        fromRelative: options.fromRelative,
+        toRelative: options.toRelative,
+        fromTurn: options.fromTurn,
+        toTurn: options.toTurn,
+        withTypes: options.withTypes ?? [],
+        rawWithFlags: options.rawWithFlags ?? [],
+      },
+      { config: options.config as never, getSession: options.getSession as never }
+    );
   }
 
   // Validate --format

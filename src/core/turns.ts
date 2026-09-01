@@ -53,7 +53,10 @@ export function groupTurns(messages: SessionMessage[]): Turn[] {
   let prologue: SessionMessage[] = [];
 
   for (const msg of sorted) {
-    const isTurnStart = msg.role === "user" && msg.parts.some((p) => p.type !== "tool_result");
+    // A turn starts at a user message carrying REAL content: a text part.
+    // tool_result-only and step-start/step-finish-only user messages are
+    // metadata — they merge into the current turn instead of starting one.
+    const isTurnStart = msg.role === "user" && msg.parts.some((p) => p.type === "text");
     if (isTurnStart) {
       turns.push({ index: turns.length, messages: [...prologue, msg] });
       prologue = [];

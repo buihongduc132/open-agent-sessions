@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pi adapter `getSessionDetail` returns `null` on not-found (was throw) — aligns with Adapter contract; `Adapter`/registry signatures widened to `SessionDetail | null`.
 - export flag parser: value-taking flags consume the next token even when it starts with `-`/`--` (real pi session ids are `--`-prefixed).
 
-### Grok CLI adapter (`src/adapters/grok.ts`): list, time-range, search, tool search, and session detail from `~/.grok/sessions` (or `$GROK_HOME/sessions`). Parses `summary.json` + `chat_history.jsonl` including user text, assistant text, reasoning, and tool calls.
+- Grok CLI adapter (`src/adapters/grok.ts`): list, time-range, search, tool search, and session detail from `~/.grok/sessions` (or `$GROK_HOME/sessions`). Parses `summary.json` + `chat_history.jsonl` including user text, assistant text, reasoning, and tool calls.
 
 ## [0.1.0] - 2026-03-02
 

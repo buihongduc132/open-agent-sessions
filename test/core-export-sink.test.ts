@@ -1,10 +1,10 @@
 /**
  * RED — file sink tests (oas-export-turn-split).
- * RED state: src/core/export-sink.ts stub throws "not implemented".
+ * GREEN state: src/core/export-sink.ts implemented.
  */
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { createFileSink } from "../src/core/export-sink";
-import { mkdtempSync, rmSync, existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync, statSync, chmodSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -87,5 +87,23 @@ describe("createFileSink", () => {
     const sink = createFileSink();
     const r = await sink.write(join(sub, "exp_0006.md"), "n");
     expect(r.ok).toBe(true);
+  });
+});
+
+describe("createFileSink — mode preservation (PR45 P1-1)", () => {
+  test("overwriting a 0600 file keeps 0600 (never widens under umask)", async () => {
+    const sink = createFileSink();
+    const target = join(dir, "mode_test.md");
+    writeFileSync(target, "OLD", { mode: 0o600 });
+    chmodSync(target, 0o600);
+    await sink.write(target, "NEW");
+    expect((statSync(target).mode & 0o777)).toBe(0o600);
+    expect(readFileSync(target, "utf-8")).toBe("NEW");
+  });
+  test("new files default to 0600", async () => {
+    const sink = createFileSink();
+    const target = join(dir, "mode_new.md");
+    await sink.write(target, "x");
+    expect((statSync(target).mode & 0o777)).toBe(0o600);
   });
 });

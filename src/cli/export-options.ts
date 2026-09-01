@@ -204,11 +204,20 @@ function mapRawToValues(
   const value: ExportFlagValues = { withTypes: [], rawWithFlags };
   if (sessionRef !== undefined) value.sessionRef = sessionRef;
 
-  // --from is dual-purpose: /^\d+$/ → absolute turn bound (fromTurn);
-  // other non-numeric → legacy session-ref SPEC (from); negative int → domain error.
+  // --from is dual-purpose: /^
+  // --from is dual-purpose: /^\d+$/ → absolute turn bound (fromTurn) ONLY when a
+  // turn-mode sink/context exists (--dir or --output); otherwise a digit-only --from
+  // is ambiguous with a legacy numeric session id → explicit error, never silent
+  // reclassification. Other non-numeric → legacy session-ref SPEC (from).
   const fromRaw = raw["from"];
+  const turnCtx = hasVal(raw["dir"]) || hasVal(raw["output"]);
   if (typeof fromRaw === "string") {
-    if (/^\d+$/.test(fromRaw)) value.fromTurn = fromRaw;
+    if (/^\d+$/.test(fromRaw) && turnCtx) value.fromTurn = fromRaw;
+    else if (/^\d+$/.test(fromRaw))
+      errors.push(
+        `--from '${fromRaw}' is ambiguous: numeric values are turn bounds only in --dir/--output mode; ` +
+          `for a session id use --agent <kind> --id <id>, or add --dir`
+      );
     else if (INT_TOKEN.test(fromRaw))
       errors.push(
         `--from must be a non-negative turn index (got '${fromRaw}'); ` +
@@ -218,8 +227,16 @@ function mapRawToValues(
   }
   const toRaw = raw["to"];
   if (typeof toRaw === "string") {
-    if (/^\d+$/.test(toRaw)) value.toTurn = toRaw;
+    if (/^\d+$/.test(toRaw) && turnCtx) value.toTurn = toRaw;
+    else if (/^\d+$/.test(toRaw))
+      errors.push(
+        `--to '${toRaw}' is a turn bound only in --dir/--output mode; ` +
+          `for a session id use --agent <kind> --id <id>, or add --dir`
+      );
     else errors.push(`--to must be a non-negative turn index (got '${toRaw}')`);
+  }
+  function hasVal(v: string | boolean | undefined): boolean {
+    return v !== undefined;
   }
 
   // Relative bounds: pandas domain (<= 0). Positive → hint at absolute flags.
@@ -322,8 +339,26 @@ function checkConflicts(value: ExportFlagValues, errors: string[]): void {
     errors.push("--from and --from-relative are mutually exclusive (session-ref/absolute vs relative)");
   if (value.fromTurn !== undefined && value.fromRelative !== undefined)
     errors.push("--from and --from-relative are mutually exclusive (absolute vs relative)");
+  if (value.toTurn !== undefined && value.toRelative !== undefined)
+    errors.push("--to and --to-relative are mutually exclusive (absolute vs relative)");
   if (hasOutput && hasDir)
     errors.push("--output and --dir are mutually exclusive (single file vs one file per turn)");
+  // --output is the legacy single-file sink: dir-mode modifiers make no sense there.
+  // Absolute bounds ARE valid with --output (ranged single-file export); relative
+  // bounds + preview/naming flags are dir-mode only.
+  if (hasOutput) {
+    if (value.type !== undefined)
+      errors.push("--type requires --dir (turn-file export mode), not --output");
+    if (value.dryRun === true)
+      errors.push("--dry-run requires --dir (preview of turn files), not --output");
+    if (value.prefix !== undefined)
+      errors.push("--prefix requires --dir (turn-file naming), not --output");
+    if (value.fromRelative !== undefined || value.toRelative !== undefined)
+      errors.push("relative turn bounds require --dir, not --output");
+  }
+  // Positional + --from are two competing targets — never silently prefer --from.
+  if (value.sessionRef !== undefined && value.from !== undefined)
+    errors.push("positional <session-ref> and --from are mutually exclusive; target via one of them");
 
   // Positional vs flag targeting agreement.
   if (value.sessionRef !== undefined) {
@@ -367,7 +402,7 @@ Turn ranges — relative (recommended):
   0 = current turn, -1 = previous turn, -2 = two turns back, ...
 
   oas export <ref> --from-relative=-3 --to-relative 0   # last 4 turns
-  oas export <ref> --from-relative=-1                   # current turn only
+  oas export <ref> --from-relative=-1                   # last 2 turns (T-2..T-1)
 
   Turns are 0-based turn indexes. (This differs from 'oas read --range',
   which selects 1-based message indexes.)
