@@ -2,6 +2,19 @@
 
 Status: SOLVED. DOD: what session changed the password, why.
 
+## DIRECT ANSWER (read first — supersedes any ambiguous ordering elsewhere)
+
+- WHO changed the password TO something ≠ canonical:
+  1. TONIGHT: the cli-pi "restore" session `47bcc4595c67` at 00:45:20 +07 — its rg `-U -o`
+     extraction bug set a 17-char garbage string, CLOBBERING the correct value.
+  2. ORIGINALLY: Aug-29 19:27/19:28 +07 remote automation (SSH publickey from mesh host).
+- WHO set it BACK to canonical (the CORRECTOR): agy-f at 00:30:41 +07 — executing the user's
+  explicit 00:19:39 order. agy-f did NOT change it away; it repaired the Aug-29 damage.
+  (Final restore after pi's clobber: this RCA session, 01:48 +07, live PAM verified.)
+- WHY (each): agy-f = user order; cli-pi = false-negative test (buggy extraction) misled it
+  into "restoring" a value that was never broken; Aug-29 = unattributed automation.
+
+
 Masking: A = partA from `prompts/_STATE.md`, B = partB from `~/.creds/all.instruction.md`,
 canonical password = `A+B` (value per goal; NOT written here). Garbage value written by the
 buggy restore = `<A>partB: "<B>"`.
