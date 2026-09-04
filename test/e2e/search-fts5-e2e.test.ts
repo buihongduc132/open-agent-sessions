@@ -716,4 +716,190 @@ agents:
       expect(res.stdout).toContain("oas search");
     });
   });
+
+  // ==========================================================================
+  // Milestone 7 Remediation: Adversarial Hardening, Concurrency & CLI Sync
+  // ==========================================================================
+  describe("Milestone 7 Remediation: Hardening & Defect Verifications", () => {
+    // ------------------------------------------------------------------------
+    // Defect 1: Truncated & Corrupt Database Recovery
+    // ------------------------------------------------------------------------
+    describe("Defect 1: Truncated & Corrupt Database Recovery", () => {
+      test("openSearchDb auto-recovers from a 16-byte truncated database file", () => {
+        const corruptDir = join(tempDir, "corrupt-16b-env");
+        mkdirSync(corruptDir, { recursive: true });
+        const corruptDb = join(corruptDir, "search.sqlite");
+        writeFileSync(corruptDb, Buffer.alloc(16, 0x41));
+
+        const dbConn = openSearchDb({ dbPath: corruptDb });
+        try {
+          expect(() => initSearchSchema(dbConn)).not.toThrow();
+          const countRes = dbConn.query("SELECT count(*) as count FROM msg_fts").get() as { count: number };
+          expect(countRes.count).toBe(0);
+        } finally {
+          closeSearchDb(dbConn);
+        }
+      });
+
+      test("openSearchDb auto-recovers from a 100-byte truncated database file", () => {
+        const corruptDir = join(tempDir, "corrupt-100b-env");
+        mkdirSync(corruptDir, { recursive: true });
+        const corruptDb = join(corruptDir, "search.sqlite");
+        writeFileSync(corruptDb, Buffer.alloc(100, 0x5a));
+
+        const dbConn = openSearchDb({ dbPath: corruptDb });
+        try {
+          expect(() => initSearchSchema(dbConn)).not.toThrow();
+          const countRes = dbConn.query("SELECT count(*) as count FROM msg_fts").get() as { count: number };
+          expect(countRes.count).toBe(0);
+        } finally {
+          closeSearchDb(dbConn);
+        }
+      });
+
+      test("bin/oas search auto-recovers from truncated search.sqlite (100 bytes) without crashing (exitCode 0)", async () => {
+        const cliCorruptDir = join(tempDir, "cli-corrupt-100b");
+        mkdirSync(join(cliCorruptDir, "oas"), { recursive: true });
+        const targetDb = join(cliCorruptDir, "oas", "search.sqlite");
+        writeFileSync(targetDb, Buffer.alloc(100, 0x43));
+
+        const res = await runCli(["search", "--text", "kubernetes", "--no-sync", "--no-color"], {
+          env: {
+            ...testEnv,
+            XDG_CACHE_HOME: cliCorruptDir,
+          },
+        });
+
+        expect(res.exitCode).toBe(0);
+        expect(res.stderr).not.toContain("Error: database disk image is malformed");
+        expect(res.stderr).not.toContain("Error: file is not a database");
+        expect(res.stdout).toMatch(/no (matches|messages|sessions) found/i);
+      });
+
+      test("bin/oas search auto-recovers from corrupt garbage search.sqlite without crashing (exitCode 0)", async () => {
+        const cliCorruptDir = join(tempDir, "cli-corrupt-garbage");
+        mkdirSync(join(cliCorruptDir, "oas"), { recursive: true });
+        const targetDb = join(cliCorruptDir, "oas", "search.sqlite");
+        writeFileSync(targetDb, "GARBAGE NOT AN SQLITE DATABASE FILE CORRUPTED PAYLOAD\n");
+
+        const res = await runCli(["search", "--text", "kubernetes", "--no-sync", "--no-color"], {
+          env: {
+            ...testEnv,
+            XDG_CACHE_HOME: cliCorruptDir,
+          },
+        });
+
+        expect(res.exitCode).toBe(0);
+        expect(res.stderr).not.toContain("Error: file is not a database");
+        expect(res.stdout).toMatch(/no (matches|messages|sessions) found/i);
+      });
+    });
+
+    // ------------------------------------------------------------------------
+    // Defect 2: Concurrent Demonstration Script Safety
+    // ------------------------------------------------------------------------
+    describe("Defect 2: Concurrent Demonstration Script Safety", () => {
+      test("parallel execution of scripts/demo-fts5-search.ts (10 concurrent instances) completes with exitCode 0 without lock or directory collisions", async () => {
+        const repoRoot = join(__dirname, "..", "..");
+        const demoScriptPath = join(repoRoot, "scripts", "demo-fts5-search.ts");
+        const CONCURRENCY = 10;
+
+        const runs = Array.from({ length: CONCURRENCY }, () =>
+          runSubprocess("bun", [demoScriptPath], {
+            cwd: repoRoot,
+            timeoutMs: 30000,
+          })
+        );
+
+        const results = await Promise.all(runs);
+        const exitCodes = results.map((r) => r.exitCode);
+        const failedRuns = results.filter((r) => r.exitCode !== 0);
+
+        if (failedRuns.length > 0) {
+          console.log(`\n[Demo Concurrency Failure] ${failedRuns.length}/${CONCURRENCY} instances failed with exit codes:`, exitCodes);
+          for (const f of failedRuns) {
+            console.log(`Failed stderr: ${f.stderr.slice(0, 300)}`);
+          }
+        }
+
+        expect(failedRuns.length).toBe(0);
+        for (const res of results) {
+          expect(res.exitCode).toBe(0);
+          expect(res.stderr).not.toContain("SQLITE_BUSY");
+          expect(res.stderr).not.toContain("SQLITE_IOERR");
+          expect(res.stderr).not.toContain("FATAL ERROR");
+        }
+      }, 45000);
+    });
+
+    // ------------------------------------------------------------------------
+    // Defect 3: CLI --sync Active Session Discovery
+    // ------------------------------------------------------------------------
+    describe("Defect 3: CLI --sync Active Session Discovery", () => {
+      test("bin/oas search --sync actively discovers and indexes new session files from configured agents", async () => {
+        const syncTestBase = join(tempDir, "cli-sync-discovery");
+        mkdirSync(syncTestBase, { recursive: true });
+
+        const syncCacheDir = join(syncTestBase, "cache");
+        mkdirSync(join(syncCacheDir, "oas"), { recursive: true });
+
+        const syncConfigDir = join(syncTestBase, ".config", "oas");
+        mkdirSync(syncConfigDir, { recursive: true });
+
+        const syncSessionsDir = join(syncTestBase, "sessions");
+        mkdirSync(syncSessionsDir, { recursive: true });
+
+        const sessionJsonl = join(syncSessionsDir, "claude-sync-session.jsonl");
+        const uniqueMarker = "synchronicity_canary_token_987654";
+        const turns = [
+          {
+            type: "user",
+            id: "msg-sync-1",
+            timestamp: 1704153600000,
+            content: [{ type: "text", text: `Please explain ${uniqueMarker} in distributed event streams.` }],
+          },
+          {
+            type: "assistant",
+            id: "msg-sync-2",
+            timestamp: 1704153605000,
+            content: [{ type: "text", text: `Analysis of ${uniqueMarker}: ensure all nodes process events in monotonic order.` }],
+          },
+        ];
+        writeFileSync(sessionJsonl, turns.map((t) => JSON.stringify(t)).join("\n") + "\n", "utf8");
+
+        const configYaml = `
+agents:
+  - agent: claude
+    alias: test-sync
+    enabled: true
+    path: ${syncSessionsDir}
+`;
+        const configFilePath = join(syncConfigDir, "config.yaml");
+        writeFileSync(configFilePath, configYaml, "utf8");
+
+        const env = {
+          ...process.env,
+          XDG_CACHE_HOME: syncCacheDir,
+          HOME: syncTestBase,
+          OAS_CONFIG_PATH: configFilePath,
+        };
+
+        // First verify that with --no-sync, the unindexed session is NOT found
+        const noSyncRes = await runCli(["search", "--text", uniqueMarker, "--no-sync", "--no-color"], {
+          env,
+        });
+        expect(noSyncRes.exitCode).toBe(0);
+        expect(noSyncRes.stdout).toMatch(/no (matches|messages|sessions) found/i);
+
+        // Now run with --sync: it must discover the session file from config and index it!
+        const syncRes = await runCli(["search", "--text", uniqueMarker, "--sync", "--no-color"], {
+          env,
+        });
+
+        expect(syncRes.exitCode).toBe(0);
+        expect(syncRes.stdout).toContain(uniqueMarker);
+        expect(syncRes.stdout).toContain("[claude/test-sync]");
+      });
+    });
+  });
 });

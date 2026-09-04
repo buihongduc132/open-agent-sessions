@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync, unlinkSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Database } from "bun:sqlite";
@@ -684,6 +684,55 @@ describe("Search DB & Ephemeral Schema (Milestone 1)", () => {
         expect(row.rowid).toBe(maxSafe);
         expect(row.byte_offset).toBe(maxSafe);
         expect(row.timestamp).toBe(maxSafe);
+      } finally {
+        closeSearchDb(db);
+      }
+    });
+  });
+
+  // ─── 8. Truncated and Corrupt Database Auto-Recovery (M7 Remediation) ────────
+  describe("Truncated and Corrupt Database Auto-Recovery", () => {
+    test("recovers cleanly from a 16-byte truncated SQLite file without throwing SQLITE_NOTADB", () => {
+      const corruptDbPath = join(tempDir, "corrupt-16b.sqlite");
+      writeFileSync(corruptDbPath, Buffer.alloc(16, 0x41));
+
+      const db = openSearchDb({ dbPath: corruptDbPath });
+      try {
+        expect(() => initSearchSchema(db)).not.toThrow();
+        const alive = db.query("SELECT 1 AS alive").get() as { alive: number };
+        expect(alive.alive).toBe(1);
+        const ftsCount = db.query("SELECT COUNT(*) AS count FROM msg_fts").get() as { count: number };
+        expect(ftsCount.count).toBe(0);
+      } finally {
+        closeSearchDb(db);
+      }
+    });
+
+    test("recovers cleanly from a 100-byte truncated SQLite file without throwing SQLITE_CORRUPT", () => {
+      const corruptDbPath = join(tempDir, "corrupt-100b.sqlite");
+      writeFileSync(corruptDbPath, Buffer.alloc(100, 0x5a));
+
+      const db = openSearchDb({ dbPath: corruptDbPath });
+      try {
+        expect(() => initSearchSchema(db)).not.toThrow();
+        const alive = db.query("SELECT 1 AS alive").get() as { alive: number };
+        expect(alive.alive).toBe(1);
+        const ftsCount = db.query("SELECT COUNT(*) AS count FROM msg_fts").get() as { count: number };
+        expect(ftsCount.count).toBe(0);
+      } finally {
+        closeSearchDb(db);
+      }
+    });
+
+    test("recovers cleanly from arbitrary garbage content without unhandled crash", () => {
+      const corruptDbPath = join(tempDir, "corrupt-garbage.sqlite");
+      writeFileSync(corruptDbPath, "THIS IS NOT AN SQLITE DATABASE FILE HEADER GARBAGE CONTENT 1234567890\n");
+
+      const db = openSearchDb({ dbPath: corruptDbPath });
+      try {
+        expect(() => initSearchSchema(db)).not.toThrow();
+        const alive = db.query("SELECT 1 AS alive").get() as { alive: number };
+        expect(alive.alive).toBe(1);
       } finally {
         closeSearchDb(db);
       }
