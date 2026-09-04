@@ -1,0 +1,12 @@
+file: index.md
+title: Auditor ceremony violations — 11 violations incl self-verify APPROVED breach
+kind: lesson_learn
+date: 2026-08-06
+tags:
+  - ceremony
+  - auditor
+  - verifier-loop
+  - caveman
+  - hard-contract
+related:
+  - 2026-08-05_verifier-ceremony-violations

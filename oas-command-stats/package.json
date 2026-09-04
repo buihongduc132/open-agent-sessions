@@ -1,0 +1,25 @@
+{
+  "name": "oas-command-stats",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bash command stats ingestion for CLI agent sessions (pi JSONL + zcode SQLite + hermes SQLite → DuckDB analytics). Phase 2: extraction core + mvdan/sh parser + DuckDB storage.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "test:unit": "bun test test/unit",
+    "test:integration": "bun test test/integration",
+    "typecheck": "tsc --noEmit",
+    "ingest": "bun run src/cli.ts",
+    "measure:parse-rate": "bun run scripts/measure-parse-rate.ts"
+  },
+  "dependencies": {
+    "@open-agent-sessions/sdk": "workspace:*",
+    "sh-syntax": "^0.6.0",
+    "duckdb": "^1.4.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.5.0"
+  }
+}

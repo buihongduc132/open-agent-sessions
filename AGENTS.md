@@ -89,6 +89,48 @@ Pi implementation of the data-collection half of skill lifecycle. 4-tier fuzzy m
 - **Library:** `src/skill-usage/` — spec `flow/requirements/skill-usage-analyzer/README.md`, intention `flow/intentions/2026-07-19-skill-usage-analyzer.md`
 - **Runner:** `scripts/skill-usage-heatmap.ts` — usage `flow/requirements/skill-usage-heatmap-script/README.md`, intention `flow/intentions/2026-07-20-skill-usage-heatmap-script.md`. Run weekly: `bun run scripts/skill-usage-heatmap.ts --days 7`
 
+<lesson_learn>
+1: Verifier ceremony violations — caveman/structure/showcase/LSL all skipped during verifier run
+Context: Operating as verifier v1 for goal 745f748b, emitted APPROVE verdict correctly but violated 6 behavioral ceremony rules (caveman off, wall of text, no structure, showcase markdown, diplomatic speech, no LSL)
+Solutions: LSL codified at flow/lesson_learn/2026-08-05_verifier-ceremony-violations/. Before any verdict: check caveman mode, structure sections, no-showcase, ≤30 words/line, create LSL if mistake.
+Ref: 2026-08-05_verifier-ceremony-violations/index.md
+
+2: DuckDB VARCHAR[] bind failure — duckdb-node does NOT auto-bind JS arrays to list columns
+Context: Phase 2 GREEN cmd_events INSERT. JS string arrays → VARCHAR[] cols threw "Type VARCHAR with value 'hi' can't be cast to VARCHAR[]".
+Solutions: Bind as JSON.stringify(arr) + explicit `?::VARCHAR[]` cast in SQL. Applies to ALL list-type columns. Cast MUST be in SQL not JS.
+Ref: 2026-08-05_duckdb-varchar-array-bind/index.md (src/storage/ingest.ts:152)
+
+3: DuckDB Date normalize mangling — normalize recursed INTO Date, returned empty {}
+Context: Phase 2 NORMALIZE_FN. typeof Date==="object" → object recursion iterated Date own-keys (none) → TIMESTAMP cols returned as {}.
+Solutions: Early-return `if (v instanceof Date) return v;` BEFORE object recursion. typeof unreliable for class instances — list all pass-through classes first.
+Ref: 2026-08-05_duckdb-date-normalize-mangling/index.md (src/storage/duckdb.ts:22)
+
+4: mvdan semicolon→newline statement_count — printer rewrites `;` to `\n`, old splitter blind
+Context: Phase 2 parse. `a || b ; c` gave statement_count=2 (expected 3). mvdan/sh print() normalizes `;`→`\n`; old token-level `;` splitter missed it.
+Solutions: New countLogicalCommands() walks NORMALIZED string treating `\n`+`;`+`&&`+`||` as separators. Never assume printer preserves source separators.
+Ref: 2026-08-05_mvdan-semicolon-newline-statement-count/index.md (src/parse/mvdan.ts:337)
+
+5: Bun+duckdb-node segfault on 2nd Database instance — uncatchable SIGSEGV
+Context: Phase 2 readonly conn. 2nd `new Database(path)` same file/same Bun process → Napi::Error + SIGSEGV. Native crash, uncatchable.
+Solutions: STUB = software-only regex readonly guard (block write SQL). Phase 5 MUST solve via CLI shell-out, FFI, different runtime, OR singleton pool. duckdb-node `readonly` option ALSO segfaults under Bun.
+Ref: 2026-08-05_bun-duckdb-node-segfault-second-instance/index.md (src/storage/duckdb.ts:99)
+
+6: PII regex env-assign lookahead — bare TOKEN=value missed + double-redact iteration
+Context: Phase 4 PII redaction. Original regex required 1+ char before PII keyword → bare `TOKEN=value` not redacted. Fix added lookahead allowing keyword at start. Plus negative lookahead `(?![REDACTED:)` to skip already-redacted values from earlier passes.
+Solutions: Lookahead `(?=[A-Za-z_]?...)` allows zero-prefix keyword. Negative lookahead guards idempotency across 6 ordered regex passes (bearer→AWS→git-https→sshpass→env→cc).
+Ref: 2026-08-05_pii-regex-env-assign-lookahead/index.md (oas-command-stats/src/parse/pii.ts:36)
+
+7: gitnexus_impact skipped Phase 4 — panic-write under delegation infra failure
+Context: Phase 4 GREEN (abf792d) edited ingestBatch/SCHEMA_DDL/OAS_CS_SCHEMA_VERSION/KNOWN_SOURCE_SCHEMA_VERSIONS without running gitnexus_impact or detect_changes. Delegation infra broke (claude session-limit, gemy dead, codex missing, ocxo weak, pi -p MCP deadlock).
+Solutions: Retrospective blast radius via rg (GitNexus index stale — symbols not found). ingestBatch: 21 test callers + 1 re-export, additive change = LOW risk. SCHEMA_DDL: 1 caller (duckdb.ts:80), additive cols. OAS_CS_SCHEMA_VERSION: module-private. KNOWN_SOURCE_SCHEMA_VERSIONS: 3 callers, array-grow = backward-compat. MANDATORY pre-edit: (1) gitnexus_impact upstream (2) gitnexus_impact downstream (3) edit (4) gitnexus_detect_changes (5) commit only if expected scope. Phase 6+: pre-commit hook to enforce.
+Ref: 2026-08-05_gitnexus-impact-skipped-phase4/index.md
+
+8: Auditor ceremony violations — 11 violations incl self-verify APPROVED = HARD-CONTRACT BREACH
+Context: Auditor for goal msf02zrg-6cp56a emitted approved with 11 ceremony violations. V9: self-verify hash 7c6a90e1 ≠ independent verifier-loop approval (req 2+ independent verifiers). Correct verdict = disapproved.
+Solutions: LSL codified at flow/lesson_learn/2026-08-06_auditor-ceremony-violations/. Before any verdict: caveman ON, structure present, ≤30 words/line, self-verify ≠ approval, load skills first.
+Ref: 2026-08-06_auditor-ceremony-violations/index.md
+</lesson_learn>
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 

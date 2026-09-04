@@ -1,0 +1,7 @@
+kind: requirements
+description: |
+  Elaborated WHAT-to-build units derived from intentions/findings.
+  Includes deferred follow-ups (e.g. Phase 5 OT18).
+documents:
+  - file: 2026-08-05_phase5-ot18-bun-duckdb-segfault.md
+    title: Phase 5 OT18 Bun+DuckDB readonly segfault

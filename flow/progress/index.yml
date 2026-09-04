@@ -1,0 +1,7 @@
+kind: progress
+description: |
+  Phase/work progress (NTP: notes/progress/tips) per base.md.
+  Terse status snapshots — done/WIP, commits, verifier hashes, gaps, next.
+documents:
+  - file: 2026-08-05_phase-2-extract-parse-storage.md
+    title: Phase 2 extract+parse+storage — DONE (167ac17)

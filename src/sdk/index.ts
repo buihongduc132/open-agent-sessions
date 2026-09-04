@@ -10,6 +10,13 @@
 //   - Adapters: createOpenCodeAdapter, createCodexAdapter, createClaudeAdapter
 //   - Normalization: normalizeSessionSummary
 
+// SDK contract version — bump on any breaking change to the public adapter
+// surface (Adapter / SessionSummary / SessionDetail / SessionReadOptions /
+// SearchQuery / ToolSearchQuery). Consumers (oas-command-stats) pin against this
+// to detect silent schema drift (OT49 / X4). Kept in lock-step with the package
+// version while the surface is pre-1.0.
+export const SDK_CONTRACT_VERSION = "0.1.0";
+
 export {
   createAdapterRegistry,
   createRegistry,
