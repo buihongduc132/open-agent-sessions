@@ -122,8 +122,11 @@ export async function syncSessionFile(
   // If stat.size < watermark.last_scanned_bytes, purge stale entries for this file and reset scan to 0.
   let startOffset = watermark.last_scanned_bytes;
   if (stat.size < startOffset) {
-    db.run("DELETE FROM msg_fts WHERE rowid IN (SELECT rowid FROM msg_pointers WHERE file_id = ?)", [fileId]);
-    db.run("DELETE FROM msg_pointers WHERE file_id = ?", [fileId]);
+    db.transaction(() => {
+      db.run("DELETE FROM msg_fts WHERE rowid IN (SELECT rowid FROM msg_pointers WHERE file_id = ?)", [fileId]);
+      db.run("DELETE FROM msg_pointers WHERE file_id = ?", [fileId]);
+      db.run("UPDATE file_watermarks SET last_scanned_bytes = 0 WHERE file_id = ?", [fileId]);
+    })();
     startOffset = 0;
     watermark.last_scanned_bytes = 0;
   }
