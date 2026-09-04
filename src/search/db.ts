@@ -4,12 +4,33 @@
  * SQLite FTS5 database connection and schema initialization for open-agent-sessions search.
  */
 
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { Database } from "bun:sqlite";
 
 import type { SearchDbOptions } from "./types";
+
+/**
+ * Remove database file and any active SQLite sidecar files (-wal, -shm, -journal).
+ */
+function cleanCorruptedDbFiles(dbPath: string): void {
+  const sidecars = [
+    dbPath,
+    `${dbPath}-wal`,
+    `${dbPath}-shm`,
+    `${dbPath}-journal`,
+  ];
+  for (const file of sidecars) {
+    try {
+      if (existsSync(file)) {
+        rmSync(file, { force: true });
+      }
+    } catch {
+      // Ignore cleanup error
+    }
+  }
+}
 
 /**
  * Resolve the SQLite search database file path.
@@ -26,24 +47,42 @@ export function getSearchDbPath(): string {
 /**
  * Open or create the SQLite search database.
  * Ensures the parent directory exists and sets WAL journal mode.
+ * Auto-recovers from truncated or corrupt SQLite database files.
  */
 export function openSearchDb(options?: SearchDbOptions): Database {
   const dbPath = options?.dbPath || getSearchDbPath();
   const parentDir = dirname(dbPath);
   mkdirSync(parentDir, { recursive: true });
 
-  const db = new Database(dbPath);
-  db.run("PRAGMA journal_mode = WAL;");
-  db.run("PRAGMA synchronous = NORMAL;");
+  let db: Database | null = null;
+  try {
+    db = new Database(dbPath);
+    db.run("PRAGMA journal_mode = WAL;");
+    db.run("PRAGMA synchronous = NORMAL;");
+    // Verify database readability to catch early corruption
+    db.query("SELECT 1").get();
+    return db;
+  } catch (error) {
+    // Corrupt or truncated database detected (e.g. SQLITE_NOTADB, SQLITE_CORRUPT)
+    if (db) {
+      try {
+        db.close();
+      } catch {
+        // Ignore close error on broken handle
+      }
+    }
+    cleanCorruptedDbFiles(dbPath);
 
-  return db;
+    // Reopen fresh database, apply PRAGMAs, and initialize schema
+    const freshDb = new Database(dbPath);
+    freshDb.run("PRAGMA journal_mode = WAL;");
+    freshDb.run("PRAGMA synchronous = NORMAL;");
+    initSearchSchema(freshDb);
+    return freshDb;
+  }
 }
 
-/**
- * Initialize search schema idempotently.
- * Creates the contentless FTS5 virtual table, file watermarks, and byte-offset pointers tables with indices.
- */
-export function initSearchSchema(db: Database): void {
+function applySchemaStatements(db: Database): void {
   // 1. Contentless FTS5 virtual table
   db.run(`
     CREATE VIRTUAL TABLE IF NOT EXISTS msg_fts USING fts5(
@@ -92,6 +131,38 @@ export function initSearchSchema(db: Database): void {
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_msg_pointers_file_offset ON msg_pointers (file_id, byte_offset);
   `);
+}
+
+/**
+ * Initialize search schema idempotently.
+ * Creates the contentless FTS5 virtual table, file watermarks, and byte-offset pointers tables with indices.
+ * If schema creation fails due to corruption, removes the database file and re-creates cleanly.
+ */
+export function initSearchSchema(db: Database): void {
+  try {
+    applySchemaStatements(db);
+  } catch (error) {
+    const dbPath = (db as any)?.filename;
+    if (dbPath && typeof dbPath === "string" && dbPath !== ":memory:") {
+      try {
+        db.close();
+      } catch {
+        // Ignore close error on corrupt handle
+      }
+      cleanCorruptedDbFiles(dbPath);
+
+      // Re-create cleanly on disk
+      try {
+        const freshDb = new Database(dbPath);
+        freshDb.run("PRAGMA journal_mode = WAL;");
+        freshDb.run("PRAGMA synchronous = NORMAL;");
+        applySchemaStatements(freshDb);
+        freshDb.close();
+      } catch {
+        // Ignore secondary error
+      }
+    }
+  }
 }
 
 /**

@@ -53,10 +53,6 @@ export function readTurnByPointer(filePath: string, pointer: MsgPointer): RawTur
     return null;
   }
 
-  if (!existsSync(filePath)) {
-    return null;
-  }
-
   let fileSize: number;
   try {
     const stat = statSync(filePath);
@@ -81,7 +77,7 @@ export function readTurnByPointer(filePath: string, pointer: MsgPointer): RawTur
 
   let buffer: Buffer;
   try {
-    buffer = Buffer.alloc(pointer.byte_length);
+    buffer = Buffer.allocUnsafe(pointer.byte_length);
     let totalRead = 0;
     while (totalRead < pointer.byte_length) {
       const bytesRead = readSync(

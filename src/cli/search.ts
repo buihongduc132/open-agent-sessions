@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, join } from "node:path";
 import { AgentKind, Config } from "../config/types";
 import { SessionSummary, SearchQuery } from "../core/types";
 import { CliResult } from "./types";
@@ -14,6 +17,8 @@ import type { Database } from "bun:sqlite";
 import { openSearchDb, closeSearchDb, initSearchSchema } from "../search/db";
 import { querySearch, extractTurnSnippet } from "../search/engine";
 import { syncAllSessions, type SyncFileInput } from "../search/sync";
+import { collectJsonlFiles, resolvePath, safeStat } from "../adapters/fs-utils";
+import { loadConfigFromFile } from "../config/load";
 
 const USAGE = `Usage: oas search --text <query> [options]
 
@@ -433,6 +438,147 @@ function parseRegex(query: string): RegExp | null {
 }
 
 /**
+ * Discovers session files from configured agents or standard agent directories.
+ */
+export function discoverSessionFiles(config?: Config): SyncFileInput[] {
+  let cfg = config;
+
+  if (!cfg) {
+    const configPaths = [
+      ...(process.env.OAS_CONFIG_PATH ? [process.env.OAS_CONFIG_PATH] : []),
+      ...(process.env.XDG_CONFIG_HOME
+        ? [
+            join(process.env.XDG_CONFIG_HOME, "oas", "config.yaml"),
+            join(process.env.XDG_CONFIG_HOME, "oas", "config.yml"),
+          ]
+        : []),
+      join(process.cwd(), "oas.config.yaml"),
+      join(process.cwd(), "oas.config.yml"),
+      join(homedir(), ".config", "oas", "config.yaml"),
+      join(homedir(), ".config", "oas", "config.yml"),
+    ];
+
+    for (const p of configPaths) {
+      if (existsSync(p)) {
+        try {
+          cfg = loadConfigFromFile(p);
+          break;
+        } catch {
+          // Ignore unreadable config files during auto-discovery
+        }
+      }
+    }
+  }
+
+  const rawDiscovered: SyncFileInput[] = [];
+
+  if (cfg && Array.isArray(cfg.agents)) {
+    for (const entry of cfg.agents) {
+      if (entry.enabled === false) {
+        continue;
+      }
+
+      const agent = String(entry.agent);
+      const alias = String(entry.alias);
+      const record = entry as Record<string, unknown>;
+
+      // 1. Explicit path in entry
+      const explicitPath =
+        typeof record.path === "string" && record.path.trim().length > 0
+          ? resolvePath(record.path)
+          : undefined;
+
+      // 2. OpenCode storage config (jsonl_path)
+      const opencodeStorage = record.storage as Record<string, unknown> | undefined;
+      const opencodeJsonlPath =
+        opencodeStorage && typeof opencodeStorage.jsonl_path === "string"
+          ? resolvePath(opencodeStorage.jsonl_path)
+          : undefined;
+
+      const targetPaths: string[] = [];
+      if (explicitPath) {
+        targetPaths.push(explicitPath);
+      }
+      if (opencodeJsonlPath) {
+        targetPaths.push(opencodeJsonlPath);
+      }
+
+      // 3. Fallback default paths if neither explicitPath nor opencodeJsonlPath exists
+      if (targetPaths.length === 0) {
+        const home = homedir();
+        if (agent === "claude") {
+          targetPaths.push(join(home, ".claude", "transcripts"), join(home, ".claude", "sessions"));
+        } else if (agent === "pi") {
+          targetPaths.push(join(home, ".pi", "sessions"), join(home, ".omp", "agent", "sessions"));
+        } else if (agent === "codex") {
+          targetPaths.push(join(home, ".codex", "sessions"), join(home, ".codex", "transcripts"));
+        } else if (agent === "grok") {
+          const grokHome = process.env.GROK_HOME ? process.env.GROK_HOME : join(home, ".grok");
+          targetPaths.push(join(grokHome, "sessions"));
+        } else if (agent === "opencode") {
+          targetPaths.push(
+            join(home, ".local", "share", "opencode", "sessions"),
+            join(home, ".opencode", "sessions")
+          );
+        } else if (agent === "gemini") {
+          targetPaths.push(
+            join(home, ".gemini", "sessions"),
+            join(home, ".gemini", "antigravity-cli", "conversations")
+          );
+        } else if (agent === "antigravity") {
+          targetPaths.push(join(home, ".antigravity", "sessions"));
+        } else if (agent === "hermes") {
+          targetPaths.push(join(home, ".hermes", "sessions"));
+        } else if (agent === "zcode") {
+          targetPaths.push(join(home, ".zcode", "sessions"));
+        }
+      }
+
+      for (const root of targetPaths) {
+        const stat = safeStat(root);
+        if (!stat) continue;
+        if (stat.isFile()) {
+          if (root.endsWith(".jsonl")) {
+            rawDiscovered.push({
+              path: root,
+              agent,
+              alias,
+              sessionId: basename(root, ".jsonl"),
+            });
+          }
+        } else if (stat.isDirectory()) {
+          try {
+            const files = collectJsonlFiles(root);
+            for (const f of files) {
+              rawDiscovered.push({
+                path: f,
+                agent,
+                alias,
+                sessionId: basename(f, ".jsonl"),
+              });
+            }
+          } catch {
+            // Ignore directory traversal error
+          }
+        }
+      }
+    }
+  }
+
+  // Deduplicate discovered files by path
+  const seenPaths = new Set<string>();
+  const results: SyncFileInput[] = [];
+  for (const item of rawDiscovered) {
+    if (!seenPaths.has(item.path)) {
+      seenPaths.add(item.path);
+      results.push(item);
+    }
+  }
+
+  return results;
+}
+
+/**
  * Executes full-text contentless search against the SQLite FTS5 index.
  * Fulfills Milestone 6 (Tasks 23–27).
  */
@@ -451,8 +597,13 @@ async function runFts5Search(options: SearchOptions): Promise<CliResult> {
 
   try {
     // Task 26: Synchronization
-    if (options.sessionFiles && options.sessionFiles.length > 0 && !options.noSync) {
-      await syncAllSessions(db, options.sessionFiles);
+    let sessionFiles = options.sessionFiles;
+    if ((!sessionFiles || sessionFiles.length === 0) && options.sync && !options.noSync) {
+      sessionFiles = discoverSessionFiles(options.config);
+    }
+
+    if (sessionFiles && sessionFiles.length > 0 && !options.noSync) {
+      await syncAllSessions(db, sessionFiles);
     }
 
     // Task 24: Context window
