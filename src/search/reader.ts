@@ -44,7 +44,12 @@ export function readTurnByPointer(filePath: string, pointer: MsgPointer): RawTur
     return null;
   }
 
-  if (pointer.byte_offset < 0 || pointer.byte_length <= 0) {
+  if (
+    !Number.isFinite(pointer.byte_offset) ||
+    !Number.isFinite(pointer.byte_length) ||
+    pointer.byte_offset < 0 ||
+    pointer.byte_length <= 0
+  ) {
     return null;
   }
 
@@ -74,8 +79,9 @@ export function readTurnByPointer(filePath: string, pointer: MsgPointer): RawTur
     return null;
   }
 
-  const buffer = Buffer.alloc(pointer.byte_length);
+  let buffer: Buffer;
   try {
+    buffer = Buffer.alloc(pointer.byte_length);
     let totalRead = 0;
     while (totalRead < pointer.byte_length) {
       const bytesRead = readSync(
@@ -191,6 +197,8 @@ export function readTurnContext(
         .get(p.file_id) as { path: string } | null;
       if (row?.path) {
         targetPath = row.path;
+      } else {
+        continue;
       }
     }
 
