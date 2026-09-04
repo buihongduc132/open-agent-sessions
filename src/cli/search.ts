@@ -10,13 +10,23 @@ import {
 import type { SimilarSessionResult } from "../similarity/search";
 import { resolveConfig, errorResult, errorMessage } from "./utils/config";
 import { formatErrors as formatErrorsShared, formatSessionRowSimple, formatSessionsJson } from "./formatters/text";
+import type { Database } from "bun:sqlite";
+import { openSearchDb, closeSearchDb, initSearchSchema } from "../search/db";
+import { querySearch, extractTurnSnippet } from "../search/engine";
+import { syncAllSessions, type SyncFileInput } from "../search/sync";
 
-const USAGE = `Usage: oas search --text <query>
+const USAGE = `Usage: oas search --text <query> [options]
 
 Options:
-  --text QUERY    Search text (required)
+  --text QUERY         Search text (required)
+  --session ID         Filter by full or 7-character session ID
+  -C, --context N      Show N context turns before and after each hit
+  --sync               Sync session files before searching
+  --no-sync            Skip synchronization and search current index directly
+  --no-color           Suppress ANSI color highlighting
+  --format FORMAT      Output format: 'text' or 'json'
 
-Searches session titles and message content.`;
+Searches session titles and message content using FTS5 full-text search.`;
 
 // ============================================================================
 // Types
@@ -46,8 +56,20 @@ export type SearchOptions = {
   excludeCurrent?: boolean;
   excludeSession?: string[];
   format?: "text" | "json";
-  searchSessions: SearchService;
+  searchSessions?: SearchService;
   findSimilarSessions?: ContentSearchService;
+
+  // Milestone 6 FTS5 search options
+  db?: Database;
+  dbPath?: string;
+  context?: number;
+  contextN?: number;
+  session?: string;
+  sync?: boolean;
+  noSync?: boolean;
+  sessionFiles?: SyncFileInput[];
+  noColor?: boolean;
+  limit?: number;
 };
 
 // ============================================================================
@@ -57,6 +79,21 @@ export type SearchOptions = {
 export async function runSearchCommand(options: SearchOptions): Promise<CliResult> {
   if (!options.text || String(options.text).trim().length === 0) {
     return { exitCode: 1, stdout: "", stderr: "Missing required argument: --text\n" };
+  }
+
+  const isFts5 =
+    options.db !== undefined ||
+    options.dbPath !== undefined ||
+    options.context !== undefined ||
+    options.contextN !== undefined ||
+    options.session !== undefined ||
+    options.sync !== undefined ||
+    options.noSync !== undefined ||
+    options.sessionFiles !== undefined ||
+    !options.searchSessions;
+
+  if (isFts5) {
+    return runFts5Search(options);
   }
 
   const configResult = resolveConfig(options, USAGE);
@@ -393,4 +430,189 @@ function parseRegex(query: string): RegExp | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Executes full-text contentless search against the SQLite FTS5 index.
+ * Fulfills Milestone 6 (Tasks 23–27).
+ */
+async function runFts5Search(options: SearchOptions): Promise<CliResult> {
+  const rawQuery = String(options.text).trim();
+
+  let db: Database;
+  let shouldClose = false;
+  if (options.db) {
+    db = options.db;
+  } else {
+    db = openSearchDb({ dbPath: options.dbPath });
+    initSearchSchema(db);
+    shouldClose = true;
+  }
+
+  try {
+    // Task 26: Synchronization
+    if (options.sessionFiles && options.sessionFiles.length > 0 && !options.noSync) {
+      await syncAllSessions(db, options.sessionFiles);
+    }
+
+    // Task 24: Context window
+    let contextN = 0;
+    if (options.context !== undefined) {
+      contextN = Number(options.context);
+    } else if (options.contextN !== undefined) {
+      contextN = Number(options.contextN);
+    }
+    if (isNaN(contextN) || contextN < 0) {
+      contextN = 0;
+    } else {
+      contextN = Math.floor(contextN);
+    }
+
+    // Task 23, 25: Query execution
+    const searchRes = await querySearch(db, {
+      text: rawQuery,
+      context: contextN,
+      contextN,
+      session: options.session,
+      limit: options.limit ?? 100,
+    });
+
+    if (searchRes.hits.length === 0) {
+      const emptyOutput = options.format === "json" ? "[]\n" : "No matches found.\n";
+      return { exitCode: 0, stdout: emptyOutput, stderr: "" };
+    }
+
+    // Task 23, 24, 27: JSON formatting
+    if (options.format === "json") {
+      const jsonHits = searchRes.hits.map((hit) => {
+        const hitSnippet = extractTurnSnippet(hit.hitTurn) || hit.snippet || "";
+        const obj: Record<string, any> = {
+          id: hit.sessionId,
+          sessionId: hit.sessionId,
+          shortId: hit.shortId,
+          turnIndex: hit.turnIndex,
+          agent: hit.agent,
+          alias: hit.alias,
+          title: hitSnippet,
+          snippet: hitSnippet,
+          timestamp: hit.timestamp,
+          created_at: new Date(hit.timestamp).toISOString(),
+          updated_at: new Date(hit.timestamp).toISOString(),
+          message_count: 1,
+        };
+
+        if (contextN > 0) {
+          obj.contextBefore = (hit.context?.before ?? []).map((b) => ({
+            turnIndex: b.turnIndex,
+            role: b.role,
+            text: extractTurnSnippet(b),
+            timestamp: b.timestamp,
+          }));
+          obj.contextAfter = (hit.context?.after ?? []).map((a) => ({
+            turnIndex: a.turnIndex,
+            role: a.role,
+            text: extractTurnSnippet(a),
+            timestamp: a.timestamp,
+          }));
+        }
+
+        return obj;
+      });
+
+      return { exitCode: 0, stdout: JSON.stringify(jsonHits, null, 2) + "\n", stderr: "" };
+    }
+
+    // Task 27: Color control
+    const noColorEnv = process.env.NO_COLOR;
+    const isNoColorEnv = noColorEnv !== undefined && noColorEnv !== "" && noColorEnv !== "0";
+    const colorEnabled = options.noColor === false && !isNoColorEnv;
+
+    // Task 23, 24, 25, 27: Text formatting
+    const lines: string[] = [];
+
+    for (let i = 0; i < searchRes.hits.length; i++) {
+      const hit = searchRes.hits[i];
+      const hitSnippet = extractTurnSnippet(hit.hitTurn) || hit.snippet || "";
+      const hitHighlighted = highlightMatches(hitSnippet, rawQuery, colorEnabled);
+      const hitTs = formatTimestamp(hit.timestamp);
+      const agentTag = `[${hit.agent}/${hit.alias}]`;
+      const shortId = hit.shortId;
+
+      if (contextN > 0) {
+        // Context before
+        if (hit.context?.before) {
+          for (const b of hit.context.before) {
+            const bSnippet = extractTurnSnippet(b);
+            const bHighlighted = highlightMatches(bSnippet, rawQuery, colorEnabled);
+            const bTs = formatTimestamp(b.timestamp);
+            lines.push(`│ [context]  ${bTs}  ${agentTag}  ${shortId}  #${b.turnIndex}  ${bHighlighted}`);
+          }
+        }
+
+        // Hit turn
+        lines.push(`▶ [hit]      ${hitTs}  ${agentTag}  ${shortId}  #${hit.turnIndex}  ${hitHighlighted}`);
+
+        // Context after
+        if (hit.context?.after) {
+          for (const a of hit.context.after) {
+            const aSnippet = extractTurnSnippet(a);
+            const aHighlighted = highlightMatches(aSnippet, rawQuery, colorEnabled);
+            const aTs = formatTimestamp(a.timestamp);
+            lines.push(`│ [context]  ${aTs}  ${agentTag}  ${shortId}  #${a.turnIndex}  ${aHighlighted}`);
+          }
+        }
+      } else {
+        lines.push(`${hitTs}  ${agentTag}  ${shortId}  #${hit.turnIndex}  ${hitHighlighted}`);
+      }
+    }
+
+    return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };
+  } finally {
+    if (shouldClose) {
+      try {
+        closeSearchDb(db);
+      } catch {
+        // Ignore close error
+      }
+    }
+  }
+}
+
+/**
+ * Formats numeric epoch milliseconds as a clean timestamp: YYYY-MM-DD HH:mm:ss
+ */
+function formatTimestamp(ts: number): string {
+  const d = new Date(ts);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const mins = pad(d.getMinutes());
+  const secs = pad(d.getSeconds());
+  return `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
+}
+
+/**
+ * Highlights matching query terms in text using ANSI styling when color is enabled.
+ * Preserves multi-byte UTF-8 text, emojis, and special punctuation safely.
+ */
+function highlightMatches(text: string, query: string, enabled: boolean): string {
+  if (!enabled || !text || !query) return text;
+
+  const tokens = query
+    .replace(/[^\p{L}\p{N}_]+/gu, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((t) => t.length > 0);
+
+  if (tokens.length === 0) return text;
+
+  const uniqueTokens = Array.from(new Set(tokens.map((t) => t.toLowerCase())));
+  uniqueTokens.sort((a, b) => b.length - a.length);
+
+  const escapedTokens = uniqueTokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const regex = new RegExp(`(${escapedTokens.join("|")})`, "gi");
+
+  return text.replace(regex, "\x1b[1;33m$1\x1b[0m");
 }

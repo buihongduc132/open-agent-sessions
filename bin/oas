@@ -7,6 +7,7 @@ import { existsSync } from "node:fs";
 import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
 import { runReadCommand, type ReadService } from "../src/cli/read";
 import { runSearchCommand, type SearchService } from "../src/cli/search";
+import { openSearchDb, initSearchSchema } from "../src/search/db";
 import { runListCommand, type ListService } from "../src/cli/list";
 import { runDetailCommand, type DetailService } from "../src/cli/detail";
 import { runCloneCommand } from "../src/cli/clone";
@@ -354,6 +355,8 @@ function parseArgs(argv: string[]): ParsedArgs {
       // Handle --flag (boolean)
       if (i + 1 >= argv.length || argv[i + 1].startsWith("-")) {
         result.options[key] = true;
+        if (key === "no-color") result.options["noColor"] = true;
+        if (key === "no-sync") result.options["noSync"] = true;
         i++;
         continue;
       }
@@ -361,9 +364,20 @@ function parseArgs(argv: string[]): ParsedArgs {
       // Handle --key value
       const value = argv[i + 1];
       if (value !== undefined) {
-        // Try to parse as number
-        const num = Number(value);
-        result.options[key] = isNaN(num) ? value : num;
+        if (
+          key === "session" ||
+          key === "id" ||
+          key === "text" ||
+          key === "agent" ||
+          key === "alias" ||
+          key === "format"
+        ) {
+          result.options[key] = value;
+        } else {
+          // Try to parse as number
+          const num = Number(value);
+          result.options[key] = isNaN(num) ? value : num;
+        }
         i += 2;
         continue;
       }
@@ -371,6 +385,24 @@ function parseArgs(argv: string[]): ParsedArgs {
     } else if (arg.startsWith("-") && arg !== "-") {
       // Short flags
       const key = arg.slice(1);
+      if (arg.startsWith("-C") && arg.length > 2) {
+        const valStr = arg.slice(2);
+        const num = Number(valStr);
+        result.options["C"] = isNaN(num) ? valStr : num;
+        result.options["context"] = result.options["C"];
+        i++;
+        continue;
+      }
+      if ((key === "C" || key === "q") && i + 1 < argv.length && !argv[i + 1].startsWith("-")) {
+        const value = argv[i + 1];
+        const num = Number(value);
+        result.options[key] = isNaN(num) ? value : num;
+        if (key === "C") {
+          result.options["context"] = result.options[key];
+        }
+        i += 2;
+        continue;
+      }
       result.options[key] = true;
       i++;
     } else {
@@ -501,13 +533,36 @@ async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
   }
 
   const config = loadConfig();
-  const searchSessions = createSearchService(config);
+  const db = openSearchDb();
+  initSearchSchema(db);
+
+  const contextVal = parsed.options["context"] ?? parsed.options["C"];
+  const context = contextVal !== undefined ? Number(contextVal) : undefined;
+
+  const sessionVal = parsed.options["session"];
+  const session = sessionVal !== undefined ? String(sessionVal) : undefined;
+
+  const isNoColorFlag = parsed.options["no-color"] === true || parsed.options["noColor"] === true;
+  const noColor = isNoColorFlag
+    ? true
+    : process.env.NO_COLOR
+      ? true
+      : process.stdout.isTTY
+        ? false
+        : undefined;
+  const sync = parsed.options["sync"] === true;
+  const noSync = parsed.options["no-sync"] === true || parsed.options["noSync"] === true;
 
   const result = await runSearchCommand({
     text: parsed.options["text"] as string | undefined,
     format: parsed.options["format"] as "text" | "json" | undefined,
     config,
-    searchSessions,
+    db,
+    context,
+    session,
+    noColor,
+    sync,
+    noSync,
   });
 
   process.stdout.write(result.stdout);

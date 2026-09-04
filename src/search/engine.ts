@@ -29,6 +29,34 @@ export interface SearchEngineQueryOptions extends SearchQueryOptions {
   contextN?: number;
   hybrid?: boolean;
   useVector?: boolean;
+  session?: string;
+}
+
+/**
+ * Extracts a readable snippet from a raw turn record.
+ * Prioritizes conversational content or structured tool call names and arguments.
+ */
+export function extractTurnSnippet(turn: RawTurnRecord | null): string {
+  if (!turn) return "";
+  if (turn.payload) {
+    if (typeof turn.payload.content === "string") {
+      return turn.payload.content;
+    }
+    if (turn.payload.toolCall) {
+      const tc = turn.payload.toolCall;
+      const name = tc.name || "";
+      const args = tc.arguments
+        ? typeof tc.arguments === "string"
+          ? tc.arguments
+          : JSON.stringify(tc.arguments)
+        : "";
+      return `${name} ${args}`.trim();
+    }
+    if (typeof turn.payload.text === "string") {
+      return turn.payload.text;
+    }
+  }
+  return turn.rawText || "";
 }
 
 /**
@@ -170,6 +198,40 @@ export async function querySearch(
     params.push(options.alias);
   }
 
+  if (options.session) {
+    const sessionFilter = String(options.session).trim();
+    // 1. Exact match on session_id
+    const exact = db
+      .query("SELECT DISTINCT session_id FROM msg_pointers WHERE session_id = ? LIMIT 1")
+      .get(sessionFilter) as { session_id: string } | null;
+
+    let targetSessionId: string | null = null;
+    if (exact) {
+      targetSessionId = exact.session_id;
+    } else {
+      // 2. Prefix match (for short ID or slug prefix)
+      const prefixRows = db
+        .query("SELECT DISTINCT session_id FROM msg_pointers WHERE session_id LIKE ? LIMIT 2")
+        .all(`${sessionFilter}%`) as Array<{ session_id: string }>;
+
+      if (prefixRows.length > 0) {
+        targetSessionId = prefixRows[0].session_id;
+      }
+    }
+
+    if (!targetSessionId) {
+      return {
+        query: rawText,
+        totalHits: 0,
+        hits: [],
+        executionTimeMs: Math.max(0, performance.now() - startTime),
+      };
+    }
+
+    baseSql += " AND p.session_id = ?";
+    params.push(targetSessionId);
+  }
+
   const selectSql = `
     SELECT
       f.rowid AS rowid,
@@ -247,7 +309,7 @@ export async function querySearch(
         ? row.session_id.slice(0, 7)
         : (row.session_id ?? "");
 
-    const snippet = hitTurn?.rawText ? hitTurn.rawText.slice(0, 300) : "";
+    const snippet = extractTurnSnippet(hitTurn) || (hitTurn?.rawText ? hitTurn.rawText.slice(0, 300) : "");
 
     const hit: SearchEngineHit = {
       rowid: row.rowid,

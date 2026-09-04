@@ -203,11 +203,11 @@ export function extractTurnPayload(rawLine: string): ExtractedTurnPayload | null
     (obj.type === "tool" ? "tool" : null);
 
   let roleNum: number | null = null;
-  if (rawRole === "user") {
+  if (rawRole === "user" || rawRole === 1 || rawRole === "1") {
     roleNum = 1;
-  } else if (rawRole === "assistant") {
+  } else if (rawRole === "assistant" || rawRole === 2 || rawRole === "2") {
     roleNum = 2;
-  } else if (rawRole === "tool") {
+  } else if (rawRole === "tool" || rawRole === 3 || rawRole === "3") {
     roleNum = 3;
   } else {
     return null;
@@ -335,6 +335,16 @@ export function extractTurnPayload(rawLine: string): ExtractedTurnPayload | null
         const argStr = serializeToolArgs(rawArgs);
         if (argStr) toolArgs.push(argStr);
       }
+    }
+
+    // Direct toolCall object: { name, arguments } or { tool, arguments } or { function: { name, arguments } }
+    const singleToolCall = obj.toolCall ?? obj.tool_call ?? obj.message?.toolCall ?? obj.message?.tool_call;
+    if (singleToolCall && typeof singleToolCall === "object" && !Array.isArray(singleToolCall)) {
+      const name = singleToolCall.name ?? singleToolCall.tool ?? singleToolCall.function?.name;
+      if (typeof name === "string") toolNames.push(name.trim());
+      const rawArgs = singleToolCall.arguments ?? singleToolCall.function?.arguments ?? singleToolCall.input;
+      const argStr = serializeToolArgs(rawArgs);
+      if (argStr) toolArgs.push(argStr);
     }
 
     const filteredText = filterBinaryAndDataUris(textParts.join("\n"));

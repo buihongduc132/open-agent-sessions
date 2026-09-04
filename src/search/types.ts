@@ -45,6 +45,7 @@ export interface SearchQueryOptions {
   alias?: string;
   limit?: number;
   context?: number;
+  session?: string;
 }
 
 export interface SearchHit {
