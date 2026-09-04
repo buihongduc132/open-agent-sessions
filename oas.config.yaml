@@ -43,6 +43,7 @@ agents:
   - agent: pi
     alias: pi
     enabled: true
+    path: ~/.pi/agent/sessions
 
   - agent: grok
     alias: grok
