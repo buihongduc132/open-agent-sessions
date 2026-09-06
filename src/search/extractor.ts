@@ -197,8 +197,8 @@ export function extractTurnPayload(rawLine: string): ExtractedTurnPayload | null
     obj.role ??
     obj.message?.role ??
     obj.payload?.role ??
-    (obj.type === "user" ? "user" : null) ??
-    (obj.type === "assistant" ? "assistant" : null) ??
+    (obj.type === "user" || obj.type === "USER_INPUT" || obj.source === "USER_EXPLICIT" ? "user" : null) ??
+    (obj.type === "assistant" || obj.type === "PLANNER_RESPONSE" || obj.source === "MODEL" ? "assistant" : null) ??
     (obj.type === "reasoning" ? "assistant" : null) ??
     (obj.type === "tool" ? "tool" : null);
 
@@ -223,7 +223,8 @@ export function extractTurnPayload(rawLine: string): ExtractedTurnPayload | null
     let rawUserText = "";
 
     if (typeof content === "string") {
-      rawUserText = content;
+      const reqMatch = content.match(/<USER_REQUEST>([\s\S]*?)<\/USER_REQUEST>/);
+      rawUserText = reqMatch ? reqMatch[1] : content;
     } else if (Array.isArray(content)) {
       const parts: string[] = [];
       for (const item of content) {
@@ -324,14 +325,19 @@ export function extractTurnPayload(rawLine: string): ExtractedTurnPayload | null
       }
     }
 
-    // Grok / OpenAI tool_calls: [{ id, name, arguments }] or [{ function: { name, arguments } }]
+    // Antigravity thinking reasoning
+    if (typeof obj.thinking === "string") {
+      textParts.push(obj.thinking);
+    }
+
+    // Grok / OpenAI / Antigravity tool_calls: [{ id, name, arguments }] or [{ name, args }]
     const toolCalls = obj.tool_calls ?? obj.message?.tool_calls;
     if (Array.isArray(toolCalls)) {
       for (const call of toolCalls) {
         if (!call) continue;
         const name = call.name ?? call.function?.name;
         if (typeof name === "string") toolNames.push(name.trim());
-        const rawArgs = call.arguments ?? call.function?.arguments;
+        const rawArgs = call.arguments ?? call.args ?? call.function?.arguments;
         const argStr = serializeToolArgs(rawArgs);
         if (argStr) toolArgs.push(argStr);
       }

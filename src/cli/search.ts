@@ -1,6 +1,6 @@
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { AgentKind, Config } from "../config/types";
 import { SessionSummary, SearchQuery } from "../core/types";
 import { CliResult } from "./types";
@@ -75,6 +75,8 @@ export type SearchOptions = {
   sessionFiles?: SyncFileInput[];
   noColor?: boolean;
   limit?: number;
+  agent?: string;
+  alias?: string;
 };
 
 // ============================================================================
@@ -526,7 +528,10 @@ export function discoverSessionFiles(config?: Config): SyncFileInput[] {
             join(home, ".gemini", "antigravity-cli", "conversations")
           );
         } else if (agent === "antigravity") {
-          targetPaths.push(join(home, ".antigravity", "sessions"));
+          targetPaths.push(
+            join(home, ".gemini", "antigravity-cli"),
+            join(home, ".antigravity", "sessions")
+          );
         } else if (agent === "hermes") {
           targetPaths.push(join(home, ".hermes", "sessions"));
         } else if (agent === "zcode") {
@@ -539,23 +544,76 @@ export function discoverSessionFiles(config?: Config): SyncFileInput[] {
         if (!stat) continue;
         if (stat.isFile()) {
           if (root.endsWith(".jsonl")) {
+            let sessionId = basename(root, ".jsonl");
+            if (agent === "antigravity") {
+              const brainMatch = root.match(/brain[/\\]([^/\\]+)/);
+              if (brainMatch) sessionId = brainMatch[1];
+            }
             rawDiscovered.push({
               path: root,
               agent,
               alias,
-              sessionId: basename(root, ".jsonl"),
+              sessionId,
             });
           }
         } else if (stat.isDirectory()) {
           try {
-            const files = collectJsonlFiles(root);
-            for (const f of files) {
-              rawDiscovered.push({
-                path: f,
-                agent,
-                alias,
-                sessionId: basename(f, ".jsonl"),
-              });
+            if (agent === "antigravity") {
+              const brainPath = existsSync(join(root, "brain"))
+                ? join(root, "brain")
+                : basename(root) === "brain"
+                  ? root
+                  : undefined;
+
+              if (brainPath && safeStat(brainPath)?.isDirectory()) {
+                const uuids = readdirSync(brainPath);
+                for (const u of uuids) {
+                  const transcript = join(brainPath, u, ".system_generated", "logs", "transcript.jsonl");
+                  if (existsSync(transcript)) {
+                    rawDiscovered.push({
+                      path: transcript,
+                      agent,
+                      alias,
+                      sessionId: u,
+                    });
+                  }
+                }
+              } else {
+                const files = collectJsonlFiles(root);
+                for (const f of files) {
+                  if (f.includes("/chunks/") || f.includes("\\chunks\\")) continue;
+                  if (f.endsWith("transcript_full.jsonl")) continue;
+                  const brainMatch = f.match(/brain[/\\]([^/\\]+)/);
+                  const sessionId = brainMatch ? brainMatch[1] : basename(f, ".jsonl");
+                  rawDiscovered.push({
+                    path: f,
+                    agent,
+                    alias,
+                    sessionId,
+                  });
+                }
+              }
+            } else if (agent === "grok") {
+              const files = collectJsonlFiles(root);
+              for (const f of files) {
+                if (!f.endsWith("chat_history.jsonl")) continue;
+                rawDiscovered.push({
+                  path: f,
+                  agent,
+                  alias,
+                  sessionId: basename(dirname(f)),
+                });
+              }
+            } else {
+              const files = collectJsonlFiles(root);
+              for (const f of files) {
+                rawDiscovered.push({
+                  path: f,
+                  agent,
+                  alias,
+                  sessionId: basename(f, ".jsonl"),
+                });
+              }
             }
           } catch {
             // Ignore directory traversal error
@@ -625,6 +683,8 @@ async function runFts5Search(options: SearchOptions): Promise<CliResult> {
       context: contextN,
       contextN,
       session: options.session,
+      agent: options.agent,
+      alias: options.alias,
       limit: options.limit ?? 100,
     });
 

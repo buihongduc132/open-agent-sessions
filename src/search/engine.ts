@@ -205,31 +205,30 @@ export async function querySearch(
       .query("SELECT DISTINCT session_id FROM msg_pointers WHERE session_id = ? LIMIT 1")
       .get(sessionFilter) as { session_id: string } | null;
 
-    let targetSessionId: string | null = null;
     if (exact) {
-      targetSessionId = exact.session_id;
+      baseSql += " AND p.session_id = ?";
+      params.push(exact.session_id);
     } else {
-      // 2. Prefix match (for short ID or slug prefix)
-      const prefixRows = db
-        .query("SELECT DISTINCT session_id FROM msg_pointers WHERE session_id LIKE ? LIMIT 2")
-        .all(`${sessionFilter}%`) as Array<{ session_id: string }>;
+      // 2. Short ID / Prefix / Underscore-delimited match
+      const matching = db
+        .query("SELECT DISTINCT session_id FROM msg_pointers WHERE session_id LIKE ? OR session_id LIKE ? LIMIT 20")
+        .all(`${sessionFilter}%`, `%_${sessionFilter}%`) as Array<{ session_id: string }>;
 
-      if (prefixRows.length > 0) {
-        targetSessionId = prefixRows[0].session_id;
+      if (matching.length === 0) {
+        return {
+          query: rawText,
+          totalHits: 0,
+          hits: [],
+          executionTimeMs: Math.max(0, performance.now() - startTime),
+        };
+      }
+
+      const placeholders = matching.map(() => "?").join(", ");
+      baseSql += ` AND p.session_id IN (${placeholders})`;
+      for (const m of matching) {
+        params.push(m.session_id);
       }
     }
-
-    if (!targetSessionId) {
-      return {
-        query: rawText,
-        totalHits: 0,
-        hits: [],
-        executionTimeMs: Math.max(0, performance.now() - startTime),
-      };
-    }
-
-    baseSql += " AND p.session_id = ?";
-    params.push(targetSessionId);
   }
 
   const selectSql = `
@@ -304,10 +303,15 @@ export async function querySearch(
       hitTurn = readTurnByPointer(row.filePath, pointer);
     }
 
-    const shortId =
-      row.session_id && row.session_id.length >= 7
-        ? row.session_id.slice(0, 7)
+    const idPart =
+      row.session_id && row.session_id.includes("_")
+        ? row.session_id.split("_").pop()!
         : (row.session_id ?? "");
+
+    const shortId =
+      idPart && idPart.length >= 7
+        ? idPart.slice(0, 7)
+        : idPart;
 
     const snippet = extractTurnSnippet(hitTurn) || (hitTurn?.rawText ? hitTurn.rawText.slice(0, 300) : "");
 

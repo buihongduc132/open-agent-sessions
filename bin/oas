@@ -563,6 +563,9 @@ async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
   const result = await runSearchCommand({
     text: parsed.options["text"] as string | undefined,
     format: parsed.options["format"] as "text" | "json" | undefined,
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
+    limit: parsed.options["limit"] ? Number(parsed.options["limit"]) : undefined,
     config,
     db,
     context,
