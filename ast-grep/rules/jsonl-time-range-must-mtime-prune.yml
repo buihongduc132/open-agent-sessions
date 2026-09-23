@@ -1,0 +1,30 @@
+# SOURCE: BHD-152 / BHD-160 — oas session list --last/--limit hung 40s on Pi store
+#   (~2058 slug dirs / ~26k files / ~35 GB jsonl). Time-range was a post-filter
+#   after parsePiSession read every jsonl in the slug (including multi-GB cold
+#   siblings). --last/--limit must bound bytes read, not only the returned array.
+id: jsonl-time-range-must-mtime-prune
+language: typescript
+severity: error
+message: |
+  listSessionsByTimeRange must not collectSessionDirs then parse every jsonl.
+  Treat each top-level *.jsonl as one session; skip files with mtime < since − slack
+  before readFileSync. Post-filter-after-full-parse is the BHD-152 hang.
+note: |
+  Bug context: Pi listSessionsByTimeRange called collectSessionDirs then
+  parsePiSession (recursive collectJsonlFiles + readFileSync) on every slug,
+  then filtered by updated_at and sliced limit. A slug with one hot jsonl and
+  a 21 GB cold sibling still read 21 GB. Fix: per-jsonl session unit + mtime prune.
+  Sibling adapters (claude, grok, antigravity) have the same post-filter shape
+  without collectSessionDirs; first slice is Pi only (BHD-160).
+rule:
+  pattern: collectSessionDirs($ROOT)
+  inside:
+    kind: pair
+    stopBy: end
+    has:
+      field: key
+      regex: listSessionsByTimeRange
+ignores:
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/test/**'

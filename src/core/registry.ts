@@ -10,6 +10,7 @@ import {
   SessionDetail,
   SessionReadOptions,
   SearchQuery,
+  TimeRangeOptions,
 } from "./types";
 import { AGENT_ORDER } from "./constants";
 
@@ -162,6 +163,31 @@ function buildHandle(
     },
     searchSessions: adapter.searchSessions
       ? async (query: SearchQuery) => adapter.searchSessions!(query)
+      : undefined,
+    listSessionsByTimeRange: adapter.listSessionsByTimeRange
+      ? (options: TimeRangeOptions) => {
+          const sessions = adapter.listSessionsByTimeRange!(options);
+          if (!Array.isArray(sessions)) {
+            throw new Error(`${validationContext} adapter returned non-list sessions`);
+          }
+          return sessions.map((session, sessionIndex) => {
+            const normalized = normalizeSessionSummary(
+              session,
+              `${validationContext} session[${sessionIndex}]`
+            );
+            if (normalized.agent !== entry.agent) {
+              throw new Error(
+                `${validationContext} session[${sessionIndex}] agent must be "${entry.agent}"`
+              );
+            }
+            if (normalized.alias !== entry.alias) {
+              throw new Error(
+                `${validationContext} session[${sessionIndex}] alias must be "${entry.alias}"`
+              );
+            }
+            return normalized;
+          });
+        }
       : undefined,
     // R-40: In-memory cache wrapping the adapter's getSessionDetail.
     // Repeated calls for the same sessionId return the cached result without
