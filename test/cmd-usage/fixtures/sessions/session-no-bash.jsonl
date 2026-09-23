@@ -1,0 +1,3 @@
+{"type":"session","version":3,"id":"sess-no-bash","timestamp":"2026-07-15T12:00:00.000Z","cwd":"/tmp/proj3"}
+{"type":"message","id":"m1","parentId":null,"timestamp":"2026-07-15T12:00:05.000Z","message":{"role":"user","content":[{"type":"text","text":"Just read files"}]}}
+{"type":"message","id":"m2","parentId":"m1","timestamp":"2026-07-15T12:00:10.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"call_020","name":"read","arguments":{"path":"/tmp/file.txt"}},{"type":"toolCall","id":"call_021","name":"write","arguments":{"path":"/tmp/out.txt","content":"hello"}}]}}

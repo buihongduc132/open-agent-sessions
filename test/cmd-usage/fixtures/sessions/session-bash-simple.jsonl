@@ -1,0 +1,4 @@
+{"type":"session","version":3,"id":"sess-bash-simple","timestamp":"2026-07-15T10:00:00.000Z","cwd":"/tmp/proj"}
+{"type":"message","id":"m1","parentId":null,"timestamp":"2026-07-15T10:00:05.000Z","message":{"role":"user","content":[{"type":"text","text":"Run some commands"}]}}
+{"type":"message","id":"m2","parentId":"m1","timestamp":"2026-07-15T10:00:10.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"call_001","name":"bash","arguments":{"command":"git fetch --all --prune"}},{"type":"toolCall","id":"call_002","name":"bash","arguments":{"command":"npm test --ci"}}]}}
+{"type":"message","id":"m3","parentId":"m2","timestamp":"2026-07-15T10:00:15.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"call_003","name":"read","arguments":{"path":"/tmp/file.txt"}}]}}
