@@ -55,6 +55,25 @@ export function extractContentTextClaude(content: unknown): string | undefined {
   return undefined;
 }
 
+/** Claude Code JSONL stores content in message.content; older exports use content. */
+export function claudeRecordContent(record: { message?: unknown; content?: unknown }): unknown {
+  const nested = record.message;
+  if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+    const content = (nested as { content?: unknown }).content;
+    if (content !== undefined && content !== null) return content;
+  }
+  return record.content;
+}
+
+/** Remove injected Claude UI/command wrappers before deriving a short title. */
+export function cleanTitleLine(text: string, max = 120): string | undefined {
+  const cleaned = text
+    .replace(/<system-reminder\b[^>]*>[\s\S]*?<\/system-reminder>/gi, "")
+    .replace(/<command-[\w-]+\b[^>]*>[\s\S]*?<\/command-[\w-]+>/gi, "");
+  const first = cleaned.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
+  return first ? first.slice(0, max) : undefined;
+}
+
 export function extractContentLine(content: unknown): string | undefined {
   const text = extractContentTextClaude(content);
   return text ? firstLine(text) : undefined;

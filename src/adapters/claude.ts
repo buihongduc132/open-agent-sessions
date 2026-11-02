@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { createLabel } from "./label";
 import { createBrokenAdapter } from "./broken";
-import { extractContentLine, extractContentPartsClaude, extractContentTextClaude } from "./content-utils";
+import { claudeRecordContent, cleanTitleLine, extractContentPartsClaude, extractContentTextClaude } from "./content-utils";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
@@ -50,6 +50,12 @@ type ClaudeRecord = {
   timestamp?: unknown;
   content?: unknown;
   parent_session_id?: unknown;
+  sessionId?: unknown;
+  aiTitle?: unknown;
+  lastPrompt?: unknown;
+  toolUseResult?: unknown;
+  isMeta?: unknown;
+  message?: unknown;
   model?: unknown;
   agent?: unknown;
 };
@@ -116,7 +122,6 @@ function buildClaudeAdapter(
         }
 
         return sortByIsoDesc(results, "updated_at");
-        return results;
       } catch (error) {
         const message = errorMessage(error);
         if (message.includes(label)) {
@@ -315,9 +320,11 @@ function resolveClaudePath(entry: OtherAgentEntry, options: ClaudeAdapterOptions
   const home = options.homeDir ?? homedir();
   const defaultPath =
     options.defaultPath ??
-    (safeStat(join(home, ".claude", "transcripts"))
-      ? join(home, ".claude", "transcripts")
-      : join(home, ".claude", "sessions"));
+    (safeStat(join(home, ".claude", "projects"))?.isDirectory()
+      ? join(home, ".claude", "projects")
+      : safeStat(join(home, ".claude", "transcripts"))?.isDirectory()
+        ? join(home, ".claude", "transcripts")
+        : join(home, ".claude", "sessions"));
   const resolved = resolvePath(configured ?? defaultPath, options.configDir);
 
   const stat = safeStat(resolved);
@@ -336,11 +343,14 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
     throw new Error(`Claude session id missing for ${filePath}`);
   }
   const lines = splitJsonlLines(readFileSync(filePath, "utf8"));
-  let title: string | undefined;
+  let firstUserTitle: string | undefined;
+  let lastAiTitle: string | undefined;
+  let lastPromptTitle: string | undefined;
   let messageCount = 0;
   let minTimestamp: string | undefined;
   let maxTimestamp: string | undefined;
   let parentSessionId: string | undefined;
+  const isSubagentFile = basename(dirname(filePath)) === "subagents" && sessionId.startsWith("agent-");
 
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i].trim();
@@ -351,9 +361,14 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
     const record = parseJsonLine(raw, filePath, i + 1);
     const recordType = record.type;
 
-    // Collect parent_session_id from any record type (metadata, system, etc.)
+    // Legacy parent metadata is retained; Claude Code subagents instead carry
+    // their parent session ID in sessionId inside agent-*.jsonl files.
     if (!parentSessionId) {
       parentSessionId = readOptionalString(record.parent_session_id);
+    }
+    if (isSubagentFile) {
+      const parentId = readOptionalString(record.sessionId);
+      if (parentId && parentId !== sessionId) parentSessionId = parentId;
     }
     if (record.timestamp !== undefined && record.timestamp !== null) {
       const recordId = record.id;
@@ -366,15 +381,28 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
       maxTimestamp = maxTimestamp ? maxIso(maxTimestamp, timestampIso) : timestampIso;
     }
 
-    if (recordType === "user" || recordType === "assistant") {
+    const content = claudeRecordContent(record);
+    const isToolCarrier = isClaudeToolResultCarrier(record, content);
+    if (recordType === "assistant" || (recordType === "user" && !isToolCarrier)) {
       messageCount += 1;
     }
 
-    if (!title && recordType === "user") {
-      const extracted = extractContentLine(record.content);
-      if (extracted) {
-        title = extracted;
-      }
+    if (recordType === "ai-title") {
+      const value = readOptionalString(record.aiTitle);
+      const candidate = value ? cleanTitleLine(value) : undefined;
+      if (candidate) lastAiTitle = candidate;
+    }
+    if (recordType === "last-prompt") {
+      const value = readOptionalString(record.lastPrompt);
+      const candidate = value ? cleanTitleLine(value) : undefined;
+      if (candidate) lastPromptTitle = candidate;
+    }
+    if (!firstUserTitle && recordType === "user" && !record.isMeta && !isToolCarrier) {
+      const textOnly = Array.isArray(content)
+        ? content.filter((part) => !isClaudeToolResultBlock(part))
+        : content;
+      const text = extractContentTextClaude(textOnly);
+      firstUserTitle = text ? cleanTitleLine(text) : undefined;
     }
   }
 
@@ -386,13 +414,22 @@ function parseClaudeSession(filePath: string, entry: OtherAgentEntry): SessionSu
     id: sessionId,
     agent: "claude",
     alias: entry.alias,
-    title: title && title.length > 0 ? title : sessionId,
+    title: lastAiTitle ?? firstUserTitle ?? lastPromptTitle ?? sessionId,
     created_at: minTimestamp,
     updated_at: maxTimestamp,
     message_count: messageCount,
     storage: "other",
     parentSessionId,
   };
+}
+
+function isClaudeToolResultBlock(block: unknown): boolean {
+  return !!block && typeof block === "object" && (block as { type?: unknown }).type === "tool_result";
+}
+
+function isClaudeToolResultCarrier(record: ClaudeRecord, content: unknown): boolean {
+  return (record.toolUseResult !== undefined && record.toolUseResult !== null) ||
+    (Array.isArray(content) && content.length > 0 && content.every(isClaudeToolResultBlock));
 }
 
 function parseJsonLine(line: string, filePath: string, lineNumber: number): ClaudeRecord {
@@ -443,7 +480,7 @@ function parseClaudeMessages(filePath: string, label: string): SessionMessage[] 
         : `${label} timestamp invalid (missing record id) in ${filePath}:${i + 1}`;
     const created_at = normalizeTimestamp(record.timestamp, context);
 
-    const parts = mapClaudeContent(record.content);
+    const parts = mapClaudeContent(claudeRecordContent(record));
 
     const message: SessionMessage = {
       id: typeof recordId === "string" ? recordId : `${filePath}:${i + 1}`,
@@ -455,7 +492,10 @@ function parseClaudeMessages(filePath: string, label: string): SessionMessage[] 
     // modelID: claude records carry model at the top level (mirrors zcode
     // parsed.model.modelID). agent: record-level subagent identity (mirrors
     // zcode parsed.agent). Only set when non-empty string.
-    const modelID = readOptionalString(record.model);
+    const nestedMessage = record.message && typeof record.message === "object"
+      ? record.message as { model?: unknown }
+      : undefined;
+    const modelID = readOptionalString(nestedMessage?.model ?? record.model);
     const agentField = readOptionalString(record.agent);
     if (modelID) message.modelID = modelID;
     if (agentField) message.agent = agentField;
@@ -546,7 +586,7 @@ function sessionUsesTool(filePath: string, needle: string): boolean {
       continue;
     }
 
-    const content = record.content;
+    const content = claudeRecordContent(record);
     if (!Array.isArray(content)) continue;
 
     for (const block of content) {
