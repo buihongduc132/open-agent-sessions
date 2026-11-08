@@ -23,8 +23,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Fetch full history for git operations
     
     - name: Setup Bun (for faster install)
       uses: oven-sh/setup-bun@v1
@@ -108,8 +106,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
     
     - name: Test fresh install (with Bun auto-install)
       env:
@@ -149,8 +145,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
     
     - name: Setup Bun
       uses: oven-sh/setup-bun@v1
