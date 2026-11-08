@@ -288,7 +288,7 @@ function applyFilters(
   });
 }
 
-function compareSessions(a: SessionSummary, b: SessionSummary): number {
+export function compareSessions(a: SessionSummary, b: SessionSummary): number {
   const timeA = Date.parse(a.updated_at);
   const timeB = Date.parse(b.updated_at);
   if (timeA !== timeB) {
