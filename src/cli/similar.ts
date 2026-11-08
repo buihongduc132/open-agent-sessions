@@ -8,7 +8,8 @@ import type { AgentKind, Config } from "../config/types";
 import type { SimilarSessionResult } from "../similarity/search";
 import { CliResult } from "./types";
 import { resolveConfig, errorResult, errorMessage } from "./utils/config";
-import { withLabel } from "./utils/agents";
+import { withLabel, isAgentKind } from "./utils/agents";
+import { isCapabilityUnsupported, CAPABILITY_UNSUPPORTED_EXIT } from "../core/errors";
 
 const USAGE = `Usage: oas similar <session-id> [options]
 
@@ -30,6 +31,15 @@ export type SimilarQuery = {
   id: string;
 };
 
+/**
+ * BUG-7: Probes the enabled adapters to find which one actually owns a
+ * session id. Returns the owning agent+alias, or undefined when the id
+ * resolves nowhere. Injected by the CLI entrypoint (registry-backed).
+ */
+export type SimilarOwnerResolver = (
+  sessionId: string
+) => Promise<{ agent: AgentKind; alias: string } | undefined>;
+
 export type SimilarService = (
   query: SimilarQuery,
   topK?: number
@@ -46,6 +56,7 @@ export async function runSimilarCommand(options: {
   configPath?: string;
   loadConfig?: (path: string) => Config;
   findSimilar: SimilarService;
+  resolveSessionOwner?: SimilarOwnerResolver;
 }): Promise<CliResult> {
   // Resolve config
   const configResult = resolveConfig(options, USAGE);
@@ -54,7 +65,7 @@ export async function runSimilarCommand(options: {
   }
 
   const enabledEntries = configResult.value.agents.filter((e) => e.enabled);
-  const targetResult = resolveTarget(options, enabledEntries);
+  const targetResult = await resolveTarget(options, enabledEntries, options.resolveSessionOwner);
   if (!targetResult.ok) {
     return errorResult(targetResult.error);
   }
@@ -66,6 +77,13 @@ export async function runSimilarCommand(options: {
   try {
     results = await options.findSimilar(target, topK);
   } catch (error) {
+    if (isCapabilityUnsupported(error)) {
+      return {
+        exitCode: CAPABILITY_UNSUPPORTED_EXIT,
+        stdout: "",
+        stderr: withLabel(target, errorMessage(error)) + "\n",
+      };
+    }
     return errorResult(withLabel(target, errorMessage(error)));
   }
 
@@ -115,10 +133,11 @@ type Target = { agent: AgentKind; alias: string; id: string };
 
 type TargetResult = { ok: true; value: Target } | { ok: false; error: string };
 
-function resolveTarget(
+async function resolveTarget(
   options: { sessionId?: string; agent?: string; alias?: string; id?: string },
-  enabledEntries: Config["agents"]
-): TargetResult {
+  enabledEntries: Config["agents"],
+  resolveSessionOwner?: SimilarOwnerResolver
+): Promise<TargetResult> {
   // Support positional session-id: `oas similar <session-id>`
   // or explicit agent/alias/id flags
   const sessionId =
@@ -128,8 +147,51 @@ function resolveTarget(
     return { ok: false, error: `Missing session ID. ${USAGE}` };
   }
 
-  // Use first opencode entry by default (OpenCode is the primary adapter for similarity)
   const opencodeEntry = enabledEntries.find((e) => e.agent === "opencode");
+
+  // BUG-7: an explicit agent/alias wins — never silently reroute to opencode.
+  if (options.agent?.trim()) {
+    const agent = options.agent.trim();
+    if (!isAgentKind(agent)) {
+      return { ok: false, error: `Unknown agent "${agent}".` };
+    }
+    const entry = enabledEntries.find((e) => e.agent === agent);
+    if (!entry) {
+      return { ok: false, error: `Agent "${agent}" is not enabled in config.` };
+    }
+    const alias = options.alias?.trim() ?? entry.alias;
+    const aliasEntry = enabledEntries.find((e) => e.agent === agent && e.alias === alias);
+    if (!aliasEntry) {
+      return { ok: false, error: `Unknown alias "${alias}" for ${agent}.` };
+    }
+    return { ok: true, value: { agent, alias: aliasEntry.alias, id: sessionId } };
+  }
+
+  // BUG-7: bare session-id — resolve the id against the enabled adapters so a
+  // codex id routes to codex (instead of always erroring on opencode).
+  // OpenCode stays the default ONLY when the id resolves nowhere or resolves
+  // to opencode itself.
+  if (resolveSessionOwner) {
+    const owner = await resolveSessionOwner(sessionId);
+    if (owner) {
+      return { ok: true, value: { agent: owner.agent, alias: owner.alias, id: sessionId } };
+    }
+    // Id resolves nowhere: prefer opencode (its error path is the historical
+    // contract) — but only if opencode is configured at all.
+    if (opencodeEntry) {
+      return {
+        ok: true,
+        value: { agent: opencodeEntry.agent, alias: opencodeEntry.alias, id: sessionId },
+      };
+    }
+    return {
+      ok: false,
+      error: `Session not found in any configured agent: ${sessionId}`,
+    };
+  }
+
+  // No owner resolver injected (unit tests / legacy callers): keep the
+  // opencode-first fallback so existing behavior is unchanged.
   if (!opencodeEntry) {
     return {
       ok: false,

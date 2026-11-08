@@ -8,12 +8,13 @@ import { join } from "path";
 export async function runCLI(
   args: string[],
   timeoutMs: number = 4000,
+  env: NodeJS.ProcessEnv = process.env,
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const cliPath = join(process.cwd(), "bin", "oas");
     const proc = spawn("bun", [cliPath, ...args], {
       cwd: process.cwd(),
-      env: process.env,
+      env,
     });
 
     let stdout = "";

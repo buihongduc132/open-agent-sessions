@@ -1,6 +1,7 @@
 import { AgentKind, Config } from "../config/types";
 import { SessionSummary, SearchQuery } from "../core/types";
 import { CliResult } from "./types";
+import { isAgentKind, unknownAgentError } from "./utils/agents";
 import {
   executeBooleanSearch,
   isBooleanQuery,
@@ -24,6 +25,12 @@ Searches session titles and message content.`;
 
 export type SearchService = (query: SearchQuery) => Promise<SearchResult>;
 
+/**
+ * BUG-2 companion: when `--agent`/`--alias` is given, the search must be
+ * scoped to that adapter only — the full cross-agent scan can take minutes
+ * (e.g. pi 15GB). The service receives the same flags via SearchQuery.
+ */
+
 export type ContentSearchService = (text: string) => Promise<SimilarSessionResult[]>;
 
 export type SearchResult = {
@@ -39,6 +46,8 @@ export type SearchError = {
 
 export type SearchOptions = {
   text?: string;
+  agent?: string;
+  alias?: string;
   config?: Config;
   configPath?: string;
   loadConfig?: (path: string) => Config;
@@ -65,6 +74,21 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
   }
 
   const rawQuery = String(options.text).trim();
+
+  // BUG-2 companion: honor --agent/--alias by scoping the query. The service
+  // (bin/oas createSearchService) filters its per-adapter fan-out on these.
+  const agentFilter = options.agent?.trim() || undefined;
+  const aliasFilter = options.alias?.trim() || undefined;
+  if (agentFilter !== undefined && !isAgentKind(agentFilter)) {
+    return errorResult(unknownAgentError(agentFilter, configResult.value.agents));
+  }
+
+  const scopedQuery = (text: string): SearchQuery => ({
+    cwd: process.cwd(),
+    text,
+    ...(agentFilter !== undefined ? { agent: agentFilter } : {}),
+    ...(aliasFilter !== undefined ? { alias: aliasFilter } : {}),
+  });
 
   const excludedIds = new Set<string>();
   if (options.excludeCurrent && options.currentSessionId) {
@@ -98,7 +122,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
             const regex = parseRegex(searchText);
             if (regex) {
               // Fetch all sessions via wildcard search, then filter by regex
-              const allQuery: SearchQuery = { cwd: process.cwd(), text: "e" };
+              const allQuery: SearchQuery = scopedQuery("e");
               const allResult = await options.searchSessions(allQuery);
               const matched = allResult.sessions.filter((s) =>
                 regex.test(s.title) || regex.test(s.id)
@@ -117,7 +141,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
           }
 
           const normalizedSearchText = normalizeFuzzyQuery(searchText);
-          const query: SearchQuery = { cwd: process.cwd(), text: normalizedSearchText };
+          const query: SearchQuery = scopedQuery(normalizedSearchText);
           const result = await options.searchSessions(query);
           if (term !== "*") {
             ctx.recordTerm(term, result.sessions);
@@ -171,7 +195,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
       const regex = parseRegex(rawQuery);
       if (regex) {
         // Fetch all sessions via wildcard-like search, then filter by regex
-        const query: SearchQuery = { cwd: process.cwd(), text: "e" };
+        const query: SearchQuery = scopedQuery("e");
         const result = await options.searchSessions(query);
         filteredSessions = result.sessions.filter((s) =>
           regex.test(s.title) || regex.test(s.id)
@@ -179,7 +203,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
         resultErrors = result.errors;
       } else {
         // Invalid regex — fall back to plain search
-        const query: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+        const query: SearchQuery = scopedQuery(rawQuery);
         const result = await options.searchSessions(query);
         filteredSessions = result.sessions;
         resultErrors = result.errors;
@@ -190,7 +214,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
         const normalizedQuery = normalizeFuzzyQuery(rawQuery);
 
         // Always run title search for agent/alias resolution and fallback
-        const titleQuery: SearchQuery = { cwd: process.cwd(), text: rawQuery };
+        const titleQuery: SearchQuery = scopedQuery(rawQuery);
         const titleResult = await options.searchSessions(titleQuery);
 
         let contentResults: SimilarSessionResult[] | undefined;
@@ -222,7 +246,7 @@ export async function runSearchCommand(options: SearchOptions): Promise<CliResul
           }
         }
       } else {
-        const query: SearchQuery = { cwd: process.cwd(), text: normalizeWhitespace(rawQuery) };
+        const query: SearchQuery = scopedQuery(normalizeWhitespace(rawQuery));
         const result = await options.searchSessions(query);
         filteredSessions = result.sessions;
         resultErrors = result.errors;

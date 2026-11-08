@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { existsSync } from "node:fs";
 
 // CLI command imports
-import { runSessionsCommand, type SessionsService } from "../src/cli/sessions";
+import { runSessionsCommand, type SessionsService, type SessionsQuery } from "../src/cli/sessions";
 import { runReadCommand, type ReadService } from "../src/cli/read";
 import { runSearchCommand, type SearchService } from "../src/cli/search";
 import { runListCommand, type ListService } from "../src/cli/list";
@@ -16,6 +16,13 @@ import { runDirExport } from "../src/cli/export-dir";
 import { parseExportFlags, exportHelpText } from "../src/cli/export-options";
 export { runDirExport, parseExportFlags, exportHelpText, type ExportOptions };
 import { runSimilarCommand, type SimilarService } from "../src/cli/similar";
+import type { SimilarOwnerResolver } from "../src/cli/similar";
+import { deprecationNotice } from "../src/cli/deprecation";
+import { runTreeCommand } from "../src/cli/tree";
+import { runChildrenCommand } from "../src/cli/children";
+import { createTreeService, createChildrenService } from "../src/core/hierarchy";
+import { completionScript, completionValues } from "../src/cli/completion";
+import { parseCliArgs, type ParsedArgs } from "../src/cli/utils/parse-args";
 
 // TUI imports (R-15)
 import { runTuiApp } from "../src/tui/App";
@@ -23,6 +30,7 @@ import type { ListService as TuiListService, DetailService as TuiDetailService, 
 
 // Core imports
 import { createAdapterRegistry } from "../src/core/registry";
+import { requireCapability } from "../src/core/errors";
 import { createListService } from "../src/core/list";
 import { createCloneService, type CloneRegistry } from "../src/core/clone";
 import type { SessionSummary, SessionDetail, TimeRangeOptions, SessionReadOptions, SearchQuery, SessionListQuery, SessionListResult, AgentKind } from "../src/core/types";
@@ -37,7 +45,6 @@ import {
   createCodexCloneSourceAdapter,
   createCodexAdapter,
   createClaudeAdapter,
-  createAcpxAdapter,
   createHermesAdapter,
   createGeminiAdapter,
   createAntigravityAdapter,
@@ -45,6 +52,25 @@ import {
   createZcodeAdapter,
   createGrokAdapter,
 } from "../src/adapters";
+
+// Flush stdout/stderr to completion BEFORE exit — process.exit() fires while a
+// large async pipe write is still buffered, silently truncating piped output at
+// the 8192-byte pipe buffer (observed: `oas ... | jq` parse errors; `> file`
+// unaffected). All code-path exits must go through finish(). (LSL 2026-09-04)
+async function writeOut(stdout: string, stderr: string, exitCode: number): Promise<void> {
+  // NEVER exit on a process.stdout.write callback: in Bun 1.3.11 the callback
+  // can fire while megabyte-scale pipe writes are still buffered (measured:
+  // 139,910B JSON → 8,192B in pipe; nondeterministic; `> file` always fine).
+  // Bun.write(Bun.stdout) awaits FULL flush (verified deterministic 13/13 runs).
+  if (stderr.length > 0) process.stderr.write(stderr);
+  if (stdout.length > 0) await Bun.write(Bun.stdout, stdout);
+  process.exit(exitCode);
+}
+
+function finish(exitCode: number): void {
+  // For paths using stdio "inherit" (TUI/spawn) — nothing to flush ourselves.
+  process.exit(exitCode);
+}
 
 // ============================================================================
 // Config Loading
@@ -61,6 +87,22 @@ function getDefaultConfig(): Config {
       },
     ],
   };
+}
+
+// Completion cannot terminate the caller or emit diagnostics on a malformed config.
+function loadCompletionConfig(): Config {
+  const paths = [
+    join(process.cwd(), "oas.config.yaml"),
+    join(process.cwd(), "oas.config.yml"),
+    join(homedir(), ".config", "oas", "config.yaml"),
+    join(homedir(), ".config", "oas", "config.yml"),
+  ];
+  for (const path of paths) {
+    if (!existsSync(path)) continue;
+    try { return loadConfigFromFile(path); }
+    catch { return { agents: [] }; }
+  }
+  return getDefaultConfig();
 }
 
 function loadConfig(): Config {
@@ -112,10 +154,15 @@ function createAllAgentFactories(cwd: string) {
 function createSessionsService(config: Config): SessionsService {
   const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
 
-  return async (query: { cwd: string; timeRange: TimeRangeOptions }) => {
+  return async (query: SessionsQuery) => {
     const errors: { agent: string; alias: string; message: string }[] = [];
 
-    const promises = registry.adapters.map(async (adapter) => {
+    // Restrict sources before querying: unselected agents can be slow or broken.
+    const matchingAdapters = registry.adapters.filter((adapter) =>
+      (query.agent === undefined || adapter.agent === query.agent) &&
+      (query.alias === undefined || adapter.alias === query.alias)
+    );
+    const promises = matchingAdapters.map(async (adapter) => {
       try {
         if (adapter.listSessionsByTimeRange) {
           return await adapter.listSessionsByTimeRange(query.timeRange);
@@ -178,32 +225,57 @@ function createReadService(config: Config): ReadService {
       return null;
     }
 
-    return adapter.getSessionDetail(query.id, options);
+    // Prefer exact IDs. Only resolve prefixes after a definitive "not found":
+    // storage errors must not be misreported as an unknown/ambiguous session.
+    let notFoundError: unknown;
+    try {
+      const exact = await adapter.getSessionDetail(query.id, options);
+      if (exact) return exact;
+    } catch (error) {
+      if (!/session not found/i.test(error instanceof Error ? error.message : String(error))) {
+        throw error;
+      }
+      notFoundError = error;
+    }
+
+    // The CLI documents abbreviated IDs (e.g. 34da877b for ses_34da877b...).
+    // Resolve within the already selected agent+alias, never choose a random hit.
+    const matches = (await adapter.listSessions())
+      .filter((session) => session.id.startsWith(query.id) ||
+        session.id.startsWith(`ses_${query.id}`))
+      .map((session) => session.id);
+    const unique = [...new Set(matches)].sort();
+    if (unique.length > 1) {
+      throw new Error(`Ambiguous session ID "${query.id}". Matches: ${unique.join(", ")}. Specify the full ID.`);
+    }
+    if (unique.length === 1) {
+      return adapter.getSessionDetail(unique[0], options);
+    }
+    if (notFoundError) throw notFoundError;
+    return null;
   };
 }
 
 function createSearchService(config: Config): SearchService {
+  const factories = createAllAgentFactories(process.cwd());
   return async (query: SearchQuery) => {
     const errors: { agent: string; alias: string; message: string }[] = [];
 
-    const promises = config.agents.filter((e) => e.enabled).map(async (entry) => {
-      try {
-        let adapter: ReturnType<typeof createOpenCodeAdapter> | null = null;
+    // BUG-2 companion: --agent/--alias scopes the fan-out to one adapter —
+    // the full cross-agent scan can take minutes (pi alone is 15GB).
+    const targets = config.agents.filter((e) => e.enabled && (!query.agent || e.agent === query.agent) && (!query.alias || e.alias === query.alias));
+    if (query.agent && targets.length === 0) {
+      return { sessions: [], errors: [{ agent: query.agent, alias: query.alias ?? "", message: `Agent "${query.agent}" is not enabled in config` }] };
+    }
 
-        // Instantiate the correct adapter per agent type (R-19: cross-agent search)
-        if (entry.agent === "opencode") {
-          adapter = createOpenCodeAdapter(entry as any, { cwd: query.cwd ?? process.cwd() });
-        } else if (entry.agent === "codex") {
-          adapter = createCodexAdapter(entry as any, { defaultPath: (entry as any).path });
-        } else if (entry.agent === "claude") {
-          adapter = createClaudeAdapter(entry as any, {});
-        } else if (entry.agent === "acpx") {
-          adapter = createAcpxAdapter(entry as any, {});
-        } else if (entry.agent === "pi") {
-          adapter = createPiAdapter(entry as any, {});
-        } else if (entry.agent === "grok") {
-          adapter = createGrokAdapter(entry as any, {});
-        }
+    const promises = targets.map(async (entry) => {
+      try {
+        // R-19: cross-agent search — use the shared factory map so every agent
+        // kind is searchable (the old hardcoded chain missed antigravity/gemini/
+        // zcode/hermes → RCA 2026-09-02).
+        const factory = factories[entry.agent];
+        if (!factory) return [];
+        const adapter = factory(entry);
 
         if (adapter && adapter.searchSessions) {
           return await adapter.searchSessions(query);
@@ -275,11 +347,37 @@ function createSimilarService(config: Config): SimilarService {
       (a) => a.agent === query.agent && a.alias === query.alias
     );
 
-    if (!adapter || !adapter.findSimilarSessions) {
-      return [];
+    if (!adapter) {
+      throw new Error(`[${query.agent}:${query.alias}] not configured`);
     }
+    return requireCapability(adapter, "findSimilarSessions", "similar")(query.id, topK);
+  };
+}
 
-    return adapter.findSimilarSessions(query.id, topK);
+/**
+ * BUG-7: Probe enabled adapters to find which one owns a session id, so
+ * `oas similar <bare-id>` routes to the owning agent (e.g. codex) instead of
+ * always erroring on opencode. Returns undefined when the id resolves nowhere.
+ */
+function createSimilarOwnerResolver(config: Config): SimilarOwnerResolver | undefined {
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+  const probes = registry.adapters.filter((a) => a.getSessionDetail);
+  if (probes.length === 0) return undefined;
+  return async (sessionId: string) => {
+    for (const adapter of probes) {
+      try {
+        // getSessionDetail is async — must await before truthiness check.
+        const detail = await adapter.getSessionDetail!(sessionId, {});
+        if (detail) {
+          return { agent: adapter.agent, alias: adapter.alias };
+        }
+      } catch (error) {
+        // session-not-found → try the next adapter; other errors also just
+        // mean "cannot confirm ownership here" — never abort routing.
+        continue;
+      }
+    }
+    return undefined;
   };
 }
 
@@ -341,60 +439,13 @@ function createCloneServiceFromConfig(config: Config) {
 // Argument Parsing
 // ============================================================================
 
-interface ParsedArgs {
-  command: string;
-  options: Record<string, string | number | boolean>;
-  positional: string[];
-}
-
 function parseArgs(argv: string[]): ParsedArgs {
-  const result: ParsedArgs = {
-    command: "",
-    options: {},
-    positional: [],
-  };
-
-  let i = 0;
-  while (i < argv.length) {
-    const arg = argv[i];
-
-    if (arg.startsWith("--")) {
-      const key = arg.slice(2);
-      
-      // Handle --flag (boolean)
-      if (i + 1 >= argv.length || argv[i + 1].startsWith("-")) {
-        result.options[key] = true;
-        i++;
-        continue;
-      }
-
-      // Handle --key value
-      const value = argv[i + 1];
-      if (value !== undefined) {
-        // Try to parse as number
-        const num = Number(value);
-        result.options[key] = isNaN(num) ? value : num;
-        i += 2;
-        continue;
-      }
-      i++;
-    } else if (arg.startsWith("-") && arg !== "-") {
-      // Short flags
-      const key = arg.slice(1);
-      result.options[key] = true;
-      i++;
-    } else {
-      // Positional argument
-      if (!result.command) {
-        result.command = arg;
-      } else {
-        result.positional.push(arg);
-      }
-      i++;
-    }
+  const result = parseCliArgs(argv);
+  if (!result.ok) {
+    console.error(`Error: ${result.error}`);
+    process.exit(2);
   }
-
-  return result;
+  return result.value;
 }
 
 // ============================================================================
@@ -437,9 +488,7 @@ async function handleSessionsCommand(parsed: ParsedArgs): Promise<void> {
     getSessions,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
@@ -496,9 +545,7 @@ async function handleReadCommand(parsed: ParsedArgs): Promise<void> {
     getSession,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
@@ -516,13 +563,13 @@ async function handleSearchCommand(parsed: ParsedArgs): Promise<void> {
   const result = await runSearchCommand({
     text: parsed.options["text"] as string | undefined,
     format: parsed.options["format"] as "text" | "json" | undefined,
+    agent: parsed.options["agent"] as string | undefined,
+    alias: parsed.options["alias"] as string | undefined,
     config,
     searchSessions,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 async function handleListNewCommand(parsed: ParsedArgs): Promise<void> {
@@ -545,9 +592,7 @@ async function handleListNewCommand(parsed: ParsedArgs): Promise<void> {
     list,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
@@ -569,6 +614,15 @@ async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
     parsed.positional[0] ||
     parsed.command || undefined;
 
+  // BUG-10 companion: a bare session-id must resolve against ALL enabled
+  // adapters (a codex id should route to codex), not just the first enabled
+  // agent/alias. Reuses the same owner-probing pattern as `oas similar`
+  // (BUG-7). Explicit --session/--agent/--alias/--id specs are untouched.
+  const bareId = sessionSpec && !sessionSpec.includes(":") ? sessionSpec : undefined;
+  const resolveSessionOwner = bareId
+    ? createSimilarOwnerResolver(config)
+    : undefined;
+
   const result = await runDetailCommand({
     session: sessionSpec,
     agent: parsed.options["agent"] as string | undefined,
@@ -577,11 +631,10 @@ async function handleDetailCommand(parsed: ParsedArgs): Promise<void> {
     format: parsed.options["format"] as "text" | "json" | undefined,
     config,
     getSession,
+    resolveSessionOwner,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 async function handleCloneCommand(parsed: ParsedArgs): Promise<void> {
@@ -595,9 +648,7 @@ async function handleCloneCommand(parsed: ParsedArgs): Promise<void> {
     clone,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 async function handleExportCommand(restArgs: string[]): Promise<void> {
@@ -606,8 +657,7 @@ async function handleExportCommand(restArgs: string[]): Promise<void> {
 
   const fr = parseExportFlags(restArgs);
   if (!fr.ok) {
-    process.stderr.write(fr.errors.join("\n") + "\n");
-    process.exit(fr.exitCode);
+    await writeOut("", fr.errors.join("\n") + "\n", fr.exitCode);
   }
   const flags = fr.value;
 
@@ -634,9 +684,7 @@ async function handleExportCommand(restArgs: string[]): Promise<void> {
     getSession,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 async function handleSimilarCommand(parsed: ParsedArgs): Promise<void> {
@@ -664,6 +712,7 @@ async function handleSimilarCommand(parsed: ParsedArgs): Promise<void> {
 
   const config = loadConfig();
   const findSimilar = createSimilarService(config);
+  const resolveSessionOwner = createSimilarOwnerResolver(config);
 
   const result = await runSimilarCommand({
     sessionId,
@@ -671,11 +720,57 @@ async function handleSimilarCommand(parsed: ParsedArgs): Promise<void> {
     format: format as "text" | "json" | undefined,
     config,
     findSimilar,
+    resolveSessionOwner,
   });
 
-  process.stdout.write(result.stdout);
-  process.stderr.write(result.stderr);
-  process.exit(result.exitCode);
+  await writeOut(result.stdout, result.stderr, result.exitCode);
+}
+
+function requireHierarchyOptions(parsed: ParsedArgs, command: string): {
+  session: string; format: "text" | "json" | undefined;
+  agent: string | undefined; alias: string | undefined;
+} {
+  const session = parsed.command || parsed.positional[0] || parsed.options["session"];
+  if (typeof session !== "string" || session.length === 0) {
+    console.error("Usage: oas session " + command + " <session-id> [--format text|json] [--agent NAME] [--alias NAME]");
+    process.exit(1);
+  }
+  const format = parsed.options["format"];
+  if (format !== undefined && format !== "text" && format !== "json") {
+    console.error("Invalid --format value: must be 'text' or 'json'");
+    process.exit(1);
+  }
+  const agent = parsed.options["agent"];
+  const alias = parsed.options["alias"];
+  if ((agent !== undefined && typeof agent !== "string") ||
+      (alias !== undefined && typeof alias !== "string")) {
+    console.error("--agent and --alias require string values");
+    process.exit(1);
+  }
+  return { session, format: format as "text" | "json" | undefined,
+    agent: agent as string | undefined, alias: alias as string | undefined };
+}
+
+async function handleTreeCommand(parsed: ParsedArgs): Promise<void> {
+  const opts = requireHierarchyOptions(parsed, "tree");
+  const config = loadConfig();
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+  const result = await runTreeCommand({
+    session: opts.session, format: opts.format, config,
+    getForkChain: createTreeService(registry, { agent: opts.agent, alias: opts.alias }),
+  });
+  await writeOut(result.stdout, result.stderr, result.exitCode);
+}
+
+async function handleChildrenCommand(parsed: ParsedArgs): Promise<void> {
+  const opts = requireHierarchyOptions(parsed, "children");
+  const config = loadConfig();
+  const registry = createAdapterRegistry(config, createAllAgentFactories(process.cwd()));
+  const result = await runChildrenCommand({
+    parentSessionId: opts.session, format: opts.format, config,
+    getChildren: createChildrenService(registry, { agent: opts.agent, alias: opts.alias }),
+  });
+  await writeOut(result.stdout, result.stderr, result.exitCode);
 }
 
 // ============================================================================
@@ -700,15 +795,18 @@ function showHelp() {
   console.log("    session clone         Clone session between agents");
   console.log("    session search        Search sessions by content");
   console.log("    session similar <id>  Find similar sessions");
+  console.log("    session tree <id>     Show root-to-leaf fork chain");
+  console.log("    session children <id> List direct child sessions");
   console.log("");
   console.log("  Utility:");
   console.log("    config                Inspect config");
   console.log("    onboard               Initialize bd (beads) for the project");
   console.log("    tui                   Launch interactive TUI");
+  console.log("    completion SHELL      Print bash, zsh, or fish completion script");
   console.log("");
   console.log("Session List Options:");
   console.log("  Agent/Query filtering:");
-  console.log("    --agent NAME           Filter by agent (opencode|codex|claude|acpx|grok)");
+  console.log("    --agent NAME           Filter by configured enabled agent");
   console.log("    --alias NAME           Filter by agent alias");
   console.log("    --q QUERY              Filter by session ID or title");
   console.log("    --roots-only            Show only root sessions (no parent)");
@@ -766,6 +864,8 @@ function showHelp() {
   console.log("  oas session list --last 4h           Sessions from last 4 hours");
   console.log("  oas session list --q \"bug\"           Sessions matching 'bug'");
   console.log("  oas session list --roots-only        Only root sessions");
+  console.log("  oas session tree <id> --format json  Fork chain as JSON");
+  console.log("  oas session children <id>           Direct children");
   console.log("  oas session list --full --format json  Full titles in JSON");
   console.log("  oas session read abc123              Read session messages");
   console.log("  oas session read abc123 --last 20    Last 20 messages");
@@ -774,6 +874,9 @@ function showHelp() {
   console.log("  oas session clone --from codex:100 --to opencode:default");
   console.log("  oas session search --text \"error\"   Search for 'error'");
   console.log("  oas session similar abc123           Find similar sessions");
+  console.log("");
+  console.log("Legacy aliases (deprecated, emit a notice once per process; set OAS_QUIET=1 to silence):");
+  console.log("  recent, show, top-level 'tree'/'children'");
   process.exit(0);
 }
 
@@ -821,12 +924,14 @@ async function handleTuiCommand(): Promise<void> {
 // ============================================================================
 
 // ============================================================================
-// Deprecated Shim Helper
+// Deprecated Shim Helper — imported from src/cli/deprecation.ts.
+//
+// BUG-10 policy: only genuinely-legacy aliases (recent, show, list-new, and
+// the top-level tree/children spellings) emit a notice; it is shown at most
+// once per process and suppressible with OAS_QUIET=1. First-class documented
+// commands (list, sessions, find, detail, read, search, clone, export,
+// similar) forward silently.
 // ============================================================================
-
-function deprecationNotice(newCmd: string): void {
-  process.stderr.write(`DEPRECATED: use '${newCmd}' instead.\n`);
-}
 
 // ============================================================================
 // Session Subcommand Router
@@ -902,6 +1007,20 @@ async function handleSessionCommand(subArgs: string[]): Promise<void> {
       return;
     }
 
+    case "tree": {
+      const parsed = parseArgs(restArgs);
+      if (parsed.options["help"]) { showHelp(); return; }
+      await handleTreeCommand(parsed);
+      return;
+    }
+
+    case "children": {
+      const parsed = parseArgs(restArgs);
+      if (parsed.options["help"]) { showHelp(); return; }
+      await handleChildrenCommand(parsed);
+      return;
+    }
+
     default:
       console.error(`Unknown session subcommand: ${subcommand}`);
       console.error("Run 'oas session --help' for available subcommands.");
@@ -941,7 +1060,7 @@ async function handleSessionListSubcommand(args: string[]): Promise<void> {
     || parsed.options["until"] !== undefined;
 
   // Convert --limit 0 to "all results" (undefined) for the list-new path.
-  // The sessions (time-range) path already handles limit 0 → MAX_LIST_LIMIT internally.
+  // The sessions (time-range) path preserves limit 0 as an unbounded request.
   if (!hasTimeFlags && parsed.options["limit"] === 0) {
     delete parsed.options["limit"];
   }
@@ -988,6 +1107,22 @@ async function main() {
   // ========================================================================
   // NEW: `oas session <subcommand>` — primary command structure
   // ========================================================================
+  if (command === "__complete") {
+    const values = completionValues(restArgs[0] ?? "", loadCompletionConfig());
+    await writeOut(values.length ? values.join("\n") + "\n" : "", "", 0);
+    return;
+  }
+
+  if (command === "completion") {
+    const result = completionScript(restArgs[0] ?? "");
+    if (!result.ok) {
+      await writeOut("", result.error + "\n", 2);
+      return;
+    }
+    await writeOut(result.value, "", 0);
+    return;
+  }
+
   if (command === "session") {
     await handleSessionCommand(restArgs);
     return;
@@ -1002,7 +1137,7 @@ async function main() {
     const result = await runConfigCommand(restArgs);
     process.stdout.write(result.stdout);
     process.stderr.write(result.stderr);
-    process.exit(result.exitCode);
+    finish(result.exitCode);
   }
 
   if (command === "onboard") {
@@ -1011,7 +1146,7 @@ async function main() {
       stderr: "inherit",
     });
     const exitCode = await proc.exited;
-    process.exit(exitCode);
+    finish(exitCode);
     return;
   }
 
@@ -1022,17 +1157,28 @@ async function main() {
   }
 
   // ========================================================================
-  // DEPRECATED SHIMS — old commands forward to new `oas session <subcmd>`
+  // Command forwarding — BUG-10: only genuine legacy aliases (recent, show)
+  // and the undocumented top-level tree/children spellings emit a deprecation
+  // notice (once per process, suppressible via OAS_QUIET=1). First-class
+  // documented commands (list, sessions, list-new, find, detail, read, search,
+  // clone, export, similar) forward silently.
   // ========================================================================
 
-  if (command === "list" || command === "recent") {
+  // Legacy alias: `oas recent`
+  if (command === "recent") {
     deprecationNotice("oas session list");
     await handleSessionListSubcommand(restArgs);
     return;
   }
 
+  // First-class documented command.
+  if (command === "list") {
+    await handleSessionListSubcommand(restArgs);
+    return;
+  }
+
+  // First-class documented command (time-range list).
   if (command === "sessions") {
-    deprecationNotice("oas session list");
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
     // Route directly to sessions handler — it applies 24h default via parseTimeRange
@@ -1040,16 +1186,17 @@ async function main() {
     return;
   }
 
+  // First-class documented command (filter-based list variant).
   if (command === "list-new") {
-    deprecationNotice("oas session list");
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
     await handleListNewCommand(parsed);
     return;
   }
 
+  // First-class documented command (find); legacy alias (show).
   if (command === "find" || command === "show") {
-    deprecationNotice("oas session detail");
+    if (command === "show") deprecationNotice("oas session detail");
     const sessionId = restArgs[0];
     if (!sessionId || sessionId === "--help" || sessionId === "-h") {
       console.error("Usage: oas session detail <session-id>");
@@ -1061,40 +1208,40 @@ async function main() {
     return;
   }
 
+  // First-class documented command.
   if (command === "detail") {
-    deprecationNotice("oas session detail");
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
     await handleDetailCommand(parsed);
     return;
   }
 
+  // First-class documented command.
   if (command === "read") {
-    deprecationNotice("oas session read");
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
     await handleReadCommand(parsed);
     return;
   }
 
+  // First-class documented command.
   if (command === "search") {
-    deprecationNotice("oas session search");
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
     await handleSearchCommand(parsed);
     return;
   }
 
+  // First-class documented command.
   if (command === "clone") {
-    deprecationNotice("oas session clone");
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
     await handleCloneCommand(parsed);
     return;
   }
 
+  // First-class documented command.
   if (command === "export") {
-    deprecationNotice("oas session export");
     if (restArgs.includes("--help") || restArgs.includes("-h")) {
       console.log(exportHelpText());
       return;
@@ -1103,11 +1250,21 @@ async function main() {
     return;
   }
 
+  // First-class documented command.
   if (command === "similar") {
-    deprecationNotice("oas session similar");
     const parsed = parseArgs(restArgs);
     if (parsed.options["help"] || parsed.options["h"]) { showHelp(); return; }
     await handleSimilarCommand(parsed);
+    return;
+  }
+
+  // Undocumented top-level spellings of `oas session tree/children`.
+  if (command === "tree" || command === "children") {
+    deprecationNotice("oas session " + command);
+    const parsed = parseArgs(restArgs);
+    if (parsed.options["help"]) { showHelp(); return; }
+    if (command === "tree") await handleTreeCommand(parsed);
+    else await handleChildrenCommand(parsed);
     return;
   }
 

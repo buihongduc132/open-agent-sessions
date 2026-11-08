@@ -25,6 +25,15 @@ export type DetailQuery = {
 
 export type DetailService = (query: DetailQuery) => Promise<SessionDetail | null>;
 
+/**
+ * BUG-10 companion (same pattern as similar.ts BUG-7): probes enabled
+ * adapters to find which one owns a bare session id. Returns undefined when
+ * the id resolves nowhere.
+ */
+export type DetailOwnerResolver = (
+  sessionId: string
+) => Promise<{ agent: AgentKind; alias: string } | undefined>;
+
 export async function runDetailCommand(options: {
   session?: string;
   agent?: string;
@@ -35,6 +44,7 @@ export async function runDetailCommand(options: {
   configPath?: string;
   loadConfig?: (path: string) => Config;
   getSession: DetailService;
+  resolveSessionOwner?: DetailOwnerResolver;
 }): Promise<CliResult> {
   const configResult = resolveConfig(options, USAGE);
   if (!configResult.ok) {
@@ -42,7 +52,7 @@ export async function runDetailCommand(options: {
   }
 
   const enabledEntries = configResult.value.agents.filter((entry) => entry.enabled);
-  const targetResult = resolveTarget(options, enabledEntries);
+  const targetResult = await resolveTarget(options, enabledEntries, options.resolveSessionOwner);
   if (!targetResult.ok) {
     return errorResult(targetResult.error);
   }
@@ -83,10 +93,11 @@ function resolveTarget(
     alias?: string;
     id?: string;
   },
-  entries: AgentEntry[]
-): ParseResult<DetailQuery> {
+  entries: AgentEntry[],
+  resolveSessionOwner?: DetailOwnerResolver
+): ParseResult<DetailQuery> | Promise<ParseResult<DetailQuery>> {
   if (options.session) {
-    return parseSessionSpec(options.session, entries);
+    return resolveSessionTarget(options.session, entries, resolveSessionOwner);
   }
 
   const agent = options.agent?.trim();
@@ -98,6 +109,30 @@ function resolveTarget(
   }
 
   return parseExplicitTarget(agent, alias, id, entries);
+}
+
+/**
+ * BUG-10 companion: a bare session-id (no colons) resolves against ALL enabled
+ * adapters via the owner resolver, so a codex id routes to codex instead of
+ * always erroring on the first enabled agent. Explicit specs (agent:...,
+ * alias:...) are unchanged.
+ */
+async function resolveSessionTarget(
+  spec: string,
+  entries: AgentEntry[],
+  resolveSessionOwner?: DetailOwnerResolver
+): Promise<ParseResult<DetailQuery>> {
+  const bareId = !spec.includes(":") ? spec.trim() : undefined;
+
+  if (bareId && resolveSessionOwner) {
+    const owner = await resolveSessionOwner(bareId);
+    if (owner) {
+      return { ok: true, value: { agent: owner.agent, alias: owner.alias, id: bareId } };
+    }
+    // Id resolves nowhere: keep the historical first-entry error path.
+  }
+
+  return parseSessionSpec(spec, entries);
 }
 
 function parseSessionSpec(spec: string, entries: AgentEntry[]): ParseResult<DetailQuery> {

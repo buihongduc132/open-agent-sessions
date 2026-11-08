@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, openSync, readSync, closeSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { createLabel } from "./label";
@@ -6,7 +6,6 @@ import { createBrokenAdapter } from "./broken";
 import { OtherAgentEntry } from "../config/types";
 import {
   Adapter,
-  ForkResult,
   SearchQuery,
   SessionDetail,
   SessionMessage,
@@ -18,9 +17,8 @@ import {
 } from "../core/types";
 import { normalizeTimestamp } from "../core/normalize";
 import { errorMessage } from "../core/utils";
-import type { SimilarSessionResult } from "../similarity/search";
 import {
-  contentContains,
+  contentContainsStreaming,
   resolvePath,
   safeStat,
   splitJsonlLines,
@@ -53,6 +51,16 @@ type AntigravityToolCall = {
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * BUG-3: search performance guards.
+ * - RECENT_MTIME_MS: logs touched within the last year are scanned first;
+ *   older ones only when no recent log matches.
+ * - MAX_SCAN_BYTES: logs larger than this are scanned only up to the cap
+ *   (prefix) and counted as skipped-oversized for the stderr note.
+ */
+const RECENT_MTIME_MS = 365 * 24 * 60 * 60 * 1000;
+const MAX_SCAN_BYTES = 50 * 1024 * 1024;
 
 /**
  * Antigravity adapter factory.
@@ -106,12 +114,44 @@ function buildAntigravityAdapter(
         const uuids = readdirSync(brainPath).filter(name => UUID_REGEX.test(name));
         const needle = query.text.toLowerCase();
         const results: SessionSummary[] = [];
+        const staleCandidates: Array<{ logPath: string; uuid: string }> = [];
+        let skippedOversized = 0;
 
         for (const uuid of uuids) {
-          const logPath = join(dataPath, "brain", uuid, ".system_generated", "logs", "overview.txt");
-          if (contentContains(logPath, needle)) {
+          const logPath = sessionLogPath(dataPath, uuid);
+          if (!logPath) continue;
+          // BUG-3: mtime pre-filter — skip logs untouched for over a year
+          // (stale sessions rarely match fresh needles; full scan only when
+          // nothing newer matches). Falls through to full scan below.
+          const stat = safeStat(logPath);
+          if (stat && Date.now() - Number(stat.mtimeMs) > RECENT_MTIME_MS) {
+            staleCandidates.push({ logPath, uuid });
+            continue;
+          }
+          // BUG-3: streaming contains with early exit + size cap — never a
+          // full readFileSync of a 100MB+ transcript.
+          if (stat && stat.size > MAX_SCAN_BYTES) {
+            skippedOversized += 1;
+          }
+          if (!contentContainsStreaming(logPath, needle, { maxBytes: MAX_SCAN_BYTES })) {
+            continue;
+          }
+          results.push(parseAntigravitySession(dataPath, uuid, entry));
+        }
+
+        // Stale-only fallback: nothing recent matched → scan the stale set too.
+        if (results.length === 0) {
+          for (const { logPath, uuid } of staleCandidates) {
+            if (!contentContainsStreaming(logPath, needle, { maxBytes: MAX_SCAN_BYTES })) {
+              continue;
+            }
             results.push(parseAntigravitySession(dataPath, uuid, entry));
           }
+        }
+        if (skippedOversized > 0) {
+          process.stderr.write(
+            `[${label}] search skipped ${skippedOversized} log(s) > ${Math.round(MAX_SCAN_BYTES / 1048576)}MB\n`
+          );
         }
 
         return sortByIsoDesc(results, "updated_at");
@@ -134,27 +174,25 @@ function buildAntigravityAdapter(
         throw new Error(`${label} session not found: ${sessionId}`);
       }
 
-      // TODO: parseAntigravitySession and parseAntigravityMessages both read overview.txt.
-      // Consider caching or combining into a single-pass parse. Minor agent with small session counts.
       const summary = parseAntigravitySession(dataPath, sessionId, entry);
-      const logPath = join(sessionPath, ".system_generated", "logs", "overview.txt");
-      const stat = safeStat(logPath);
-      if (!stat) {
+      const logPath = sessionLogPath(dataPath, sessionId);
+      if (!logPath) {
         return { ...summary, messages: [] };
       }
 
       let messages = parseAntigravityMessages(logPath, label);
 
-      // Apply mode (takes precedence over selection)
+      // Only last_message overrides selection; tool visibility is independent.
       if (readOptions.mode === "last_message") {
         messages = messages.slice(-1);
-      } else if (readOptions.mode === "all_no_tools") {
-        messages = messages.map((m) => ({
-          ...m,
-          parts: m.parts.filter((p) => p.type !== "tool"),
-        }));
       } else {
-        // mode is "all_with_tools" or undefined → use existing selection/role/userOnly logic
+        if (readOptions.mode === "all_no_tools") {
+          messages = messages.map((m) => ({
+            ...m,
+            parts: m.parts.filter((p) => p.type !== "tool"),
+          }));
+        }
+        // Always apply selection and role filters, even when tools are hidden.
 
         // Apply selection mode (mirrors pi/claude/zcode verbatim — selection FIRST).
         const selection = readOptions.selection;
@@ -274,46 +312,61 @@ function buildAntigravityAdapter(
         throw new Error(`${label} ${message}`);
       }
     },
-    forkSession: async (
-      sourceSessionId: string,
-      destAgent: string,
-      destAlias: string
-    ): Promise<ForkResult> => {
-      // STUB: native write to agy session storage is deferred (R-18).
-      // Mirror pi/claude/zcode forkSession — return a well-formed ForkResult.
-      return {
-        newSessionId: `agy-fork-${Date.now()}`,
-        parentSessionId: sourceSessionId,
-        destAgent,
-        destAlias,
-        forkedAt: new Date().toISOString(),
-      };
-    },
+
     destroy: () => {
       // No-op for JSONL-based adapter (no handles to release).
     },
-    findSimilarSessions: async (): Promise<SimilarSessionResult[]> => [],
+
   };
 }
 
 function resolveAntigravityPath(entry: OtherAgentEntry, options: AntigravityAdapterOptions): string {
   const home = options.homeDir ?? homedir();
   const configured = typeof entry.path === "string" ? entry.path : undefined;
-  const defaultPath = options.dataPath ?? join(home, ".gemini", "antigravity");
-  const resolved = resolvePath(configured ?? defaultPath);
+  // Real antigravity CLI stores under ~/.gemini/antigravity-cli (RCA 2026-09-02);
+  // ~/.gemini/antigravity kept as legacy fallback.
+  const candidates = configured
+    ? [configured]
+    : options.dataPath
+      ? [options.dataPath]
+      : [join(home, ".gemini", "antigravity-cli"), join(home, ".gemini", "antigravity")];
 
-  const stat = safeStat(resolved);
-  if (!stat) {
-    throw new Error(`Antigravity path not found: ${resolved}`);
+  for (const candidate of candidates) {
+    const resolved = resolvePath(candidate);
+    if (safeStat(resolved)) return resolved;
   }
-  return resolved;
+  throw new Error(`Antigravity path not found: ${candidates.map((c) => resolvePath(c)).join(" or ")}`);
+}
+
+/**
+ * Resolve a brain's log file: prefer overview.txt, fall back to the real
+ * antigravity transcript files (transcript_full.jsonl, transcript.jsonl).
+ * Real brains do NOT contain overview.txt (RCA 2026-09-02).
+ */
+function sessionLogPath(dataPath: string, uuid: string): string | undefined {
+  const logsDir = join(dataPath, "brain", uuid, ".system_generated", "logs");
+  for (const name of ["overview.txt", "transcript_full.jsonl", "transcript.jsonl"]) {
+    const p = join(logsDir, name);
+    if (safeStat(p)) return p;
+  }
+  return undefined;
+}
+
+/** Strip <USER_REQUEST>…</USER_REQUEST> wrapper (real Multica task prompts) and
+ *  take the first non-empty line, truncated — used for session titles. */
+function firstUserLine(content: string): string {
+  let text = content;
+  const wrapped = text.match(/^\s*<USER_REQUEST>\s*([\s\S]*?)<\/USER_REQUEST>/);
+  if (wrapped) text = wrapped[1];
+  const line = text.split(/\r?\n/).map((l) => l.trim()).find((l) => l.length > 0) ?? "";
+  return line.slice(0, 80);
 }
 
 function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAgentEntry): SessionSummary {
-  const logPath = join(dataPath, "brain", uuid, ".system_generated", "logs", "overview.txt");
-  const stat = safeStat(logPath);
+  const logPath = sessionLogPath(dataPath, uuid);
+  const stat = logPath ? safeStat(logPath) : undefined;
 
-  if (!stat) {
+  if (!logPath || !stat) {
     const dirStat = safeStat(join(dataPath, "brain", uuid));
     const mtime = dirStat?.mtime.toISOString() ?? new Date().toISOString();
     return {
@@ -328,7 +381,11 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
     };
   }
 
-  const content = readFileSync(logPath, "utf8");
+  // Perf (RCA 2026-09-02): real installs have 700+ brains (GBs of transcripts) —
+  // reading every file fully makes each one-shot `oas` CLI invocation multi-second.
+  // For listing, sample head+tail chunks: title + created_at come from the head,
+  // updated_at from the tail, message_count = sampled records (a lower bound).
+  const content = sampleTranscript(logPath, Number(stat.size));
   const lines = splitJsonlLines(content);
   let title: string | undefined;
   let messageCount = 0;
@@ -357,7 +414,7 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
     if (logEntry.source === "USER_EXPLICIT" && logEntry.type === "USER_INPUT") {
       messageCount++;
       if (!title && logEntry.content) {
-        title = logEntry.content.split(/\r?\n/)[0].trim();
+        title = firstUserLine(logEntry.content);
       }
     } else if (logEntry.source === "MODEL" && logEntry.type === "PLANNER_RESPONSE") {
       messageCount++;
@@ -376,6 +433,33 @@ function parseAntigravitySession(dataPath: string, uuid: string, entry: OtherAge
     storage: "other",
     ...(parentSessionId ? { parentSessionId } : {}),
   };
+}
+
+/**
+ * Read head+tail chunks of a transcript instead of the whole file.
+ * Small files are returned whole. The tail chunk skips its (likely partial)
+ * first line; both chunks are joined with a newline boundary.
+ */
+function sampleTranscript(logPath: string, size: number): string {
+  const HEAD = 512 * 1024;
+  const TAIL = 256 * 1024;
+  if (size <= HEAD + TAIL) {
+    return readFileSync(logPath, "utf8");
+  }
+  const fd = openSync(logPath, "r");
+  try {
+    const head = new Uint8Array(HEAD);
+    readSync(fd, head, 0, HEAD, 0);
+    const tail = new Uint8Array(TAIL);
+    readSync(fd, tail, 0, TAIL, size - TAIL);
+    const tailText = Buffer.from(tail.buffer).toString("utf8");
+    // Drop partial first line of the tail chunk
+    const firstNl = tailText.indexOf("\n");
+    const tailLines = firstNl >= 0 ? tailText.slice(firstNl + 1) : "";
+    return Buffer.from(head.buffer).toString("utf8") + "\n" + tailLines;
+  } finally {
+    closeSync(fd);
+  }
 }
 
 function parseAntigravityMessages(logPath: string, label: string): SessionMessage[] {
@@ -435,14 +519,13 @@ function parseAntigravityMessages(logPath: string, label: string): SessionMessag
 }
 
 /**
- * Determine whether any log entry in the session's overview.txt contains a
+ * Determine whether any log entry in the session's log file contains a
  * tool_call whose name case-insensitively contains the needle.
  * Mirror of pi.ts sessionUsesTool / zcode.ts toolSearchSessions.
  */
 function sessionUsesTool(dataPath: string, uuid: string, needle: string): boolean {
-  const logPath = join(dataPath, "brain", uuid, ".system_generated", "logs", "overview.txt");
-  const stat = safeStat(logPath);
-  if (!stat) return false;
+  const logPath = sessionLogPath(dataPath, uuid);
+  if (!logPath) return false;
 
   const content = readFileSync(logPath, "utf8");
   const lines = splitJsonlLines(content);
