@@ -23,6 +23,13 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    # The installer clones the checked-out workspace with --branch main.
+    # PR checkouts are detached at depth 1 and do not expose a main ref.
+    - name: Provide local main ref for installer clone
+      run: |
+        if ! git show-ref --verify --quiet refs/heads/main; then
+          git branch main HEAD
+        fi
     
     - name: Setup Bun (for faster install)
       uses: oven-sh/setup-bun@v1
@@ -106,6 +113,13 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    # The installer clones the checked-out workspace with --branch main.
+    # PR checkouts are detached at depth 1 and do not expose a main ref.
+    - name: Provide local main ref for installer clone
+      run: |
+        if ! git show-ref --verify --quiet refs/heads/main; then
+          git branch main HEAD
+        fi
     
     - name: Test fresh install (with Bun auto-install)
       env:
@@ -145,6 +159,13 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    # The installer clones the checked-out workspace with --branch main.
+    # PR checkouts are detached at depth 1 and do not expose a main ref.
+    - name: Provide local main ref for installer clone
+      run: |
+        if ! git show-ref --verify --quiet refs/heads/main; then
+          git branch main HEAD
+        fi
     
     - name: Setup Bun
       uses: oven-sh/setup-bun@v1
